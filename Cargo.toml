@@ -1,0 +1,7 @@
+[package]
+name = "lisp-rs"
+version = "0.0.1"
+authors = ["James Zhu <james.zhu.engineer@gmail.com>"]
+
+[dependencies]
+linenoise-rust = "0.1.11" 
