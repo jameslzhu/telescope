@@ -1,9 +1,7 @@
 extern crate linenoise;
 
 mod list;
-
-use std::vec;
-use list::List;
+use list::{Sym, Node, List};
 
 // pub struct List {
 //     head: Link,
@@ -21,8 +19,10 @@ use list::List;
 
 fn main() {
 
-    let asdf = List::<i32>::new();
-    println!("{:#?}", asdf);
+    let mut asdf = List::<i32>::new();
+    asdf.elems.push(Node::Sym(Sym::Add));
+    asdf.elems.push(Node::Num(1));
+    println!("{}", asdf);
 
     println!("lisp-rs");
     while let Some(input) = linenoise::input("> ") {
