@@ -1,6 +1,8 @@
-use std::fmt;
+#![allow(dead_code)]
 
-#[allow(dead_code)]
+use std::fmt;
+use std::slice;
+
 #[derive(Copy, Clone, Debug)]
 pub enum Sym {
     Add,
@@ -21,7 +23,6 @@ impl fmt::Display for Sym {
     }
 }
 
-#[allow(dead_code)]
 #[derive(Debug)]
 pub enum Node<T> {
     Num(T),
@@ -60,6 +61,10 @@ impl<T> List<T> {
             elems : Vec::<_>::new()
         }
     }
+
+    pub fn iter(&self) -> Iter<T> {
+        self.elems.iter()
+    }
 }
 
 impl<T> Clone for List<T> where T : Clone {
@@ -80,10 +85,4 @@ impl<T> fmt::Display for List<T> where T : fmt::Display {
     }
 }
 
-// impl<T> Iterator for List<T> {
-//     type Item = Node<T>;
-//
-//     fn next(&mut self) -> Option<Node<T>> {
-//         unimplemented!();
-//     }
-// }
+pub type Iter<'a, T> = slice::Iter<'a, Node<T>>;
