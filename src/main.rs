@@ -18,7 +18,6 @@ use list::{Sym, Node, List};
 // }
 
 fn main() {
-
     let mut asdf = List::<i32>::new();
     asdf.elems.push(Node::Sym(Sym::Add));
     asdf.elems.push(Node::Num(1));
