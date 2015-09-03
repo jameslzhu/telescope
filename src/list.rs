@@ -5,7 +5,7 @@ use std::slice;
 use std::vec;
 use std::iter::FromIterator;
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum Sym {
     Add,
     Sub,
