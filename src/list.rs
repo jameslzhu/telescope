@@ -2,6 +2,8 @@
 
 use std::fmt;
 use std::slice;
+use std::vec;
+use std::iter::FromIterator;
 
 #[derive(Copy, Clone, Debug)]
 pub enum Sym {
@@ -46,6 +48,10 @@ pub struct List<T> {
     pub elems : Vec<Node<T>>
 }
 
+pub type Iter<'a, T> = slice::Iter<'a, Node<T>>;
+pub type IterMut<'a, T> = slice::IterMut<'a, Node<T>>;
+pub type IntoIter<T> = vec::IntoIter<Node<T>>;
+
 impl<T> List<T> {
     pub fn new() -> List<T> {
         List::<T>::default()
@@ -74,8 +80,37 @@ impl<T> Default for List<T> {
     }
 }
 
-// impl<T> IntoIterator for List<T> {
-//     type Item = Node<T>;
-// }
+impl<T> FromIterator<T> for List<T> {
+    fn from_iter<U>(iterator: U) -> Self where U : IntoIterator<Item=T> {
+        List::<T> {
+            elems : Vec::from_iter(iterator.into_iter().map(|e| Node::Num(e)))
+        }
+    }
+}
 
-pub type Iter<'a, T> = slice::Iter<'a, Node<T>>;
+impl<T> IntoIterator for List<T> {
+    type Item = Node<T>;
+    type IntoIter = IntoIter<T>;
+
+    fn into_iter(self) -> IntoIter<T> {
+        self.elems.into_iter()
+    }
+}
+
+impl<'a, T> IntoIterator for &'a List<T> {
+    type Item = &'a Node<T>;
+    type IntoIter = Iter<'a, T>;
+
+    fn into_iter(self) -> Iter<'a, T> {
+        self.elems.iter()
+    }
+}
+
+impl<'a, T> IntoIterator for &'a mut List<T> {
+    type Item = &'a mut Node<T>;
+    type IntoIter = IterMut<'a, T>;
+
+    fn into_iter(mut self) -> IterMut<'a, T> {
+        self.elems.iter_mut()
+    }
+}
