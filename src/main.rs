@@ -1,25 +1,15 @@
+#[macro_use]
+extern crate nom;
 extern crate linenoise;
 
 mod list;
+mod parser;
 use list::{Sym, Node, List};
-
-// pub struct List {
-//     head: Link,
-// }
-//
-// enum Link {
-//     Empty,
-//     More(Box<Node>),
-// }
-//
-// struct Node {
-//     elem: i32,
-//     next: Link,
-// }
+use list::Sym::*;
 
 fn main() {
     let mut asdf = List::<i32>::new();
-    asdf.elems.push(Node::Sym(Sym::Add));
+    asdf.elems.push(Node::Sym(Add));
     asdf.elems.push(Node::Num(1));
     println!("{}", asdf);
 

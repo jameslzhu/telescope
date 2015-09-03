@@ -5,3 +5,4 @@ authors = ["James Zhu <james.zhu.engineer@gmail.com>"]
 
 [dependencies]
 linenoise-rust = "0.1.11" 
+nom = "0.3.0"
