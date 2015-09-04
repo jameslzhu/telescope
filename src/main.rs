@@ -4,15 +4,13 @@ extern crate linenoise;
 
 mod list;
 mod parser;
+
+use nom::IResult;
+
 use list::{Sym, Node, List};
 use list::Sym::*;
 
 fn main() {
-    let mut asdf = List::<i32>::new();
-    asdf.elems.push(Node::Sym(Add));
-    asdf.elems.push(Node::Num(1));
-    println!("{}", asdf);
-
     println!("lisp-rs");
     while let Some(input) = linenoise::input("> ") {
         linenoise::history_add(&input);
@@ -20,7 +18,14 @@ fn main() {
         match &input as &str {
             "clear" => linenoise::clear_screen(),
             "exit"  => break,
-            _ => println!("{}", input),
+            _ => {
+                let parsed = parser::list(input.as_bytes());
+                match parsed {
+                    IResult::Done(_, result) => println!("{}", result),
+                    IResult::Error(_)        => println!("error: something exploded"),
+                    IResult::Incomplete(_)   => println!("error: incomplete")
+                }
+            }
         };
     }
 }

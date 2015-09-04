@@ -47,11 +47,15 @@ fn test_numeric() {
 
 named!(pub symbol<Node<i64> >,
     map!(
-        alt!(
-            tag!("+") => {|_| Sym::Add } |
-            tag!("-") => {|_| Sym::Sub } |
-            tag!("*") => {|_| Sym::Mul } |
-            tag!("/") => {|_| Sym::Div }
+        delimited!(
+            opt!(multispace),
+            alt!(
+                tag!("+") => {|_| Sym::Add } |
+                tag!("-") => {|_| Sym::Sub } |
+                tag!("*") => {|_| Sym::Mul } |
+                tag!("/") => {|_| Sym::Div }
+            ),
+            opt!(multispace)
         ),
         |s| { Node::Sym(s) }
     )
@@ -66,7 +70,7 @@ fn test_symbol() {
     }
 }
 
-named!(list<List<i64> >,
+named!(pub list<List<i64> >,
     delimited!(
         tag!("("),
         map!(
