@@ -32,6 +32,19 @@ pub enum Node<T> {
     List(List<T>),
 }
 
+impl<T> PartialEq for Node<T> where T: PartialEq {
+    fn eq(&self, other: &Self) -> bool {
+        use self::Node::*;
+
+        match (self, other) {
+            (&Num(ref a), &Num(ref b)) => { a == b },
+            (&Sym(ref a), &Sym(ref b)) => { a == b },
+            (&List(ref a), &List(ref b)) => { a == b },
+            _ => false
+        }
+    }
+}
+
 impl<T> fmt::Display for Node<T> where T : fmt::Display {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use self::Node::*;
@@ -53,12 +66,18 @@ pub type IterMut<'a, T> = slice::IterMut<'a, Node<T>>;
 pub type IntoIter<T> = vec::IntoIter<Node<T>>;
 
 impl<T> List<T> {
-    pub fn new() -> List<T> {
+    pub fn new() -> Self {
         List::<T>::default()
     }
 
     pub fn iter(&self) -> Iter<T> {
         self.elems.iter()
+    }
+}
+
+impl<T> PartialEq for List<T> where T: PartialEq {
+    fn eq(&self, other: &Self) -> bool {
+        self.elems.iter().zip(other.elems.iter()).all(|(a, b)| { a.eq(&b)})
     }
 }
 
@@ -112,5 +131,11 @@ impl<'a, T> IntoIterator for &'a mut List<T> {
 
     fn into_iter(mut self) -> IterMut<'a, T> {
         self.elems.iter_mut()
+    }
+}
+
+impl<T> From<Vec<Node<T>>> for List<T> {
+    fn from(v: Vec<Node<T>>) -> Self {
+        List::<T> { elems: v }
     }
 }
