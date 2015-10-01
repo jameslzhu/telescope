@@ -1,8 +1,10 @@
 #[macro_use]
 extern crate nom;
+extern crate combine;
 extern crate linenoise;
 
 mod list;
+mod parsercombine;
 mod parser;
 
 use nom::IResult;
