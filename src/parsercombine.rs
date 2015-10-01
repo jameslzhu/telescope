@@ -50,9 +50,34 @@ fn numeric<I>(input: State<I>) -> ParseResult<i32, I> where I: Stream<Item=char>
         .parse_state(input)
 }
 
+fn symbol<I>(input: State<I>) -> ParseResult<Sym, I> where I: Stream<Item=char> {
+    choice([
+        token('+'),
+        token('-'),
+        token('*'),
+        token('/')
+    ])
+        .map(|sym| {
+            match sym {
+                '+' => Sym::Add,
+                '-' => Sym::Sub,
+                '*' => Sym::Mul,
+                '/' => Sym::Div,
+                _ => unreachable!()
+            }
+        })
+        .parse_state(input)
+}
+
 #[test]
-fn test() {
+fn test_numeric() {
     let result = parser(numeric).parse("1000");
-    println!("{:?}", result);
     assert_eq!(result, Ok((1000, "")));
+}
+
+#[test]
+fn test_symbol() {
+    let result = parser(symbol).parse("+1");
+    assert_eq!(result, Ok((Sym::Add, "1")));
+    
 }
