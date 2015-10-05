@@ -1,56 +1,28 @@
 extern crate combine;
 
-use std::str::FromStr;
-
 use combine::*;
 use combine::combinator::FnParser;
 use combine::primitives::{Stream};
 
-use list::{Sym, Node, List};
+use list::{Node, List};
+use list::Sym::{self, Add, Sub, Mul, Div};
 
-enum Sign { Pos, Neg }
-
-// fn sign<I>(input: State<I>) -> ParseResult<(Sign, String), I> {
-//     let mut parser = choice([token('-'), token('+')]
-//     match parser.parse(input) {
-//         Ok(("-", _)) => Sign::Pos,
-//         Ok(("-")) | Err(_) => Sign::Neg,
-//     }
-// }
-
-fn digits_to_int(digits : Vec<char>) -> i32
-{
-    digits.iter().fold(0, |acc, &d| acc * 10 + d.to_digit(10).expect("digit") as i32)
-}
-
-fn many_digits<I>() -> FnParser<I, fn (State<I>) -> ParseResult<i32, I>>
-where I: Stream<Item=char> {
-
-    fn many_digits_<I>(input: State<I>) -> ParseResult<i32, I>
-    where I: Stream<Item=char> {
-        many1::<Vec<char>, _>(digit())
-            .map(digits_to_int)
-            .parse_state(input)
-    }
-
-    parser(many_digits_)
-}
-
-fn numeric<I>(input: State<I>) -> ParseResult<i32, I> where I: Stream<Item=char> {
+pub fn numeric<I>(input: State<I>) -> ParseResult<Node<i32>, I> where I: Stream<Item=char> {
     (
         optional(choice([token('+'), token('-')])),
-        many_digits()
+        many1(digit()).map(|string: String| string.parse::<i32>().unwrap())
     )
-        .map(|(sign, digits)| -> i32 {
-            match sign {
-                Some('-') => -digits,
-                _ => digits
-            }
-        })
+        .map(|(sign, digits)| Node::Num(if sign == Some('-') {-digits} else {digits}))
         .parse_state(input)
 }
 
-fn symbol<I>(input: State<I>) -> ParseResult<Sym, I> where I: Stream<Item=char> {
+#[test]
+fn test_numeric() {
+    let result = parser(numeric).parse("1000");
+    assert_eq!(result, Ok((Node::Num(1000), "")));
+}
+
+pub fn symbol<I>(input: State<I>) -> ParseResult<Node<i32>, I> where I: Stream<Item=char> {
     choice([
         token('+'),
         token('-'),
@@ -58,26 +30,24 @@ fn symbol<I>(input: State<I>) -> ParseResult<Sym, I> where I: Stream<Item=char> 
         token('/')
     ])
         .map(|sym| {
-            match sym {
-                '+' => Sym::Add,
-                '-' => Sym::Sub,
-                '*' => Sym::Mul,
-                '/' => Sym::Div,
+            Node::Sym(match sym {
+                '+' => Add,
+                '-' => Sub,
+                '*' => Mul,
+                '/' => Div,
                 _ => unreachable!()
-            }
+            })
         })
         .parse_state(input)
 }
 
 #[test]
-fn test_numeric() {
-    let result = parser(numeric).parse("1000");
-    assert_eq!(result, Ok((1000, "")));
-}
-
-#[test]
 fn test_symbol() {
     let result = parser(symbol).parse("+1");
-    assert_eq!(result, Ok((Sym::Add, "1")));
-    
+    assert_eq!(result, Ok((Node::Sym(Add), "1")));
+
 }
+
+// pub fn list<I>(input: State<I>) -> ParseResult<Node<i32>, I> where I: Stream<Item=char> {
+//     between(token('('), token(')'), )
+// }
