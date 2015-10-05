@@ -9,9 +9,6 @@ mod parser;
 
 use nom::IResult;
 
-use list::{Sym, Node, List};
-use list::Sym::*;
-
 fn main() {
     println!("lisp-rs");
     while let Some(input) = linenoise::input("> ") {
