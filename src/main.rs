@@ -1,13 +1,8 @@
-#[macro_use]
-extern crate nom;
 extern crate combine;
 extern crate linenoise;
 
 mod list;
-mod parsercombine;
-mod parser;
-
-use nom::IResult;
+mod parse;
 
 use combine::*;
 
@@ -20,19 +15,13 @@ fn main() {
             "clear" => linenoise::clear_screen(),
             "exit"  => break,
             _ => {
-                let parsed = parser(parsercombine::list)
+                let parsed = parser(parse::list)
                     .parse(&input as &str)
                     .map(|t| t.0);
                 match parsed {
                     Ok(result) => println!("{}", result),
                     Err(_) => println!("error: something exploded")
                 }
-                // let parsed = parser::list(input);
-                // match parsed {
-                //     IResult::Done(_, result) => println!("{}", result),
-                //     IResult::Error(_)        => println!("error: something exploded"),
-                //     IResult::Incomplete(_)   => println!("error: incomplete")
-                // }
             }
         };
     }

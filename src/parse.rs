@@ -1,12 +1,10 @@
 extern crate combine;
 
-use std::fmt::Debug;
-
 use combine::*;
 use combine::primitives::{Stream};
 
 use list::{Node, List};
-use list::Sym::{self, Add, Sub, Mul, Div};
+use list::Sym::{Add, Sub, Mul, Div};
 
 pub fn numeric<I>(input: State<I>) -> ParseResult<Node<i32>, I> where I: Stream<Item=char> {
     (
@@ -49,11 +47,11 @@ pub fn symbol<I>(input: State<I>) -> ParseResult<Node<i32>, I> where I: Stream<I
 fn test_symbol() {
     let result = parser(symbol).parse("+1");
     assert_eq!(result, Ok((Node::Sym(Add), "1")));
-
 }
 
 pub fn list<I>(input: State<I>) -> ParseResult<List<i32>, I> where I: Stream<Item=char> {
-    between(token('(').skip(spaces()), token(')'), many(parser(symbol).or(parser(numeric)).skip(spaces()))
+    between(token('(').skip(spaces()), token(')'),
+        many(parser(symbol).or(parser(numeric)).skip(spaces()))
     )
     .parse_state(input)
 }
@@ -63,12 +61,10 @@ fn test_list() {
     let result = parser(list).parse("( + 1 2 3 )");
 
     let mut list = List::<i32>::new();
-    list.elems.push(Node::Sym(Sym::Add));
+    list.elems.push(Node::Sym(Add));
     list.elems.push(Node::Num(1));
     list.elems.push(Node::Num(2));
     list.elems.push(Node::Num(3));
-
-    println!("{:#?}", result);
 
     assert_eq!(result, Ok((list, "")));
 }

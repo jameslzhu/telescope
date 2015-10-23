@@ -83,11 +83,7 @@ impl<T> PartialEq for List<T> where T: PartialEq {
 
 impl<T> fmt::Display for List<T> where T : fmt::Display {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "( ");
-        for e in &self.elems {
-            write!(f, "{} ", e);
-        }
-        write!(f, ")")
+        write!(f, "( {} )", self.elems.iter().fold(String::from(""), |a, ref e| format!("{} {}", a, e)))
     }
 }
 
