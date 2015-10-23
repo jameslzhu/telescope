@@ -99,10 +99,18 @@ impl<T> Default for List<T> {
     }
 }
 
-impl<T> FromIterator<T> for List<T> {
-    fn from_iter<U>(iterator: U) -> Self where U : IntoIterator<Item=T> {
+// impl<T> FromIterator<T> for List<T> {
+//     fn from_iter<U>(iterator: U) -> Self where U : IntoIterator<Item=T> {
+//         List::<T> {
+//             elems : Vec::from_iter(iterator.into_iter().map(|e| Node::Num(e)))
+//         }
+//     }
+// }
+
+impl<T> FromIterator<Node<T>> for List<T> {
+    fn from_iter<U>(iterator: U) -> Self where U : IntoIterator<Item=Node<T> > {
         List::<T> {
-            elems : Vec::from_iter(iterator.into_iter().map(|e| Node::Num(e)))
+            elems : Vec::from_iter(iterator.into_iter())
         }
     }
 }
