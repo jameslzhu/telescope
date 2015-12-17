@@ -16,12 +16,14 @@ pub enum Sym {
 impl fmt::Display for Sym {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use self::Sym::*;
-        write!(f, "{}", match *self {
-            Add => "+",
-            Sub => "-",
-            Mul => "*",
-            Div => "/"
-        })
+        write!(f,
+               "{}",
+               match *self {
+                   Add => "+",
+                   Sub => "-",
+                   Mul => "*",
+                   Div => "/",
+               })
     }
 }
 
@@ -32,20 +34,22 @@ pub enum Node<T> {
     List(List<T>),
 }
 
-impl<T> PartialEq for Node<T> where T: PartialEq {
+impl<T> PartialEq for Node<T> where T: PartialEq
+{
     fn eq(&self, other: &Self) -> bool {
         use self::Node::*;
 
         match (self, other) {
-            (&Num(ref a), &Num(ref b)) => { a == b },
-            (&Sym(ref a), &Sym(ref b)) => { a == b },
-            (&List(ref a), &List(ref b)) => { a == b },
-            _ => false
+            (&Num(ref a), &Num(ref b)) => a == b,
+            (&Sym(ref a), &Sym(ref b)) => a == b,
+            (&List(ref a), &List(ref b)) => a == b,
+            _ => false,
         }
     }
 }
 
-impl<T> fmt::Display for Node<T> where T : fmt::Display {
+impl<T> fmt::Display for Node<T> where T: fmt::Display
+{
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use self::Node::*;
         match *self {
@@ -58,7 +62,7 @@ impl<T> fmt::Display for Node<T> where T : fmt::Display {
 
 #[derive(Clone, Debug)]
 pub struct List<T> {
-    pub elems : Vec<Node<T>>
+    pub elems: Vec<Node<T>>,
 }
 
 pub type Iter<'a, T> = slice::Iter<'a, Node<T>>;
@@ -75,23 +79,25 @@ impl<T> List<T> {
     }
 }
 
-impl<T> PartialEq for List<T> where T: PartialEq {
+impl<T> PartialEq for List<T> where T: PartialEq
+{
     fn eq(&self, other: &Self) -> bool {
-        self.elems.iter().zip(other.elems.iter()).all(|(a, b)| { a.eq(&b)})
+        self.elems.iter().zip(other.elems.iter()).all(|(a, b)| a.eq(&b))
     }
 }
 
-impl<T> fmt::Display for List<T> where T : fmt::Display {
+impl<T> fmt::Display for List<T> where T: fmt::Display
+{
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "( {} )", self.elems.iter().fold(String::from(""), |a, ref e| format!("{} {}", a, e)))
+        write!(f,
+               "( {} )",
+               self.elems.iter().fold(String::from(""), |a, ref e| format!("{} {}", a, e)))
     }
 }
 
 impl<T> Default for List<T> {
     fn default() -> Self {
-        List::<T> {
-            elems : Vec::<_>::new()
-        }
+        List::<T> { elems: Vec::<_>::new() }
     }
 }
 
@@ -104,10 +110,10 @@ impl<T> Default for List<T> {
 // }
 
 impl<T> FromIterator<Node<T>> for List<T> {
-    fn from_iter<U>(iterator: U) -> Self where U : IntoIterator<Item=Node<T> > {
-        List::<T> {
-            elems : Vec::from_iter(iterator.into_iter())
-        }
+    fn from_iter<U>(iterator: U) -> Self
+        where U: IntoIterator<Item = Node<T>>
+    {
+        List::<T> { elems: Vec::from_iter(iterator.into_iter()) }
     }
 }
 

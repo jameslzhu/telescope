@@ -13,14 +13,14 @@ fn main() {
 
         match &input as &str {
             "clear" => linenoise::clear_screen(),
-            "exit"  => break,
+            "exit" => break,
             _ => {
                 let parsed = parser(parse::list)
-                    .parse(&input as &str)
-                    .map(|t| t.0);
+                                 .parse(&input as &str)
+                                 .map(|t| t.0);
                 match parsed {
                     Ok(result) => println!("{}", result),
-                    Err(_) => println!("error: something exploded")
+                    Err(_) => println!("error: something exploded"),
                 }
             }
         };
