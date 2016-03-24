@@ -1,6 +1,8 @@
 extern crate combine;
 extern crate linenoise;
 
+mod atom;
+mod atom2;
 mod list;
 mod parse;
 
@@ -15,7 +17,7 @@ fn main() {
             "clear" => linenoise::clear_screen(),
             "exit" => break,
             _ => {
-                let parsed = parser(parse::list)
+                let parsed = parser(parse::expr)
                                  .parse(&input as &str)
                                  .map(|t| t.0);
                 match parsed {
