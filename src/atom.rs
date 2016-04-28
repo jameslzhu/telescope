@@ -71,6 +71,12 @@ impl<T> Expr<T> {
     }
 }
 
+impl<T> From<T> for Expr<T> {
+    fn from(t: T) -> Self {
+        Expr::Atom(Atom::Num(t))
+    }
+}
+
 impl<T> From<Vec<T>> for Expr<T> {
     fn from(v: Vec<T>) -> Self {
         Expr::List(v.into_iter().map(Atom::Num).map(Expr::Atom).collect())
@@ -93,7 +99,7 @@ impl<T> fmt::Display for Expr<T> where T: fmt::Display
 fn test_display()
 {
     assert_eq!("1", Expr::Atom(Atom::Num(1)).to_string());
-    assert_eq!("( 1 2 )", Expr::from(vec![1, 2]).to_string());
+    assert_eq!("( 1 2 )", Expr::<i32>::from(vec![1, 2]).to_string());
 }
 
 impl<T> iter::FromIterator<Expr<T>> for Expr<T> {

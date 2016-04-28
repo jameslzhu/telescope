@@ -2,7 +2,6 @@ extern crate combine;
 extern crate linenoise;
 
 mod atom;
-mod atom2;
 mod list;
 mod parse;
 
@@ -18,10 +17,10 @@ fn main() {
             "exit" => break,
             _ => {
                 let parsed = parser(parse::expr)
-                                 .parse(&input as &str)
+                                 .parse(input.as_str())
                                  .map(|t| t.0);
                 match parsed {
-                    Ok(result) => println!("{}", result),
+                    Ok(result) => println!("{:#?}", result),
                     Err(_) => println!("error: something exploded"),
                 }
             }
