@@ -2,7 +2,6 @@ extern crate combine;
 extern crate linenoise;
 
 mod atom;
-mod list;
 mod parse;
 
 use combine::*;

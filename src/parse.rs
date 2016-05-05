@@ -15,7 +15,11 @@ pub fn numeric<I>(input: State<I>) -> ParseResult<Expr<i32>, I>
      // Digits parser
      many1(digit()).map(|string: String| string.parse::<i32>().unwrap()))
         .map(|(sign, digits)| {
-            Expr::from(if sign == Some('-') { -digits } else { digits })
+            Expr::from(if sign == Some('-') {
+                -digits
+            } else {
+                digits
+            })
         })
         .parse_state(input)
 }
@@ -36,6 +40,7 @@ pub fn symbol<I>(input: State<I>) -> ParseResult<Expr<i32>, I>
         .parse_state(input)
 }
 
+#[cfg_attr(rustfmt, rustfmt_skip)]
 pub fn expr<I>(input: State<I>) -> ParseResult<Expr<i32>, I>
     where I: Stream<Item = char>
 {
@@ -44,9 +49,7 @@ pub fn expr<I>(input: State<I>) -> ParseResult<Expr<i32>, I>
             many(parser(expr)
                 .or(parser(symbol))
                 .or(parser(numeric))
-                .skip(spaces())
-            )
-        )
+                .skip(spaces())))
         .parse_state(input)
 }
 
