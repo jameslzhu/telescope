@@ -2,6 +2,7 @@
 
 use std::fmt;
 use std::iter;
+use std::borrow::Borrow;
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum Sym {
@@ -14,14 +15,14 @@ pub enum Sym {
 impl fmt::Display for Sym {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use self::Sym::*;
-        write!(f, "{}",
-            match *self {
-                Add => "+",
-                Sub => "-",
-                Mul => "*",
-                Div => "/",
-            }
-        )
+        write!(f,
+               "{}",
+               match *self {
+                   Add => "+",
+                   Sub => "-",
+                   Mul => "*",
+                   Div => "/",
+               })
     }
 }
 
@@ -37,7 +38,8 @@ impl<T> From<Sym> for Atom<T> {
     }
 }
 
-impl<T> fmt::Display for Atom<T> where T: fmt::Display
+impl<T> fmt::Display for Atom<T>
+    where T: fmt::Display
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use self::Atom::*;
@@ -56,18 +58,18 @@ pub enum Expr<T> {
 
 impl<T> Expr<T> {
     fn is_atom(&self) -> bool {
-        use self::Expr::*;
-        match *self {
-            Atom(_) => true,
-            List(_) => false,
+        if let Expr::Atom(_) = *self {
+            true
+        } else {
+            false
         }
     }
 
     fn is_list(&self) -> bool {
-        use self::Expr::*;
-        match *self {
-            Atom(_) => false,
-            List(_) => true,
+        if let Expr::List(_) = *self {
+            true
+        } else {
+            false
         }
     }
 }
@@ -80,23 +82,32 @@ impl<T> From<T> for Expr<T> {
 
 impl<T> From<Vec<T>> for Expr<T> {
     fn from(v: Vec<T>) -> Self {
-        Expr::List(v.into_iter().map(Atom::Num).map(Expr::Atom).collect())
+        Expr::List(v.into_iter().map(Expr::from).collect())
     }
 }
 
-impl<T> fmt::Display for Expr<T> where T: fmt::Display
+impl<T> Borrow<[Expr<T>]> for Expr<T>
 {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            &Expr::Atom(ref a) => write!(f, "{}", a),
-            &Expr::List(ref l) => write!(f, "( {} )",
-                l.iter().map(ToString::to_string).collect::<Vec<_>>().join(" "))
-               // l.iter().fold("".to_string(), |a, ref e| format!("{} {}", a, e)))
+    fn borrow(&self) -> &[Expr<T>] {
+        use self::Expr::*;
+        match *self {
+            Atom(ref a) => { let v = Vec::new(); v.push(Expr::from(*a.clone())); v.as_slice() },
+            List(ref l) => l.as_slice(),
         }
     }
 }
 
-
+impl<T> fmt::Display for Expr<T>
+    where T: fmt::Display
+{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        use self::Expr::*;
+        match *self {
+            Atom(ref a) => write!(f, "{}", a),
+            List(ref l) => write!(f, "( {} )", l.join(" ")),
+        }
+    }
+}
 
 impl<T> iter::FromIterator<Expr<T>> for Expr<T> {
     fn from_iter<U>(iterator: U) -> Self
@@ -107,7 +118,7 @@ impl<T> iter::FromIterator<Expr<T>> for Expr<T> {
 }
 
 impl<T> iter::FromIterator<Atom<T>> for Expr<T> {
-        fn from_iter<U>(iterator: U) -> Self
+    fn from_iter<U>(iterator: U) -> Self
         where U: IntoIterator<Item = Atom<T>>
     {
         Expr::List::<T>(iterator.into_iter().map(Expr::Atom).collect())
@@ -119,8 +130,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_display()
-    {
+    fn test_display() {
         assert_eq!("1", Expr::from(1).to_string());
         assert_eq!("( 1 2 )", Expr::<i32>::from(vec![1, 2]).to_string());
     }
