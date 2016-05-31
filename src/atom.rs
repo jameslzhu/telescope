@@ -2,7 +2,6 @@
 
 use std::fmt;
 use std::iter;
-use std::borrow::Borrow;
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum Sym {
@@ -86,17 +85,6 @@ impl<T> From<Vec<T>> for Expr<T> {
     }
 }
 
-impl<T> Borrow<[Expr<T>]> for Expr<T>
-{
-    fn borrow(&self) -> &[Expr<T>] {
-        use self::Expr::*;
-        match *self {
-            Atom(ref a) => { let v = Vec::new(); v.push(Expr::from(*a.clone())); v.as_slice() },
-            List(ref l) => l.as_slice(),
-        }
-    }
-}
-
 impl<T> fmt::Display for Expr<T>
     where T: fmt::Display
 {
@@ -104,7 +92,12 @@ impl<T> fmt::Display for Expr<T>
         use self::Expr::*;
         match *self {
             Atom(ref a) => write!(f, "{}", a),
-            List(ref l) => write!(f, "( {} )", l.join(" ")),
+            List(ref l) => {
+                let elements = l.iter()
+                    .map(ToString::to_string)
+                    .fold(String::new(), |mut acc, e| { acc.push_str(&e); acc });
+                write!(f, "( {} )", elements)
+            }
         }
     }
 }
