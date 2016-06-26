@@ -3,10 +3,10 @@ extern crate combine;
 use combine::*;
 use combine::primitives::Stream;
 
-use list::{Node, List};
-use list::Sym::{Add, Sub, Mul, Div};
+use atom::*;
+use atom::Sym::*;
 
-pub fn numeric<I>(input: State<I>) -> ParseResult<Node<i32>, I>
+pub fn numeric<I>(input: State<I>) -> ParseResult<Expr<i32>, I>
     where I: Stream<Item = char>
 {
     (// Sign parser
@@ -15,7 +15,7 @@ pub fn numeric<I>(input: State<I>) -> ParseResult<Node<i32>, I>
      // Digits parser
      many1(digit()).map(|string: String| string.parse::<i32>().unwrap()))
         .map(|(sign, digits)| {
-            Node::Num(if sign == Some('-') {
+            Expr::from(if sign == Some('-') {
                 -digits
             } else {
                 digits
@@ -24,52 +24,59 @@ pub fn numeric<I>(input: State<I>) -> ParseResult<Node<i32>, I>
         .parse_state(input)
 }
 
-#[test]
-fn test_numeric() {
-    let result = parser(numeric).parse("1000");
-    assert_eq!(result, Ok((Node::Num(1000), "")));
-}
-
-pub fn symbol<I>(input: State<I>) -> ParseResult<Node<i32>, I>
+pub fn symbol<I>(input: State<I>) -> ParseResult<Expr<i32>, I>
     where I: Stream<Item = char>
 {
     choice([token('+'), token('-'), token('*'), token('/')])
         .map(|sym| {
-            Node::Sym(match sym {
+            Expr::Atom(Atom::Sym(match sym {
                 '+' => Add,
                 '-' => Sub,
                 '*' => Mul,
                 '/' => Div,
                 _ => unreachable!(),
-            })
+            }))
         })
         .parse_state(input)
 }
 
-#[test]
-fn test_symbol() {
-    let result = parser(symbol).parse("+1");
-    assert_eq!(result, Ok((Node::Sym(Add), "1")));
-}
-
-pub fn list<I>(input: State<I>) -> ParseResult<List<i32>, I>
+#[cfg_attr(rustfmt, rustfmt_skip)]
+pub fn expr<I>(input: State<I>) -> ParseResult<Expr<i32>, I>
     where I: Stream<Item = char>
 {
     between(token('(').skip(spaces()),
             token(')'),
-            many(parser(symbol).or(parser(numeric)).skip(spaces())))
+            many(parser(expr)
+                .or(parser(symbol))
+                .or(parser(numeric))
+                .skip(spaces())))
         .parse_state(input)
 }
 
-#[test]
-fn test_list() {
-    let result = parser(list).parse("( + 1 2 3 )");
+#[cfg(test)]
+mod tests {
+    use combine::*;
 
-    let mut list = List::<i32>::new();
-    list.elems.push(Node::Sym(Add));
-    list.elems.push(Node::Num(1));
-    list.elems.push(Node::Num(2));
-    list.elems.push(Node::Num(3));
+    use super::*;
+    use atom::*;
+    use atom::Sym::*;
 
-    assert_eq!(result, Ok((list, "")));
+    #[test]
+    fn test_numeric() {
+        let result = parser(numeric).parse("1000");
+        assert_eq!(result, Ok((Expr::from(1000), "")));
+    }
+
+    #[test]
+    fn test_symbol() {
+        let result = parser(symbol).parse("+1");
+        assert_eq!(result, Ok((Expr::Atom(Atom::Sym(Add)), "1")));
+    }
+
+    #[test]
+    fn test_expr() {
+        let result = parser(expr).parse("( 1 2 3 )");
+        let expr = Expr::from(vec![1, 2, 3]);
+        assert_eq!(result, Ok((expr, "")));
+    }
 }
