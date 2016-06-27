@@ -1,0 +1,10 @@
+max_width = 100
+ideal_width = 80
+tab_spaces = 4
+hard_tabs = false
+newline_style = "Native"
+report_todo   = "Always"
+report_fixme  = "Always"
+reorder_imports = true
+wrap_comments = true
+

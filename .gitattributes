@@ -1,0 +1,8 @@
+# Handle line endings automatically for text files
+# Leave all binary files untouched
+* text=auto
+
+*.rs text
+*.toml text
+*.lock text
+*.md text
