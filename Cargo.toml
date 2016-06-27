@@ -6,3 +6,4 @@ authors = ["James Zhu <james.zhu.engineer@gmail.com>"]
 [dependencies]
 linenoise-rust = "0.2.0"
 combine = "1.0.0"
+combine-language = "1.0.0"
