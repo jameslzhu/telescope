@@ -15,6 +15,13 @@ rust:
   - beta
   - nightly
 
+# whitelist
+branches:
+  only:
+    - master
+    - develop
+    - /^release/.*$/
+
 matrix:
   allow_failures:
     - rust: nightly
