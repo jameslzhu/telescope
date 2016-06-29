@@ -41,10 +41,10 @@ impl fmt::Display for Operator {
 #[derive(Clone, Debug, PartialEq)]
 pub enum Atom {
     Op(Operator),
-    Bool(bool),
+    // Bool(bool),
     Int(i64),
-    Float(f64),
-    Str(String),
+    // Float(f64),
+    // Str(String),
 }
 
 impl fmt::Display for Atom {
@@ -52,10 +52,10 @@ impl fmt::Display for Atom {
         use self::Atom::*;
         match *self {
             Op(ref t) => write!(f, "{}", t),
-            Bool(ref t) => write!(f, "{}", t),
+            // Bool(ref t) => write!(f, "{}", t),
             Int(ref t) => write!(f, "{}", t),
-            Float(ref t) => write!(f, "{}", t),
-            Str(ref t) => write!(f, "{}", t),
+            // Float(ref t) => write!(f, "{}", t),
+            // Str(ref t) => write!(f, "{}", t),
         }
     }
 }
@@ -66,11 +66,11 @@ impl From<Operator> for Atom {
     }
 }
 
-impl From<bool> for Atom {
-    fn from(x: bool) -> Self {
-        Atom::Bool(x)
-    }
-}
+// impl From<bool> for Atom {
+//     fn from(x: bool) -> Self {
+//         Atom::Bool(x)
+//     }
+// }
 
 impl From<i64> for Atom {
     fn from(x: i64) -> Self {
@@ -78,22 +78,61 @@ impl From<i64> for Atom {
     }
 }
 
-impl From<f64> for Atom {
-    fn from(x: f64) -> Self {
-        Atom::Float(x)
-    }
-}
-
-impl From<String> for Atom {
-    fn from(x: String) -> Self {
-        Atom::Str(x.into())
-    }
-}
+// impl From<f64> for Atom {
+//     fn from(x: f64) -> Self {
+//         Atom::Float(x)
+//     }
+// }
+//
+// impl From<String> for Atom {
+//     fn from(x: String) -> Self {
+//         Atom::Str(x.into())
+//     }
+// }
 
 #[derive(Debug, PartialEq)]
 pub enum Expr {
     Atom(Atom),
     List(Vec<Expr>),
+}
+
+impl Expr {
+    pub fn eval(&self) -> Result<i64, ()> {
+        use self::Expr::*;
+        use self::Atom::*;
+        use self::Operator::*;
+        match *self {
+            Atom(ref a) => {
+                match *a {
+                    Op(_) => Err(()),
+                    Int(n) => Ok(n),
+                }
+            }
+            List(ref l) => {
+                let mut iter = l.iter();
+                if let &Atom(ref a) = iter.next().unwrap() {
+                    if let &Op(ref o) = a {
+                        match *o {
+                            Add => Ok(iter.fold(0, |acc, ref x| acc + x.eval().unwrap())),
+                            Sub => {
+                                if l.len() == 3 {
+                                    Ok(l[1].eval().unwrap() - l[2].eval().unwrap())
+                                } else { Err(()) }
+                            },
+                            Mul => Ok(iter.fold(1, |acc, ref x| acc * x.eval().unwrap())),
+                            Div => {
+                                if l.len() == 3 {
+                                    Ok(l[1].eval().unwrap() / l[2].eval().unwrap())
+                                } else { Err(()) }
+                            }
+                        }
+                    } else {
+                        Err(())
+                    }
+                } else { Err(()) }
+            }
+        }
+    }
 }
 
 impl fmt::Display for Expr {

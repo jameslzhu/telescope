@@ -24,7 +24,12 @@ fn main() {
                 //                  .parse(input.as_str())
                 //                  .map(|t| t.0);
                 match parsed {
-                    Ok(result) => println!("{}", result),
+                    Ok(result) => {
+                        println!("{}", result);
+                        if let Ok(value) = result.eval() {
+                            println!("{}", value);
+                        }
+                    },
                     Err(e) => println!("error: {}", e),
                 }
             }
