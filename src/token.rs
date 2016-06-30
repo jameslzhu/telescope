@@ -49,6 +49,24 @@ pub enum Atom {
     // Str(String),
 }
 
+impl Atom {
+    pub fn op(&self) -> Result<&Operator> {
+        use self::Atom::*;
+        match *self {
+            Op(ref x) => Ok(x),
+            _ => Err(format!("cannot convert atom {} into op", self).into()),
+        }
+    }
+
+    pub fn int(&self) -> Result<i64> {
+        use self::Atom::*;
+        match *self {
+            Int(x) => Ok(x),
+            _ => Err(format!("cannot convert atom {} into int", self).into()),
+        }
+    }
+}
+
 impl fmt::Display for Atom {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use self::Atom::*;
@@ -92,13 +110,37 @@ impl From<i64> for Atom {
 //     }
 // }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Expr {
     Atom(Atom),
     List(Vec<Expr>),
 }
 
 impl Expr {
+    pub fn is_atom(&self) -> bool {
+        if let Expr::Atom(_) = *self {true} else {false}
+    }
+
+    pub fn is_list(&self) -> bool {
+        return !self.is_atom();
+    }
+
+    pub fn atom(&self) -> Result<&Atom> {
+        use self::Expr::*;
+        match *self {
+            Atom(ref a) => Ok(a),
+            List(_) => Err("cannot convert list into atom".into()),
+        }
+    }
+
+    pub fn list(&self) -> Result<&Vec<Expr>> {
+        use self::Expr::*;
+        match *self {
+            Atom(_) => Err("cannot convert atom into list".into()),
+            List(ref l) => Ok(l),
+        }
+    }
+
     pub fn eval(&self) -> Result<i64> {
         use self::Expr::*;
         use self::Atom::*;
@@ -113,42 +155,39 @@ impl Expr {
             List(ref l) => {
                 let mut iter = l.iter();
                 let op_expr = try!(iter.next().ok_or("expected operator as first element"));
-                if let &Atom(ref a) = op_expr {
-                    if let &Op(ref o) = a {
-                        match *o {
-                            Add => iter.fold(Ok(0), |acc, ref x| {
-                                let e = try!(x.eval());
-                                acc.map(|a| a + e)
-                            }),
-                            Sub => {
-                                if l.len() == 3 {
-                                    let a = try!(l[1].eval());
-                                    let b = try!(l[2].eval());
-                                    Ok(a - b)
-                                } else {
-                                    Err("expected two operands to '-' operation".into())
-                                }
-                            },
-                            Mul => iter.fold(Ok(1), |acc, ref x| {
-                                let e = try!(x.eval());
-                                acc.map(|a| a * e)
-                            }),
-                            Div => {
-                                if l.len() == 3 {
-                                    let a = try!(l[1].eval());
-                                    let b = try!(l[2].eval());
-                                    Ok(a / b)
-                                } else {
-                                    Err("expected two operands to '/' operation".into())
-                                }
-                            }
+                let op = op_expr.atom()
+                        .map_err(|_| "expected first element to be operator, not number".into())
+                        .and_then(self::Atom::op)
+                        .map_err(|_| "expected first element to be operator, not list".into());
+
+                op.and_then(|o| match *o {
+                    Add => iter.fold(Ok(0), |acc, ref x| {
+                        let e = try!(x.eval());
+                        acc.map(|a| a + e)
+                    }),
+                    Sub => {
+                        if l.len() == 3 {
+                            let a = try!(l[1].eval());
+                            let b = try!(l[2].eval());
+                            Ok(a - b)
+                        } else {
+                            Err("expected two operands to '-' operation".into())
                         }
-                    } else {
-                        Err("expected first element to be operator, not number".into())
+                    },
+                    Mul => iter.fold(Ok(1), |acc, ref x| {
+                        let e = try!(x.eval());
+                        acc.map(|a| a * e)
+                    }),
+                    Div => {
+                        if l.len() == 3 {
+                            let a = try!(l[1].eval());
+                            let b = try!(l[2].eval());
+                            Ok(a / b)
+                        } else {
+                            Err("expected two operands to '/' operation".into())
+                        }
                     }
-                } else {
-                    Err("expected first element to be operator, not list".into())
-                }
+                })
             }
         }
     }
