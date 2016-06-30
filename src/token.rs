@@ -4,6 +4,8 @@
 use std::fmt;
 use std::iter;
 
+use error::Result;
+
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub enum Operator {
     Add,
@@ -13,14 +15,14 @@ pub enum Operator {
 }
 
 impl Operator {
-    pub fn parse(x: &str) -> Result<Self, ()> {
+    pub fn parse(x: &str) -> Result<Self> {
         use self::Operator::*;
         match x {
             "+" => Ok(Add),
             "-" => Ok(Sub),
             "*" => Ok(Mul),
             "/" => Ok(Div),
-            _ => Err(()),
+            _ => Err(format!("could not parse operator {}", x).into()),
         }
     }
 }
@@ -41,10 +43,28 @@ impl fmt::Display for Operator {
 #[derive(Clone, Debug, PartialEq)]
 pub enum Atom {
     Op(Operator),
-    Bool(bool),
+    // Bool(bool),
     Int(i64),
-    Float(f64),
-    Str(String),
+    // Float(f64),
+    // Str(String),
+}
+
+impl Atom {
+    pub fn op(&self) -> Result<&Operator> {
+        use self::Atom::*;
+        match *self {
+            Op(ref x) => Ok(x),
+            _ => Err(format!("cannot convert atom {} into op", self).into()),
+        }
+    }
+
+    pub fn int(&self) -> Result<i64> {
+        use self::Atom::*;
+        match *self {
+            Int(x) => Ok(x),
+            _ => Err(format!("cannot convert atom {} into int", self).into()),
+        }
+    }
 }
 
 impl fmt::Display for Atom {
@@ -52,10 +72,10 @@ impl fmt::Display for Atom {
         use self::Atom::*;
         match *self {
             Op(ref t) => write!(f, "{}", t),
-            Bool(ref t) => write!(f, "{}", t),
+            // Bool(ref t) => write!(f, "{}", t),
             Int(ref t) => write!(f, "{}", t),
-            Float(ref t) => write!(f, "{}", t),
-            Str(ref t) => write!(f, "{}", t),
+            // Float(ref t) => write!(f, "{}", t),
+            // Str(ref t) => write!(f, "{}", t),
         }
     }
 }
@@ -66,11 +86,11 @@ impl From<Operator> for Atom {
     }
 }
 
-impl From<bool> for Atom {
-    fn from(x: bool) -> Self {
-        Atom::Bool(x)
-    }
-}
+// impl From<bool> for Atom {
+//     fn from(x: bool) -> Self {
+//         Atom::Bool(x)
+//     }
+// }
 
 impl From<i64> for Atom {
     fn from(x: i64) -> Self {
@@ -78,22 +98,99 @@ impl From<i64> for Atom {
     }
 }
 
-impl From<f64> for Atom {
-    fn from(x: f64) -> Self {
-        Atom::Float(x)
-    }
-}
+// impl From<f64> for Atom {
+//     fn from(x: f64) -> Self {
+//         Atom::Float(x)
+//     }
+// }
+//
+// impl From<String> for Atom {
+//     fn from(x: String) -> Self {
+//         Atom::Str(x.into())
+//     }
+// }
 
-impl From<String> for Atom {
-    fn from(x: String) -> Self {
-        Atom::Str(x.into())
-    }
-}
-
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Expr {
     Atom(Atom),
     List(Vec<Expr>),
+}
+
+impl Expr {
+    pub fn is_atom(&self) -> bool {
+        if let Expr::Atom(_) = *self {true} else {false}
+    }
+
+    pub fn is_list(&self) -> bool {
+        return !self.is_atom();
+    }
+
+    pub fn atom(&self) -> Result<&Atom> {
+        use self::Expr::*;
+        match *self {
+            Atom(ref a) => Ok(a),
+            List(_) => Err("cannot convert list into atom".into()),
+        }
+    }
+
+    pub fn list(&self) -> Result<&Vec<Expr>> {
+        use self::Expr::*;
+        match *self {
+            Atom(_) => Err("cannot convert atom into list".into()),
+            List(ref l) => Ok(l),
+        }
+    }
+
+    pub fn eval(&self) -> Result<i64> {
+        use self::Expr::*;
+        use self::Atom::*;
+        use self::Operator::*;
+        match *self {
+            Atom(ref a) => {
+                match *a {
+                    Op(_) => Err("cannot evaluate operator".into()),
+                    Int(n) => Ok(n),
+                }
+            }
+            List(ref l) => {
+                let mut iter = l.iter();
+                let op_expr = try!(iter.next().ok_or("expected operator as first element"));
+                let op = op_expr.atom()
+                        .map_err(|_| "expected first element to be operator, not number".into())
+                        .and_then(self::Atom::op)
+                        .map_err(|_| "expected first element to be operator, not list".into());
+
+                op.and_then(|o| match *o {
+                    Add => iter.fold(Ok(0), |acc, ref x| {
+                        let e = try!(x.eval());
+                        acc.map(|a| a + e)
+                    }),
+                    Sub => {
+                        if l.len() == 3 {
+                            let a = try!(l[1].eval());
+                            let b = try!(l[2].eval());
+                            Ok(a - b)
+                        } else {
+                            Err("expected two operands to '-' operation".into())
+                        }
+                    },
+                    Mul => iter.fold(Ok(1), |acc, ref x| {
+                        let e = try!(x.eval());
+                        acc.map(|a| a * e)
+                    }),
+                    Div => {
+                        if l.len() == 3 {
+                            let a = try!(l[1].eval());
+                            let b = try!(l[2].eval());
+                            Ok(a / b)
+                        } else {
+                            Err("expected two operands to '/' operation".into())
+                        }
+                    }
+                })
+            }
+        }
+    }
 }
 
 impl fmt::Display for Expr {

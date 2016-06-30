@@ -36,16 +36,16 @@ pub fn integer<I>(input: State<I>) -> ParseResult<Expr, I>
     env().integer().map(Expr::from).parse_state(input)
 }
 
-pub fn float<I>(input: State<I>) -> ParseResult<Expr, I>
-    where I: Stream<Item = char>
-{
-    env().float().map(Expr::from).parse_state(input)
-}
+// pub fn float<I>(input: State<I>) -> ParseResult<Expr, I>
+//     where I: Stream<Item = char>
+// {
+//     env().float().map(Expr::from).parse_state(input)
+// }
 
 pub fn operator<I>(input: State<I>) -> ParseResult<Expr, I>
     where I: Stream<Item = char>
 {
-    env().op().map(|s| { Expr::from(Operator::parse(&s).unwrap()) })
+    env().op().and_then(|s| { Operator::parse(&s).map(Expr::from) })
         .parse_state(input)
 }
 
@@ -57,7 +57,7 @@ pub fn expr<I>(input: State<I>) -> ParseResult<Expr, I>
         many(e.white_space()
             .with(parser(operator)
                 .or(parser(integer))
-                .or(parser(float))
+                // .or(parser(float))
                 .or(parser(expr))
             )
         )
