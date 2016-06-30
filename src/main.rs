@@ -1,9 +1,13 @@
+#[macro_use]
+extern crate error_chain;
+
 extern crate linenoise;
 extern crate combine;
 extern crate combine_language;
 
 mod token;
 mod parse;
+mod error;
 
 use combine::*;
 
@@ -20,14 +24,13 @@ fn main() {
                 let parsed = parser(parse::expr)
                     .parse(input.as_str())
                     .map(|t| t.0);
-                // let parsed = parser(parse::expr)
-                //                  .parse(input.as_str())
-                //                  .map(|t| t.0);
+
                 match parsed {
                     Ok(result) => {
                         println!("{}", result);
-                        if let Ok(value) = result.eval() {
-                            println!("{}", value);
+                        match result.eval() {
+                            Ok(value) => println!("{}", value),
+                            Err(e) => println!("{}", e),
                         }
                     },
                     Err(e) => println!("error: {}", e),

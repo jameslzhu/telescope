@@ -4,6 +4,8 @@
 use std::fmt;
 use std::iter;
 
+use error::Result;
+
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub enum Operator {
     Add,
@@ -13,14 +15,14 @@ pub enum Operator {
 }
 
 impl Operator {
-    pub fn parse(x: &str) -> Result<Self, ()> {
+    pub fn parse(x: &str) -> Result<Self> {
         use self::Operator::*;
         match x {
             "+" => Ok(Add),
             "-" => Ok(Sub),
             "*" => Ok(Mul),
             "/" => Ok(Div),
-            _ => Err(()),
+            _ => Err(format!("could not parse operator {}", x).into()),
         }
     }
 }
@@ -97,39 +99,56 @@ pub enum Expr {
 }
 
 impl Expr {
-    pub fn eval(&self) -> Result<i64, ()> {
+    pub fn eval(&self) -> Result<i64> {
         use self::Expr::*;
         use self::Atom::*;
         use self::Operator::*;
         match *self {
             Atom(ref a) => {
                 match *a {
-                    Op(_) => Err(()),
+                    Op(_) => Err("cannot evaluate operator".into()),
                     Int(n) => Ok(n),
                 }
             }
             List(ref l) => {
                 let mut iter = l.iter();
-                if let &Atom(ref a) = iter.next().unwrap() {
+                let op_expr = try!(iter.next().ok_or("expected operator as first element"));
+                if let &Atom(ref a) = op_expr {
                     if let &Op(ref o) = a {
                         match *o {
-                            Add => Ok(iter.fold(0, |acc, ref x| acc + x.eval().unwrap())),
+                            Add => iter.fold(Ok(0), |acc, ref x| {
+                                let e = try!(x.eval());
+                                acc.map(|a| a + e)
+                            }),
                             Sub => {
                                 if l.len() == 3 {
-                                    Ok(l[1].eval().unwrap() - l[2].eval().unwrap())
-                                } else { Err(()) }
+                                    let a = try!(l[1].eval());
+                                    let b = try!(l[2].eval());
+                                    Ok(a - b)
+                                } else {
+                                    Err("expected two operands to '-' operation".into())
+                                }
                             },
-                            Mul => Ok(iter.fold(1, |acc, ref x| acc * x.eval().unwrap())),
+                            Mul => iter.fold(Ok(1), |acc, ref x| {
+                                let e = try!(x.eval());
+                                acc.map(|a| a * e)
+                            }),
                             Div => {
                                 if l.len() == 3 {
-                                    Ok(l[1].eval().unwrap() / l[2].eval().unwrap())
-                                } else { Err(()) }
+                                    let a = try!(l[1].eval());
+                                    let b = try!(l[2].eval());
+                                    Ok(a / b)
+                                } else {
+                                    Err("expected two operands to '/' operation".into())
+                                }
                             }
                         }
                     } else {
-                        Err(())
+                        Err("expected first element to be operator, not number".into())
                     }
-                } else { Err(()) }
+                } else {
+                    Err("expected first element to be operator, not list".into())
+                }
             }
         }
     }
