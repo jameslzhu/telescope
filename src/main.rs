@@ -1,35 +1,57 @@
-extern crate linenoise;
+extern crate rustyline;
 extern crate lisp_rs;
+
+use rustyline::error::ReadlineError as RLError;
+use rustyline::Editor;
 
 use lisp_rs::parse;
 
 fn main() {
+    // Prompt constants
     let header = format!("lrs v{}", env!("CARGO_PKG_VERSION"));
     let prompt = "> ";
 
+    let mut rl = Editor::new();
+
     println!("{}", header);
 
-    while let Some(input) = linenoise::input(prompt) {
-        linenoise::history_add(&input);
+    loop {
+        let readline = rl.readline(prompt);
+        match readline {
+            Ok(line) => {
+                rl.add_history_entry(&line);
+                match line.as_str() {
+                    // "clear" => linenoise::clear_screen(),
+                    "exit" | "quit" => break,
+                    _ => {
+                        let parsed = parse::parse_Expr(&line);
 
-        match input.as_str() {
-            "clear" => linenoise::clear_screen(),
-            "exit" | "quit" => break,
-            _ => {
-                let parsed = parse::parse_Expr(&input);
-
-                match parsed {
-                    Ok(result) => {
-                        println!("{}", result);
-                        match result.eval() {
-                            Ok(value) => println!("{}", value),
-                            Err(e) => println!("{}", e),
+                        match parsed {
+                            Ok(result) => {
+                                println!("{}", result);
+                                match result.eval() {
+                                    Ok(value) => println!("{}", value),
+                                    Err(e) => println!("{}", e),
+                                }
+                            },
+                            Err(e) => println!("Error: {:?}", e),
                         }
-                    },
-                    Err(e) => println!("error: {:?}", e),
-                }
+                    }
+                };
             }
-        };
+            Err(RLError::Interrupted) => {
+               println!("CTRL-C");
+               break
+            },
+            Err(RLError::Eof) => {
+                println!("CTRL-D");
+                break
+            },
+            Err(err) => {
+                println!("Error: {:?}", err);
+                break
+           }
+        }
     }
 }
 
