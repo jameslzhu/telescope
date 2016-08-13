@@ -1,0 +1,25 @@
+use std::str::FromStr;
+use token::*;
+
+grammar;
+
+pub Expr: Expr = {
+    "(" <Expr*>")" => Expr::List(<>),
+    Atom => Expr::from(<>),
+};
+
+pub Atom: Atom = {
+    Op => Atom::from(<>),
+    Num => Atom::from(<>),
+};
+
+pub Op: Operator = {
+    "+" => Operator::Add,
+    "-" => Operator::Sub,
+    "*" => Operator::Mul,
+    "/" => Operator::Div,
+};
+
+pub Num: i64 = {
+    r"[0-9]+" => i64::from_str(<>).unwrap(),
+};

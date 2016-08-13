@@ -14,19 +14,6 @@ pub enum Operator {
     Div,
 }
 
-impl Operator {
-    pub fn parse(x: &str) -> Result<Self> {
-        use self::Operator::*;
-        match x {
-            "+" => Ok(Add),
-            "-" => Ok(Sub),
-            "*" => Ok(Mul),
-            "/" => Ok(Div),
-            _ => Err(format!("could not parse operator {}", x).into()),
-        }
-    }
-}
-
 #[cfg_attr(rustfmt, rustfmt_skip)]
 impl fmt::Display for Operator {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
