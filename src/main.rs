@@ -4,7 +4,7 @@ extern crate lisp_rs;
 use lisp_rs::parse;
 
 fn main() {
-    let header = "lrs";
+    let header = format!("lrs v{}", env!("CARGO_PKG_VERSION"));
     let prompt = "> ";
 
     println!("{}", header);
@@ -14,19 +14,19 @@ fn main() {
 
         match input.as_str() {
             "clear" => linenoise::clear_screen(),
-            "exit" => break,
+            "exit" | "quit" => break,
             _ => {
                 let parsed = parse::parse_Expr(&input);
 
                 match parsed {
-                        Ok(result) => {
-                            println!("{}", result);
-                            match result.eval() {
-                                Ok(value) => println!("{}", value),
-                                Err(e) => println!("{}", e),
-                            }
-                        },
-                        Err(e) => println!("error: {:?}", e),
+                    Ok(result) => {
+                        println!("{}", result);
+                        match result.eval() {
+                            Ok(value) => println!("{}", value),
+                            Err(e) => println!("{}", e),
+                        }
+                    },
+                    Err(e) => println!("error: {:?}", e),
                 }
             }
         };
