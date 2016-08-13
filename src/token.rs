@@ -117,6 +117,10 @@ pub enum Expr {
 }
 
 impl Expr {
+    pub fn new() -> Self {
+        Expr::List(Vec::new())
+    }
+
     pub fn is_atom(&self) -> bool {
         if let Expr::Atom(_) = *self {true} else {false}
     }

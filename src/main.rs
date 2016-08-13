@@ -1,15 +1,7 @@
-#[macro_use]
-extern crate error_chain;
-
 extern crate linenoise;
-extern crate combine;
-extern crate combine_language;
+extern crate lisp_rs;
 
-mod token;
-mod parse;
-mod error;
-
-use combine::*;
+use lisp_rs::atom;
 
 fn main() {
     println!("lisp-rs");
@@ -21,21 +13,34 @@ fn main() {
             "clear" => linenoise::clear_screen(),
             "exit" => break,
             _ => {
-                let parsed = parser(parse::expr)
-                    .parse(input.as_str())
-                    .map(|t| t.0);
+                let parsed = atom::parse_Expr(&input);
 
                 match parsed {
-                    Ok(result) => {
-                        println!("{}", result);
-                        match result.eval() {
-                            Ok(value) => println!("{}", value),
-                            Err(e) => println!("{}", e),
-                        }
-                    },
-                    Err(e) => println!("error: {}", e),
+                        Ok(result) => {
+                            println!("{}", result);
+                            match result.eval() {
+                                Ok(value) => println!("{}", value),
+                                Err(e) => println!("{}", e),
+                            }
+                        },
+                        Err(e) => println!("error: {:?}", e),
                 }
             }
         };
     }
+}
+
+#[test]
+fn calc() {
+    assert!(atom::parse_Expr("22").is_ok());
+    assert!(atom::parse_Expr("(22)").is_ok());
+    assert!(atom::parse_Expr("((((22))))").is_ok());
+    assert!(atom::parse_Expr("((( ( 22 ) )))").is_ok());
+    assert!(atom::parse_Expr("((22)").is_err());
+}
+
+#[test]
+fn calc2() {
+    assert!(atom::parse_Expr("(+ 1 2 3)").is_ok());
+    assert!(atom::parse_Expr("(+ 4 (/ 5 6))").is_ok());
 }

@@ -2,9 +2,12 @@
 name = "lisp-rs"
 version = "0.2.0"
 authors = ["James Zhu <james.zhu.engineer@gmail.com>"]
+build = "build.rs"
+
+[build-dependencies]
+lalrpop = "0.12.0"
 
 [dependencies]
+lalrpop-util = "0.12.0"
 linenoise-rust = "0.2.0"
-combine = "1.3.0"
-combine-language = "1.0.0"
 error-chain = "0.1.12"
