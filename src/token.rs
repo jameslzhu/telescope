@@ -3,10 +3,11 @@
 
 use std::fmt;
 use std::iter;
+use std::collections::HashMap;
 
 use error::Result;
 
-#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
 pub enum Operator {
     Add,
     Sub,
@@ -27,7 +28,16 @@ impl fmt::Display for Operator {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
+pub enum Arity {
+    Nullary,
+    Unary,
+    Binary,
+    Ternary,
+    Multiary,  // 2+ arguments
+}
+
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Atom {
     Op(Operator),
     // Bool(bool),
@@ -98,44 +108,111 @@ impl From<i64> for Atom {
 // }
 
 #[derive(Clone, Debug, PartialEq)]
-pub enum Expr {
-    Atom(Atom),
-    List(Vec<Expr>),
+pub struct Expr {
+    inner: Vec<Node>
 }
 
 impl Expr {
     pub fn new() -> Self {
-        Expr::List(Vec::new())
+        Expr { inner: Vec::new() }
+    }
+
+    pub fn op(&self) -> Operator {
+        let &Node::Atom(a) = self.inner.first().unwrap();
+        let Atom::Op(o) = a;
+        // self.inner.first().atom().unwrap().op().unwrap()
+    }
+
+    pub fn args(&self) -> &[Expr] {
+        unimplemented!();
+    }
+
+    pub fn eval(&self) -> Result<Atom> {
+        use self::Node::*;
+        use self::Atom::*;
+        use self::Operator::*;
+        use self::Arity::*;
+
+        // Arity = number of arguments accepted
+        let mut arity = HashMap::new();
+
+        arity.insert(Add, Multiary);
+        arity.insert(Sub, Binary);
+        arity.insert(Mul, Multiary);
+        arity.insert(Div, Binary);
+
+        let op = l.op();
+        let args = l.args();
+        let num_args = args.len();
+
+        // Check arity
+        match arity.get(*op) {
+            Nullary  => assert_eq!(num_args, 0),
+            Unary    => assert_eq!(num_args, 1),
+            Binary   => assert_eq!(num_args, 2),
+            Ternary  => assert_eq!(num_args, 3),
+            Multiary => assert!(num_args >= 1),
+        };
+
+        op.and_then(|o| match *o {
+            Add => args.iter().fold(Ok(0), |acc, ref x| {
+                let e = try!(x.eval());
+                acc.map(|a| a + e)
+            }),
+            Sub => {
+                let a = args[0].eval();
+                let b = args[1].eval();
+                a.and_then(|x| b.map(|y| x - y))
+                // let a = try!(l[1].eval());
+                // let b = try!(l[2].eval());
+                // Ok(a - b)
+            },
+            Mul => args.fold(Ok(1), |acc, ref x| {
+                let e = try!(x.eval());
+                acc.map(|a| a * e)
+            }),
+            Div => {
+                let a = try!(args[0].eval());
+                let b = try!(args[1].eval());
+                Ok(a / b)
+            }
+        })
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum Node {
+    Atom (Atom),
+    Expr (Expr),
+}
+
+impl Node {
+    pub fn new() -> Self {
+        Node::Expr(Expr::new())
     }
 
     pub fn is_atom(&self) -> bool {
-        if let Expr::Atom(_) = *self {true} else {false}
+        if let Node::Atom(_) = *self {true} else {false}
     }
 
     pub fn is_list(&self) -> bool {
         return !self.is_atom();
     }
 
-    pub fn atom(&self) -> Result<&Atom> {
-        use self::Expr::*;
-        match *self {
-            Atom(ref a) => Ok(a),
-            List(_) => Err("cannot convert list into atom".into()),
-        }
-    }
-
-    pub fn list(&self) -> Result<&Vec<Expr>> {
-        use self::Expr::*;
-        match *self {
-            Atom(_) => Err("cannot convert atom into list".into()),
-            List(ref l) => Ok(l),
-        }
-    }
-
     pub fn eval(&self) -> Result<i64> {
-        use self::Expr::*;
+        use self::Node::*;
         use self::Atom::*;
         use self::Operator::*;
+        use self::Arity::*;
+
+        // Arity = number of arguments accepted
+        let mut arity = HashMap::new();
+
+        arity.insert(Add, Multiary);
+        arity.insert(Sub, Binary);
+        arity.insert(Mul, Multiary);
+        arity.insert(Div, Binary);
+
         match *self {
             Atom(ref a) => {
                 match *a {
@@ -143,40 +220,44 @@ impl Expr {
                     Int(n) => Ok(n),
                 }
             }
-            List(ref l) => {
-                let mut iter = l.iter();
-                let op_expr = try!(iter.next().ok_or("expected operator as first element"));
-                let op = op_expr.atom()
-                        .map_err(|_| "expected first element to be operator, not number".into())
-                        .and_then(self::Atom::op)
-                        .map_err(|_| "expected first element to be operator, not list".into());
+            Expr(ref l) => {
+                let op = l.op();
+                let args = l.args();
+                let num_args = args.len();
+
+                // Check arity
+                match arity.get(*op) {
+                    Nullary  => assert_eq!(num_args, 0),
+                    Unary    => assert_eq!(num_args, 1),
+                    Binary   => assert_eq!(num_args, 2),
+                    Ternary  => assert_eq!(num_args, 3),
+                    Multiary => assert!(num_args >= 1),
+                };
+
+                // Eval all args to check for error
+                let mut args_evaled = args.iter().map(|x| x.eval());
+                if args_evaled.any(|x| x.is_err()) {
+
+                }
 
                 op.and_then(|o| match *o {
-                    Add => iter.fold(Ok(0), |acc, ref x| {
-                        let e = try!(x.eval());
-                        acc.map(|a| a + e)
-                    }),
+                    Add => args.iter().map(|x| x.eval().unwrap()).sum(),
                     Sub => {
-                        if l.len() == 3 {
-                            let a = try!(l[1].eval());
-                            let b = try!(l[2].eval());
-                            Ok(a - b)
-                        } else {
-                            Err("expected two operands to '-' operation".into())
-                        }
+                        let a = args[0].eval();
+                        let b = args[1].eval();
+                        a.and_then(|x| b.map(|y| x - y))
+                        // let a = try!(l[1].eval());
+                        // let b = try!(l[2].eval());
+                        // Ok(a - b)
                     },
-                    Mul => iter.fold(Ok(1), |acc, ref x| {
+                    Mul => args.fold(Ok(1), |acc, ref x| {
                         let e = try!(x.eval());
                         acc.map(|a| a * e)
                     }),
                     Div => {
-                        if l.len() == 3 {
-                            let a = try!(l[1].eval());
-                            let b = try!(l[2].eval());
-                            Ok(a / b)
-                        } else {
-                            Err("expected two operands to '/' operation".into())
-                        }
+                        let a = try!(args[0].eval());
+                        let b = try!(args[1].eval());
+                        Ok(a / b)
                     }
                 })
             }
@@ -184,13 +265,13 @@ impl Expr {
     }
 }
 
-impl fmt::Display for Expr {
+impl fmt::Display for Node {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        use self::Expr::*;
+        use self::Node::*;
         match *self {
             Atom(ref a) => write!(f, "{}", a),
-            List(ref l) => {
-                let elements = l.iter()
+            Expr(ref l) => {
+                let elements = l.inner.iter()
                     .map(ToString::to_string)
                     .collect::<Vec<_>>()
                     .join(" ");
@@ -200,30 +281,31 @@ impl fmt::Display for Expr {
     }
 }
 
-impl<T> From<T> for Expr where T: Into<Atom> {
+impl<T> From<T> for Node where T: Into<Atom> {
     fn from(v: T) -> Self {
-        Expr::Atom(v.into())
+        Node::Atom(v.into())
     }
 }
 
-impl<T> From<Vec<T>> for Expr where T: Into<Atom> {
+impl<T> From<Vec<T>> for Node where T: Into<Atom> {
     fn from(v: Vec<T>) -> Self {
-        Expr::List(v.into_iter().map(Expr::from).collect())
+        let op = v.first().into().op().expect("Expected first atom to be operator");
+        Node::new(op, v.into_iter().map(Node::from).skip(1).collect())
     }
 }
 
-impl iter::FromIterator<Expr> for Expr {
+impl iter::FromIterator<Node> for Node {
     fn from_iter<U>(iterator: U) -> Self
-        where U: IntoIterator<Item = Expr>
+        where U: IntoIterator<Item = Node>
     {
-        Expr::List(iterator.into_iter().collect())
+        Node::new(iterator.into_iter().collect())
     }
 }
 
-impl<T> iter::FromIterator<T> for Expr where T: Into<Atom>{
+impl<T> iter::FromIterator<T> for Node where T: Into<Atom>{
     fn from_iter<U>(iterator: U) -> Self
         where U: IntoIterator<Item = T>
     {
-        Expr::List(iterator.into_iter().map(Expr::from).collect())
+        Node::Expr(iterator.into_iter().map(Expr::from).collect())
     }
 }
