@@ -3,18 +3,14 @@ use atom::*;
 
 grammar;
 
-pub Expr: Expr = {
-    "(" <Op> <Node*> ")" => Expr::new(<>)
-};
+pub Expr: Expr = "(" <Op> <Node*> ")" => Expr::new(<>);
 
-pub List: List = {
-    "(" ")" => List::new(),
-    "(" <Node+> ")" => List::from(<>),
-};
+pub List: List = "'(" <Node*> ")" => List::from(<>);
 
 pub Node: Node = {
     Atom => Node::Atom(<>),
     List => Node::List(<>),
+    Expr => Node::Expr(<>),
 };
 
 pub Atom: Atom = {

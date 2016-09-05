@@ -1,6 +1,7 @@
 use std::fmt;
-use std::iter;
+// use std::iter;
 use std::slice;
+use std::ops;
 use std::collections::HashMap;
 use error::*;
 
@@ -68,20 +69,119 @@ impl From<i64> for Atom {
     }
 }
 
-impl iter::Sum<Atom> for Atom {
-    fn sum<I>(iter: I) -> Self where I: Iterator<Item=Atom> {
-        unimplemented!();
+impl ops::Add<Atom> for Atom {
+    type Output = Atom;
+    fn add(self, rhs: Atom) -> Self::Output {
+        use self::Atom::*;
+        match (self, rhs) {
+            (Int(i), Int(j)) => Int(i + j),
+            _ => panic!(),
+        }
     }
 }
 
+impl ops::Sub<Atom> for Atom {
+    type Output = Atom;
+    fn sub(self, rhs: Atom) -> Self::Output {
+        use self::Atom::*;
+        match (self, rhs) {
+            (Int(i), Int(j)) => Int(i - j),
+            _ => panic!(),
+        }
+    }
+}
+
+impl ops::Mul<Atom> for Atom {
+    type Output = Atom;
+    fn mul(self, rhs: Atom) -> Self::Output {
+        use self::Atom::*;
+        match (self, rhs) {
+            (Int(i), Int(j)) => Int(i * j),
+            _ => panic!(),
+        }
+    }
+}
+
+impl ops::Div<Atom> for Atom {
+    type Output = Atom;
+    fn div(self, rhs: Atom) -> Self::Output {
+        use self::Atom::*;
+        match (self, rhs) {
+            (Int(i), Int(j)) => Int(i / j),
+            _ => panic!(),
+        }
+    }
+}
+
+// impl iter::Sum<Atom> for Atom {
+//     fn sum<I>(iter: I) -> Self where I: Iterator<Item=Atom> {
+//         unimplemented!();
+//     }
+// }
+
+#[derive(Clone, Debug, PartialEq)]
 pub enum Value {
     Atom(Atom),
     List(List),
 }
 
+impl fmt::Display for Value {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        use self::Value::*;
+        match *self {
+            Atom(ref t) => write!(f, "{}", t),
+            List(ref t) => write!(f, "{}", t),
+        }
+    }
+}
+
 impl<T> From<T> for Value where T: Into<Atom> {
     fn from(v: T) -> Self {
         Value::Atom(v.into())
+    }
+}
+
+impl ops::Add<Value> for Value {
+    type Output = Value;
+    fn add(self, rhs: Value) -> Self::Output {
+        use self::Value::*;
+        match (self, rhs) {
+            (Atom(i), Atom(j)) => Atom(i + j),
+            _ => panic!(),
+        }
+    }
+}
+
+impl ops::Sub<Value> for Value {
+    type Output = Value;
+    fn sub(self, rhs: Value) -> Self::Output {
+        use self::Value::*;
+        match (self, rhs) {
+            (Atom(i), Atom(j)) => Atom(i - j),
+            _ => panic!(),
+        }
+    }
+}
+
+impl ops::Mul<Value> for Value {
+    type Output = Value;
+    fn mul(self, rhs: Value) -> Self::Output {
+        use self::Value::*;
+        match (self, rhs) {
+            (Atom(i), Atom(j)) => Atom(i * j),
+            _ => panic!(),
+        }
+    }
+}
+
+impl ops::Div<Value> for Value {
+    type Output = Value;
+    fn div(self, rhs: Value) -> Self::Output {
+        use self::Value::*;
+        match (self, rhs) {
+            (Atom(i), Atom(j)) => Atom(i / j),
+            _ => panic!(),
+        }
     }
 }
 
@@ -97,8 +197,8 @@ impl Node {
         use self::Node::*;
         match *self {
             Atom(a) => Ok(Value::Atom(a)),
-            List(l) => Ok(Value::List(l)),
-            Expr(e) => e.eval(),
+            List(ref l) => Ok(Value::List(l.clone())),
+            Expr(ref e) => e.eval(),
         }
     }
 }
@@ -179,8 +279,8 @@ impl Expr {
     }
 
     pub fn eval(&self) -> Result<Value> {
-        use self::Node::*;
-        use self::Atom::*;
+        // use self::Node::*;
+        // use self::Atom::*;
         use self::Operator::*;
         use self::Arity::*;
 
@@ -203,6 +303,7 @@ impl Expr {
             Some(&Binary)   => assert_eq!(num_args, 2),
             Some(&Ternary)  => assert_eq!(num_args, 3),
             Some(&Multiary) => assert!(num_args >= 1),
+            None            => unreachable!(),
         };
 
         match op {
@@ -211,8 +312,9 @@ impl Expr {
                 acc.map(|a| a + e)
             }),
             Sub => {
-                let a = try!(args.next()).eval();
-                let b = try!(args.next()).eval();
+                let mut args = args;
+                let a = args.next().unwrap().eval();
+                let b = args.next().unwrap().eval();
                 a.and_then(|x| b.map(|y| x - y))
                 // let a = try!(l[1].eval());
                 // let b = try!(l[2].eval());
@@ -223,9 +325,10 @@ impl Expr {
                 acc.map(|a| a * e)
             }),
             Div => {
-                let a = try!(args.next().unwrap().eval());
-                let b = try!(args.next().unwrap().eval());
-                Ok(a / b)
+                let mut args = args;
+                let a = args.next().unwrap().eval();
+                let b = args.next().unwrap().eval();
+                a.and_then(|x| b.map(|y| x / y))
             }
         }
     }

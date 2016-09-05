@@ -28,7 +28,6 @@ fn main() {
 
                         match parsed {
                             Ok(result) => {
-                                println!("{}", result);
                                 match result.eval() {
                                     Ok(value) => println!("{}", value),
                                     Err(e) => println!("{}", e),
