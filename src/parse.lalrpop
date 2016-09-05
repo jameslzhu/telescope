@@ -1,11 +1,20 @@
 use std::str::FromStr;
-use token::*;
+use atom::*;
 
 grammar;
 
 pub Expr: Expr = {
-    "(" <Expr*>")" => Expr::List(<>),
-    Atom => Expr::from(<>),
+    "(" <Op> <Node*> ")" => Expr::new(<>)
+};
+
+pub List: List = {
+    "(" ")" => List::new(),
+    "(" <Node+> ")" => List::from(<>),
+};
+
+pub Node: Node = {
+    Atom => Node::Atom(<>),
+    List => Node::List(<>),
 };
 
 pub Atom: Atom = {
@@ -20,6 +29,4 @@ pub Op: Operator = {
     "/" => Operator::Div,
 };
 
-pub Num: i64 = {
-    r"[0-9]+" => i64::from_str(<>).unwrap(),
-};
+pub Num: i64 = r"[0-9]+" => i64::from_str(<>).unwrap();

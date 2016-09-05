@@ -1,10 +1,10 @@
 extern crate rustyline;
-extern crate lisp_rs;
+extern crate lrs;
 
 use rustyline::error::ReadlineError as RLError;
 use rustyline::Editor;
 
-use lisp_rs::parse;
+use lrs::parse;
 
 fn main() {
     // Prompt constants

@@ -121,6 +121,7 @@ impl Expr {
         let &Node::Atom(a) = self.inner.first().unwrap();
         let Atom::Op(o) = a;
         // self.inner.first().atom().unwrap().op().unwrap()
+        unimplemented!();
     }
 
     pub fn args(&self) -> &[Expr] {
@@ -141,12 +142,12 @@ impl Expr {
         arity.insert(Mul, Multiary);
         arity.insert(Div, Binary);
 
-        let op = l.op();
-        let args = l.args();
+        let op = self.op();
+        let args = self.args();
         let num_args = args.len();
 
         // Check arity
-        match arity.get(*op) {
+        match arity.get(op) {
             Nullary  => assert_eq!(num_args, 0),
             Unary    => assert_eq!(num_args, 1),
             Binary   => assert_eq!(num_args, 2),
@@ -199,68 +200,10 @@ impl Node {
         return !self.is_atom();
     }
 
-    pub fn eval(&self) -> Result<i64> {
-        use self::Node::*;
-        use self::Atom::*;
-        use self::Operator::*;
-        use self::Arity::*;
-
-        // Arity = number of arguments accepted
-        let mut arity = HashMap::new();
-
-        arity.insert(Add, Multiary);
-        arity.insert(Sub, Binary);
-        arity.insert(Mul, Multiary);
-        arity.insert(Div, Binary);
-
+    pub fn eval(&self) -> Result<Atom> {
         match *self {
-            Atom(ref a) => {
-                match *a {
-                    Op(_) => Err("cannot evaluate operator".into()),
-                    Int(n) => Ok(n),
-                }
-            }
-            Expr(ref l) => {
-                let op = l.op();
-                let args = l.args();
-                let num_args = args.len();
-
-                // Check arity
-                match arity.get(*op) {
-                    Nullary  => assert_eq!(num_args, 0),
-                    Unary    => assert_eq!(num_args, 1),
-                    Binary   => assert_eq!(num_args, 2),
-                    Ternary  => assert_eq!(num_args, 3),
-                    Multiary => assert!(num_args >= 1),
-                };
-
-                // Eval all args to check for error
-                let mut args_evaled = args.iter().map(|x| x.eval());
-                if args_evaled.any(|x| x.is_err()) {
-
-                }
-
-                op.and_then(|o| match *o {
-                    Add => args.iter().map(|x| x.eval().unwrap()).sum(),
-                    Sub => {
-                        let a = args[0].eval();
-                        let b = args[1].eval();
-                        a.and_then(|x| b.map(|y| x - y))
-                        // let a = try!(l[1].eval());
-                        // let b = try!(l[2].eval());
-                        // Ok(a - b)
-                    },
-                    Mul => args.fold(Ok(1), |acc, ref x| {
-                        let e = try!(x.eval());
-                        acc.map(|a| a * e)
-                    }),
-                    Div => {
-                        let a = try!(args[0].eval());
-                        let b = try!(args[1].eval());
-                        Ok(a / b)
-                    }
-                })
-            }
+            Atom(ref a) => Ok(a),
+            Expr(ref e) => e.eval(),
         }
     }
 }
@@ -287,25 +230,26 @@ impl<T> From<T> for Node where T: Into<Atom> {
     }
 }
 
-impl<T> From<Vec<T>> for Node where T: Into<Atom> {
+impl<T> From<Vec<T>> for Expr where T: Into<Atom> {
     fn from(v: Vec<T>) -> Self {
-        let op = v.first().into().op().expect("Expected first atom to be operator");
-        Node::new(op, v.into_iter().map(Node::from).skip(1).collect())
+        let op = v.first().into::<Atom>().op().expect("Expected first atom to be operator");
+
+        Expr::new(op, v.into_iter().map(Node::from).skip(1).collect())
     }
 }
 
-impl iter::FromIterator<Node> for Node {
+impl iter::FromIterator<Node> for Expr {
     fn from_iter<U>(iterator: U) -> Self
         where U: IntoIterator<Item = Node>
     {
-        Node::new(iterator.into_iter().collect())
+        Expr::new(iterator.into_iter().collect().into())
     }
 }
 
-impl<T> iter::FromIterator<T> for Node where T: Into<Atom>{
+impl<T> iter::FromIterator<T> for Expr where T: Into<Atom>{
     fn from_iter<U>(iterator: U) -> Self
         where U: IntoIterator<Item = T>
     {
-        Node::Expr(iterator.into_iter().map(Expr::from).collect())
+        Expr(iterator.into_iter().map(Expr::from).collect())
     }
 }
