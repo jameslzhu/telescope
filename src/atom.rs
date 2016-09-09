@@ -1,5 +1,5 @@
 use std::fmt;
-// use std::iter;
+use std::iter;
 use std::slice;
 use std::ops;
 use std::collections::HashMap;
@@ -193,6 +193,22 @@ impl ops::Div<Value> for Value {
         }
     }
 }
+
+// Unstable feature iter_arith_traits - issue #34529
+// Stabilized by Rust 1.12
+// impl iter::Sum<Value> for Value {
+//     fn sum<I>(iter: I) -> Self where I: Iterator<Item=Value> {
+//         iter.fold(0.into(), |acc, x| acc + x)
+//     }
+// }
+
+// Unstable feature iter_arith_traits - issue #34529
+// Stabilized by Rust 1.12
+// impl iter::Mul<Value> for Value {
+//     fn mul<I>(iter: I) -> Self where I: Iterator<Item=Value> {
+//         iter.fold(1.into(), |acc, x| acc * x)
+//     }
+// }
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Node {
