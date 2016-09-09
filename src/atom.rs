@@ -332,26 +332,28 @@ impl Expr {
             ).into())
         }
 
-        let mut args = self.args().map(Node::eval);
+        let evaled_args: Result<Vec<_>> = self.args().map(Node::eval).collect();
 
         // Return the first expr that cannot eval correctly
-        if let Some(err) = args.find(|x| x.is_err()) {
-            err
-        } else {
-            let mut eval_args = args.map(Result::unwrap);
-            match op {
-                Add => Ok(eval_args.fold(0.into(), |acc, x| acc + x)),
-                Sub => {
-                    let a = eval_args.next().unwrap();
-                    let b = eval_args.next().unwrap();
-                    Ok(a - b)
-                },
-                Mul => Ok(eval_args.fold(1.into(), |acc, x| acc * x)),
-                Div => {
-                    let a = eval_args.next().unwrap();
-                    let b = eval_args.next().unwrap();
-                    Ok(a / b)
+        match evaled_args {
+            Err(e) => Err(e),
+            Ok(v) => {
+                let mut eval_args = v.into_iter();
+                match op {
+                    Add => Ok(eval_args.fold(0.into(), |acc, x| acc + x)),
+                    Sub => {
+                        let a = eval_args.next().unwrap();
+                        let b = eval_args.next().unwrap();
+                        Ok(a - b)
+                    },
+                    Mul => Ok(eval_args.fold(1.into(), |acc, x| acc * x)),
+                    Div => {
+                        let a = eval_args.next().unwrap();
+                        let b = eval_args.next().unwrap();
+                        Ok(a / b)
+                    }
                 }
+
             }
         }
     }
