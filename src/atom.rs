@@ -1,9 +1,9 @@
-use std::fmt;
-use std::iter;
-use std::slice;
-use std::ops;
-use std::collections::HashMap;
+
 use error::*;
+use std::collections::HashMap;use std::fmt;
+use std::iter;
+use std::ops;
+use std::slice;
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
 pub enum Operator {
@@ -32,7 +32,7 @@ pub enum Arity {
     Unary,
     Binary,
     Ternary,
-    Multiary,  // 2+ arguments
+    Multiary, // 2+ arguments
 }
 
 impl fmt::Display for Arity {
@@ -40,8 +40,8 @@ impl fmt::Display for Arity {
         use self::Arity::*;
         let text = match *self {
             Nullary => "0",
-            Unary   => "1",
-            Binary  => "2",
+            Unary => "1",
+            Binary => "2",
             Ternary => "3",
             Multiary => "at least 2",
         };
@@ -54,9 +54,8 @@ impl fmt::Display for Arity {
 pub enum Atom {
     Op(Operator),
     // Bool(bool),
-    Int(i64),
-    // Float(f64),
-    // Str(String),
+    Int(i64), /* Float(f64),
+               * Str(String), */
 }
 
 impl fmt::Display for Atom {
@@ -144,7 +143,9 @@ impl fmt::Display for Value {
     }
 }
 
-impl<T> From<T> for Value where T: Into<Atom> {
+impl<T> From<T> for Value
+    where T: Into<Atom>
+{
     fn from(v: T) -> Self {
         Value::Atom(v.into())
     }
@@ -212,9 +213,9 @@ impl ops::Div<Value> for Value {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Node {
-    Atom (Atom),
-    List (List),
-    Expr (Expr),
+    Atom(Atom),
+    List(List),
+    Expr(Expr),
 }
 
 impl Node {
@@ -228,7 +229,9 @@ impl Node {
     }
 }
 
-impl<T> From<T> for Node where T: Into<Atom> {
+impl<T> From<T> for Node
+    where T: Into<Atom>
+{
     fn from(v: T) -> Self {
         Node::Atom(v.into())
     }
@@ -259,7 +262,7 @@ impl fmt::Display for Node {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct List {
-    inner: Vec<Node>
+    inner: Vec<Node>,
 }
 
 impl List {
@@ -276,7 +279,8 @@ impl From<Vec<Node>> for List {
 
 impl fmt::Display for List {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let elements = self.inner.iter()
+        let elements = self.inner
+            .iter()
             .map(ToString::to_string)
             .collect::<Vec<_>>()
             .join(" ");
@@ -287,12 +291,15 @@ impl fmt::Display for List {
 #[derive(Clone, Debug, PartialEq)]
 pub struct Expr {
     op: Operator,
-    args: Vec<Node>
+    args: Vec<Node>,
 }
 
 impl Expr {
     pub fn new(op: Operator, args: Vec<Node>) -> Self {
-        Expr { op: op, args: args }
+        Expr {
+            op: op,
+            args: args,
+        }
     }
 
     pub fn op(&self) -> Operator {
@@ -311,10 +318,10 @@ impl Expr {
         use self::Arity::*;
         let num_args = self.num_args();
         match arity {
-            Nullary  => num_args == 0,
-            Unary    => num_args == 1,
-            Binary   => num_args == 2,
-            Ternary  => num_args == 3,
+            Nullary => num_args == 0,
+            Unary => num_args == 1,
+            Binary => num_args == 2,
+            Ternary => num_args == 3,
             Multiary => num_args >= 2,
         }
     }
@@ -337,15 +344,16 @@ impl Expr {
 
         let expected_arity = match arity.get(&op) {
             Some(e) => e,
-            None => return Err(format!("operator {} not found", op).into())
+            None => return Err(format!("operator {} not found", op).into()),
         };
 
         // Check if number of arguments match expected number
         if !self.expect_arity(*expected_arity) {
-            return Err(format!(
-                "{} operator expected {} arguments, but received {}",
-                op, expected_arity, self.num_args()
-            ).into())
+            return Err(format!("{} operator expected {} arguments, but received {}",
+                               op,
+                               expected_arity,
+                               self.num_args())
+                .into());
         }
 
         let evaled_args: Result<Vec<_>> = self.args().map(Node::eval).collect();
@@ -361,7 +369,7 @@ impl Expr {
                         let a = eval_args.next().unwrap();
                         let b = eval_args.next().unwrap();
                         Ok(a - b)
-                    },
+                    }
                     Mul => Ok(eval_args.fold(1.into(), |acc, x| acc * x)),
                     Div => {
                         let a = eval_args.next().unwrap();
@@ -377,7 +385,8 @@ impl Expr {
 
 impl fmt::Display for Expr {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let elements = self.args.iter()
+        let elements = self.args
+            .iter()
             .map(ToString::to_string)
             .collect::<Vec<_>>()
             .join(" ");
