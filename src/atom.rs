@@ -35,6 +35,21 @@ pub enum Arity {
     Multiary,  // 2+ arguments
 }
 
+impl fmt::Display for Arity {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        use self::Arity::*;
+        let text = match *self {
+            Nullary => "0",
+            Unary   => "1",
+            Binary  => "2",
+            Ternary => "3",
+            Multiary => "at least 2",
+        };
+
+        write!(f, "{} args", text)
+    }
+}
+
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Atom {
     Op(Operator),
@@ -112,12 +127,6 @@ impl ops::Div<Atom> for Atom {
         }
     }
 }
-
-// impl iter::Sum<Atom> for Atom {
-//     fn sum<I>(iter: I) -> Self where I: Iterator<Item=Atom> {
-//         unimplemented!();
-//     }
-// }
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Value {
@@ -278,6 +287,22 @@ impl Expr {
         self.args.iter()
     }
 
+    pub fn num_args(&self) -> usize {
+        self.args.len()
+    }
+
+    pub fn expect_arity(&self, arity: Arity) -> bool {
+        use self::Arity::*;
+        let num_args = self.num_args();
+        match arity {
+            Nullary  => num_args == 0,
+            Unary    => num_args == 1,
+            Binary   => num_args == 2,
+            Ternary  => num_args == 3,
+            Multiary => num_args >= 2,
+        }
+    }
+
     pub fn eval(&self) -> Result<Value> {
         // use self::Node::*;
         // use self::Atom::*;
@@ -293,43 +318,45 @@ impl Expr {
         arity.insert(Div, Binary);
 
         let op = self.op();
-        let args = self.args();
-        let num_args = args.len();
 
-        // Check arity
-        match arity.get(&op) {
-            Some(&Nullary)  => assert_eq!(num_args, 0),
-            Some(&Unary)    => assert_eq!(num_args, 1),
-            Some(&Binary)   => assert_eq!(num_args, 2),
-            Some(&Ternary)  => assert_eq!(num_args, 3),
-            Some(&Multiary) => assert!(num_args >= 1),
-            None            => unreachable!(),
-        };
+        // Evaluate all arguments
+        println!("{:#?}", self.args());
+        let mut args: Vec<_> = self.args().map(|x| x.eval()).collect();
 
-        match op {
-            Add => args.fold(Ok(0.into()), |acc, ref x| {
-                let e = try!(x.eval());
-                acc.map(|a| a + e)
-            }),
-            Sub => {
-                let mut args = args;
-                let a = args.next().unwrap().eval();
-                let b = args.next().unwrap().eval();
-                a.and_then(|x| b.map(|y| x - y))
-                // let a = try!(l[1].eval());
-                // let b = try!(l[2].eval());
-                // Ok(a - b)
-            },
-            Mul => args.fold(Ok(1.into()), |acc, ref x| {
-                let e = try!(x.eval());
-                acc.map(|a| a * e)
-            }),
-            Div => {
-                let mut args = args;
-                let a = args.next().unwrap().eval();
-                let b = args.next().unwrap().eval();
-                a.and_then(|x| b.map(|y| x / y))
+        // Check if operator is found
+        if let Some(expected_arity) = arity.get(&op) {
+            // Return the first expr that cannot eval correctly
+            if let &Some(ref err) = args.iter().find(|&x| x.is_err()) {
+                (*err).clone()
             }
+            // Check if number of arguments match expected number
+            else if !self.expect_arity(*expected_arity) {
+                Err(format!(
+                    "{} operator expected {} arguments, but received {}",
+                    op, expected_arity, self.num_args()
+                ).into())
+            }
+            // Perform actual operation
+            else {
+                let mut eval_args = args.into_iter().map(Result::unwrap);
+                match op {
+                    Add => Ok(eval_args.fold(0.into(), |acc, x| acc + x)),
+                    Sub => {
+                        let a = eval_args.next().unwrap();
+                        let b = eval_args.next().unwrap();
+                        Ok(a - b)
+                    },
+                    Mul => Ok(eval_args.fold(1.into(), |acc, x| acc * x)),
+                    Div => {
+                        let a = eval_args.next().unwrap();
+                        let b = eval_args.next().unwrap();
+                        Ok(a / b)
+                    }
+                }
+            }
+        }
+        else {
+            Err(format!("operator {} not found", op).into())
         }
     }
 }
