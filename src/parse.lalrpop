@@ -3,9 +3,13 @@ use atom::*;
 
 grammar;
 
+pub Lang: Node = {
+    Node
+};
+
 pub Expr: Expr = "(" <Sym> <Node*> ")" => Expr::new(<>);
 
-pub List: List = "'(" <Node*> ")" => List::from(<>);
+pub List: List = "[" <Node*> "]" => List::from(<>);
 
 pub Node: Node = {
     Atom => Node::Atom(<>),

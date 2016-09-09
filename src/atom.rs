@@ -220,7 +220,7 @@ pub enum Node {
 }
 
 impl Node {
-    fn eval(&self) -> Result<Value> {
+    pub fn eval(&self) -> Result<Value> {
         use self::Node::*;
         match *self {
             Atom(a) => Ok(Value::Atom(a)),
@@ -285,7 +285,7 @@ impl fmt::Display for List {
             .map(ToString::to_string)
             .collect::<Vec<_>>()
             .join(" ");
-        write!(f, "( {} )", elements)
+        write!(f, "[ {} ]", elements)
     }
 }
 
