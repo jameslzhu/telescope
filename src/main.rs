@@ -1,10 +1,10 @@
 extern crate rustyline;
 extern crate lrs;
 
-use rustyline::error::ReadlineError as RLError;
-use rustyline::Editor;
 
 use lrs::parse;
+use rustyline::Editor;
+use rustyline::error::ReadlineError as RLError;
 
 fn main() {
     // Prompt constants
@@ -21,7 +21,6 @@ fn main() {
             Ok(line) => {
                 rl.add_history_entry(&line);
                 match line.as_str() {
-                    // "clear" => linenoise::clear_screen(),
                     "exit" | "quit" => break,
                     _ => {
                         let parsed = parse::parse_Expr(&line);
@@ -32,24 +31,24 @@ fn main() {
                                     Ok(value) => println!("{}", value),
                                     Err(e) => println!("{}", e),
                                 }
-                            },
+                            }
                             Err(e) => println!("Error: {:?}", e),
                         }
                     }
                 };
             }
             Err(RLError::Interrupted) => {
-               println!("CTRL-C");
-               break
-            },
+                println!("CTRL-C");
+                break;
+            }
             Err(RLError::Eof) => {
                 println!("CTRL-D");
-                break
-            },
+                break;
+            }
             Err(err) => {
                 println!("Error: {:?}", err);
-                break
-           }
+                break;
+            }
         }
     }
 }
