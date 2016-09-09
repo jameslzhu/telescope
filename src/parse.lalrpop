@@ -3,7 +3,7 @@ use atom::*;
 
 grammar;
 
-pub Expr: Expr = "(" <Op> <Node*> ")" => Expr::new(<>);
+pub Expr: Expr = "(" <Sym> <Node*> ")" => Expr::new(<>);
 
 pub List: List = "'(" <Node*> ")" => List::from(<>);
 
@@ -14,15 +14,15 @@ pub Node: Node = {
 };
 
 pub Atom: Atom = {
-    Op => Atom::from(<>),
+    Sym => Atom::from(<>),
     Num => Atom::from(<>),
 };
 
-pub Op: Operator = {
-    "+" => Operator::Add,
-    "-" => Operator::Sub,
-    "*" => Operator::Mul,
-    "/" => Operator::Div,
+pub Sym: Symbol = {
+    "+" => Symbol::Add,
+    "-" => Symbol::Sub,
+    "*" => Symbol::Mul,
+    "/" => Symbol::Div,
 };
 
 pub Num: i64 = r"[0-9]+" => i64::from_str(<>).unwrap();

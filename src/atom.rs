@@ -1,12 +1,13 @@
-
 use error::*;
-use std::collections::HashMap;use std::fmt;
+
+use std::collections::HashMap;
+use std::fmt;
 use std::iter;
 use std::ops;
 use std::slice;
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
-pub enum Operator {
+pub enum Symbol {
     Add,
     Sub,
     Mul,
@@ -14,9 +15,9 @@ pub enum Operator {
 }
 
 #[cfg_attr(rustfmt, rustfmt_skip)]
-impl fmt::Display for Operator {
+impl fmt::Display for Symbol {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        use self::Operator::*;
+        use self::Symbol::*;
         write!(f, "{}", match *self {
             Add => "+",
             Sub => "-",
@@ -52,7 +53,7 @@ impl fmt::Display for Arity {
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Atom {
-    Op(Operator),
+    Sym(Symbol),
     // Bool(bool),
     Int(i64), /* Float(f64),
                * Str(String), */
@@ -62,7 +63,7 @@ impl fmt::Display for Atom {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use self::Atom::*;
         match *self {
-            Op(ref t) => write!(f, "{}", t),
+            Sym(ref t) => write!(f, "{}", t),
             // Bool(ref t) => write!(f, "{}", t),
             Int(ref t) => write!(f, "{}", t),
             // Float(ref t) => write!(f, "{}", t),
@@ -71,9 +72,9 @@ impl fmt::Display for Atom {
     }
 }
 
-impl From<Operator> for Atom {
-    fn from(x: Operator) -> Self {
-        Atom::Op(x)
+impl From<Symbol> for Atom {
+    fn from(x: Symbol) -> Self {
+        Atom::Sym(x)
     }
 }
 
@@ -290,20 +291,20 @@ impl fmt::Display for List {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Expr {
-    op: Operator,
+    sym: Symbol,
     args: Vec<Node>,
 }
 
 impl Expr {
-    pub fn new(op: Operator, args: Vec<Node>) -> Self {
+    pub fn new(sym: Symbol, args: Vec<Node>) -> Self {
         Expr {
-            op: op,
+            sym: sym,
             args: args,
         }
     }
 
-    pub fn op(&self) -> Operator {
-        self.op
+    pub fn sym(&self) -> Symbol {
+        self.sym
     }
 
     pub fn args(&self) -> slice::Iter<Node> {
@@ -329,7 +330,7 @@ impl Expr {
     pub fn eval(&self) -> Result<Value> {
         // use self::Node::*;
         // use self::Atom::*;
-        use self::Operator::*;
+        use self::Symbol::*;
         use self::Arity::*;
 
         // Arity = number of arguments accepted
@@ -340,17 +341,17 @@ impl Expr {
         arity.insert(Mul, Multiary);
         arity.insert(Div, Binary);
 
-        let op = self.op();
+        let sym = self.sym();
 
-        let expected_arity = match arity.get(&op) {
+        let expected_arity = match arity.get(&sym) {
             Some(e) => e,
-            None => return Err(format!("operator {} not found", op).into()),
+            None => return Err(format!("symbol {} not found", sym).into()),
         };
 
         // Check if number of arguments match expected number
         if !self.expect_arity(*expected_arity) {
-            return Err(format!("{} operator expected {} arguments, but received {}",
-                               op,
+            return Err(format!("{} symbol expected {} arguments, but received {}",
+                               sym,
                                expected_arity,
                                self.num_args())
                 .into());
@@ -363,7 +364,7 @@ impl Expr {
             Err(e) => Err(e),
             Ok(v) => {
                 let mut eval_args = v.into_iter();
-                match op {
+                match sym {
                     Add => Ok(eval_args.fold(0.into(), |acc, x| acc + x)),
                     Sub => {
                         let a = eval_args.next().unwrap();
@@ -390,6 +391,6 @@ impl fmt::Display for Expr {
             .map(ToString::to_string)
             .collect::<Vec<_>>()
             .join(" ");
-        write!(f, "( {} {} )", self.op, elements)
+        write!(f, "( {} {} )", self.sym, elements)
     }
 }
