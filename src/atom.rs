@@ -319,44 +319,40 @@ impl Expr {
 
         let op = self.op();
 
-        // Evaluate all arguments
-        println!("{:#?}", self.args());
-        let mut args: Vec<_> = self.args().map(|x| x.eval()).collect();
+        let expected_arity = match arity.get(&op) {
+            Some(e) => e,
+            None => return Err(format!("operator {} not found", op).into())
+        };
 
-        // Check if operator is found
-        if let Some(expected_arity) = arity.get(&op) {
-            // Return the first expr that cannot eval correctly
-            if let &Some(ref err) = args.iter().find(|&x| x.is_err()) {
-                (*err).clone()
-            }
-            // Check if number of arguments match expected number
-            else if !self.expect_arity(*expected_arity) {
-                Err(format!(
-                    "{} operator expected {} arguments, but received {}",
-                    op, expected_arity, self.num_args()
-                ).into())
-            }
-            // Perform actual operation
-            else {
-                let mut eval_args = args.into_iter().map(Result::unwrap);
-                match op {
-                    Add => Ok(eval_args.fold(0.into(), |acc, x| acc + x)),
-                    Sub => {
-                        let a = eval_args.next().unwrap();
-                        let b = eval_args.next().unwrap();
-                        Ok(a - b)
-                    },
-                    Mul => Ok(eval_args.fold(1.into(), |acc, x| acc * x)),
-                    Div => {
-                        let a = eval_args.next().unwrap();
-                        let b = eval_args.next().unwrap();
-                        Ok(a / b)
-                    }
+        // Check if number of arguments match expected number
+        if !self.expect_arity(*expected_arity) {
+            return Err(format!(
+                "{} operator expected {} arguments, but received {}",
+                op, expected_arity, self.num_args()
+            ).into())
+        }
+
+        let mut args = self.args().map(Node::eval);
+
+        // Return the first expr that cannot eval correctly
+        if let Some(err) = args.find(|x| x.is_err()) {
+            err
+        } else {
+            let mut eval_args = args.map(Result::unwrap);
+            match op {
+                Add => Ok(eval_args.fold(0.into(), |acc, x| acc + x)),
+                Sub => {
+                    let a = eval_args.next().unwrap();
+                    let b = eval_args.next().unwrap();
+                    Ok(a - b)
+                },
+                Mul => Ok(eval_args.fold(1.into(), |acc, x| acc * x)),
+                Div => {
+                    let a = eval_args.next().unwrap();
+                    let b = eval_args.next().unwrap();
+                    Ok(a / b)
                 }
             }
-        }
-        else {
-            Err(format!("operator {} not found", op).into())
         }
     }
 }
