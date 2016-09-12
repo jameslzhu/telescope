@@ -11,7 +11,7 @@ fn main() {
     let header = format!("lrs v{}", env!("CARGO_PKG_VERSION"));
     let prompt = "> ";
 
-    let mut rl = Editor::new();
+    let mut rl = Editor::<()>::new();
 
     println!("{}", header);
 
