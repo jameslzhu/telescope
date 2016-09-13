@@ -2,6 +2,7 @@ lrs
 -------
 [![Build
 Status](https://travis-ci.org/jzhu98/lisp-rs.svg?style=flat-square&branch=develop)](https://travis-ci.org/jzhu98/lisp-rs)
+[![Appveyor Status](https://ci.appveyor.com/api/projects/status/rlhd2gyjcmdkdxc7/branch/develop?svg=true)](https://ci.appveyor.com/project/jzhu98/lrs/branch/develop)
 [![Coverage Status](https://coveralls.io/repos/github/jzhu98/lisp-rs/badge.svg?style=flat-square&branch=develop)](https://coveralls.io/github/jzhu98/lisp-rs?branch=feature%2Fatom)
 [![Clippy Linting Result](https://clippy.bashy.io/github/jzhu98/lisp-rs/develop/badge.svg?style=flat-square)](https://clippy.bashy.io/github/jzhu98/lisp-rs/develop/log)
 
