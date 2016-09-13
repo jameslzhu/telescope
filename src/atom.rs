@@ -3,7 +3,7 @@ use ops;
 
 use std::collections::HashMap;
 use std::fmt;
-// use std::iter; 
+// use std::iter;
 use std::slice;
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
@@ -156,40 +156,31 @@ impl Value {
         }
     }
 
-    pub fn add(&self, x: &Value) -> Result<Value> {
+    fn binary<F>(&self, x: &Self, symbol: Symbol, f: F) -> Result<Value>
+        where F: Fn(&Atom, &Atom) -> Result<Atom>
+    {
         use self::Value::Atom;
         match (self, x) {
-            (&Atom(a), &Atom(b)) => a.add(&b).map(Value::from),
+            (&Atom(ref a), &Atom(ref b)) => f(a, b).map(Value::from),
             _ => Err(format!("incompatible types for {}: {}, {}",
-                Symbol::Add, self.kind(), x.kind()).into()),
+                symbol, self.kind(), x.kind()).into()),
         }
+    }
+
+    pub fn add(&self, x: &Value) -> Result<Value> {
+        self.binary(x, Symbol::Add, Atom::add)
     }
 
     pub fn sub(&self, x: &Value) -> Result<Value> {
-        use self::Value::Atom;
-        match (self, x) {
-            (&Atom(a), &Atom(b)) => a.sub(&b).map(Value::from),
-            _ => Err(format!("incompatible types for {}: {}, {}",
-                Symbol::Sub, self.kind(), x.kind()).into()),
-        }
+        self.binary(x, Symbol::Sub, Atom::sub)
     }
 
     pub fn mul(&self, x: &Value) -> Result<Value> {
-        use self::Value::Atom;
-        match (self, x) {
-            (&Atom(a), &Atom(b)) => a.mul(&b).map(Value::from),
-            _ => Err(format!("incompatible types for {}: {}, {}",
-                Symbol::Mul, self.kind(), x.kind()).into()),
-        }
+        self.binary(x, Symbol::Mul, Atom::mul)
     }
 
     pub fn div(&self, x: &Value) -> Result<Value> {
-        use self::Value::Atom;
-        match (self, x) {
-            (&Atom(a), &Atom(b)) => a.div(&b).map(Value::from),
-            _ => Err(format!("incompatible types for {}: {}, {}",
-                Symbol::Div, self.kind(), x.kind()).into()),
-        }
+        self.binary(x, Symbol::Div, Atom::div)
     }
 }
 
