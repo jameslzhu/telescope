@@ -12,6 +12,7 @@ pub enum Symbol {
     Sub,
     Mul,
     Div,
+    Mod,
 }
 
 #[cfg_attr(rustfmt, rustfmt_skip)]
@@ -23,6 +24,7 @@ impl fmt::Display for Symbol {
             Sub => "-",
             Mul => "*",
             Div => "/",
+            Mod => "%",
         })
     }
 }
@@ -114,6 +116,22 @@ impl Atom {
                 Symbol::Div, self.kind(), x.kind()).into()),
         }
     }
+
+    pub fn modulus(&self, x: &Self) -> Result<Atom> {
+        use self::Atom::*;
+        match (self, x) {
+            (&Int(a), &Int(b)) => {
+                if b == 0 {
+                    Err("modulus by zero".into())
+                } else {
+                    Ok(Int(a % b))
+                }
+            },
+            _ => Err(format!(
+                "incompatible types for {}: {}, {}",
+                Symbol::Mod, self.kind(), x.kind()).into()),
+        }
+    }
 }
 
 impl fmt::Display for Atom {
@@ -181,6 +199,10 @@ impl Value {
 
     pub fn div(&self, x: &Value) -> Result<Value> {
         self.binary(x, Symbol::Div, Atom::div)
+    }
+
+    pub fn modulus(&self, x: &Value) -> Result<Value> {
+        self.binary(x, Symbol::Mod, Atom::modulus)
     }
 }
 
@@ -344,12 +366,13 @@ impl Expr {
         arity.insert(Sub, Binary);
         arity.insert(Mul, Multiary);
         arity.insert(Div, Binary);
+        arity.insert(Mod, Binary);
 
         let sym = self.sym();
 
         let expected_arity = match arity.get(&sym) {
             Some(e) => e,
-            None => return Err(format!("symbol {} not found", sym).into()),
+            None => return Err(format!("symbol {} has unknown number of arguments", sym).into()),
         };
 
         // Check if number of arguments match expected number
@@ -372,6 +395,7 @@ impl Expr {
                     Sub => ops::sub(&v),
                     Mul => ops::mul(&v),
                     Div => ops::div(&v),
+                    Mod => ops::modulus(&v),
                 }
             }
         }

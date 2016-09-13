@@ -19,3 +19,8 @@ pub fn div(v: &Vec<Value>) -> Result<Value> {
     assert!(v.len() >= 2);
     v[0].div(&v[1])
 }
+
+pub fn modulus(v: &Vec<Value>) -> Result<Value> {
+    assert!(v.len() == 2);
+    v[0].modulus(&v[1])
+}

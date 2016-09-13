@@ -27,6 +27,7 @@ pub Sym: Symbol = {
     "-" => Symbol::Sub,
     "*" => Symbol::Mul,
     "/" => Symbol::Div,
+    "%" => Symbol::Mod,
 };
 
 pub Num: i64 = r"[0-9]+" => i64::from_str(<>).unwrap();
