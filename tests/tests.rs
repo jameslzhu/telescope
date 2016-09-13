@@ -1,10 +1,10 @@
-extern crate lisp_rs;
+extern crate lrs;
 
 #[cfg(test)]
 mod tests {
-    use lisp_rs::atom::*;
-    use lisp_rs::token::*;
-    use lisp_rs::token::Operator::*;
+    use lrs::atom::*;
+    use lrs::token::*;
+    use lrs::token::Operator::*;
 
     // #[test]
     fn test_operator() {
