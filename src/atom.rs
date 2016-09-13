@@ -240,55 +240,6 @@ impl<T> From<T> for Value
 //     }
 // }
 
-#[derive(Clone, Debug, PartialEq)]
-pub enum Node {
-    Atom(Atom),
-    List(List),
-    Expr(Expr),
-}
-
-impl Node {
-    pub fn eval(&self) -> Result<Value> {
-        use self::Node::*;
-        match *self {
-            Atom(a) => Ok(Value::Atom(a)),
-            List(ref l) => Ok(Value::List(l.clone())),
-            Expr(ref e) => e.eval(),
-        }
-    }
-}
-
-impl<T> From<T> for Node
-    where T: Into<Atom>
-{
-    fn from(v: T) -> Self {
-        Node::Atom(v.into())
-    }
-}
-
-// impl<T> From<T> for Node where T: Into<List> {
-//     fn from(l: T) -> Self {
-//         Node::List(l.into())
-//     }
-// }
-//
-// impl<T> From<T> for Node where T: Into<Expr> {
-//     fn from(e: T) -> Self {
-//         Node::Expr(e.into())
-//     }
-// }
-
-impl fmt::Display for Node {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        use self::Node::*;
-        match *self {
-            Atom(ref a) => write!(f, "{}", a),
-            List(ref l) => write!(f, "{}", l),
-            Expr(ref e) => write!(f, "{}", e),
-        }
-    }
-}
-
 #[derive(Clone, Default, Debug, PartialEq)]
 pub struct List {
     inner: Vec<Node>,
@@ -412,3 +363,53 @@ impl fmt::Display for Expr {
         write!(f, "( {} {} )", self.sym, elements)
     }
 }
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum Node {
+    Atom(Atom),
+    List(List),
+    Expr(Expr),
+}
+
+impl Node {
+    pub fn eval(&self) -> Result<Value> {
+        use self::Node::*;
+        match *self {
+            Atom(a) => Ok(Value::Atom(a)),
+            List(ref l) => Ok(Value::List(l.clone())),
+            Expr(ref e) => e.eval(),
+        }
+    }
+}
+
+impl<T> From<T> for Node
+    where T: Into<Atom>
+{
+    fn from(v: T) -> Self {
+        Node::Atom(v.into())
+    }
+}
+
+// impl<T> From<T> for Node where T: Into<List> {
+//     fn from(l: T) -> Self {
+//         Node::List(l.into())
+//     }
+// }
+//
+// impl<T> From<T> for Node where T: Into<Expr> {
+//     fn from(e: T) -> Self {
+//         Node::Expr(e.into())
+//     }
+// }
+
+impl fmt::Display for Node {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        use self::Node::*;
+        match *self {
+            Atom(ref a) => write!(f, "{}", a),
+            List(ref l) => write!(f, "{}", l),
+            Expr(ref e) => write!(f, "{}", e),
+        }
+    }
+}
+
