@@ -49,7 +49,7 @@ impl fmt::Display for Arity {
             Multiary => "at least 2",
         };
 
-        write!(f, "{} args", text)
+        write!(f, "{}", text)
     }
 }
 
