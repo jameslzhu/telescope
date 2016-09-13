@@ -23,7 +23,7 @@ fn main() {
                 match line.as_str() {
                     "exit" | "quit" => break,
                     _ => {
-                        let parsed = parse::parse_Node(&line);
+                        let parsed = parse::parse_Lang(&line);
 
                         match parsed {
                             Ok(result) => {
