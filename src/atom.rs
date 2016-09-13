@@ -289,14 +289,14 @@ impl fmt::Display for Node {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Default, Debug, PartialEq)]
 pub struct List {
     inner: Vec<Node>,
 }
 
 impl List {
     pub fn new() -> Self {
-        List { inner: Vec::new() }
+        List::default()
     }
 }
 
