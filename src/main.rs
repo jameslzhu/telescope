@@ -52,18 +52,3 @@ fn main() {
         }
     }
 }
-
-#[test]
-fn calc() {
-    assert!(parse::parse_Expr("22").is_ok());
-    assert!(parse::parse_Expr("(22)").is_ok());
-    assert!(parse::parse_Expr("((((22))))").is_ok());
-    assert!(parse::parse_Expr("((( ( 22 ) )))").is_ok());
-    assert!(parse::parse_Expr("((22)").is_err());
-}
-
-#[test]
-fn calc2() {
-    assert!(parse::parse_Expr("(+ 1 2 3)").is_ok());
-    assert!(parse::parse_Expr("(+ 4 (/ 5 6))").is_ok());
-}
