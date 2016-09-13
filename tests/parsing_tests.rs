@@ -1,36 +1,36 @@
 extern crate lrs;
 
 #[test]
-fn parse_Num() {
+fn parse_num() {
 
 }
 
 #[test]
-fn parse_Sym() {
+fn parse_sym() {
 
 }
 
 #[test]
-fn parse_Atom() {
+fn parse_atom() {
 
 }
 
 #[test]
-fn parse_List() {
+fn parse_list() {
 
 }
 
 #[test]
-fn parse_Expr() {
+fn parse_expr() {
 
 }
 
 #[test]
-fn parse_Node() {
+fn parse_node() {
 
 }
 
 #[test]
-fn parse_Lang() {
-    
+fn parse_lang() {
+
 }
