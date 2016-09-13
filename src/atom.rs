@@ -413,3 +413,19 @@ impl fmt::Display for Node {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    // Symbol tests
+
+    // Arity tests
+
+    // Atom tests
+
+    // List tests
+
+    // Value tests
+
+    // Expr tests
+
+    // Node tests
+}
