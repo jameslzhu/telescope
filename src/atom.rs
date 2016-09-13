@@ -1,9 +1,9 @@
 use error::*;
+use ops;
 
 use std::collections::HashMap;
 use std::fmt;
-use std::iter;
-use std::ops;
+// use std::iter; 
 use std::slice;
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
@@ -55,8 +55,65 @@ impl fmt::Display for Arity {
 pub enum Atom {
     Sym(Symbol),
     // Bool(bool),
-    Int(i64), /* Float(f64),
-               * Str(String), */
+    Int(i64),
+    // Float(f64),
+    //Str(String),
+}
+
+impl Atom {
+    fn kind(&self) -> &str {
+        use self::Atom::*;
+        match *self {
+            Sym(_) => "sym",
+            Int(_) => "int",
+        }
+    }
+
+    pub fn add(&self, x: &Self) -> Result<Atom> {
+        use self::Atom::*;
+        match (self, x) {
+            (&Int(a), &Int(b)) => Ok(Int(a + b)),
+            _ => Err(format!(
+                "incompatible types for {}: {}, {}",
+                Symbol::Add, self.kind(), x.kind()).into()),
+        }
+    }
+
+    pub fn sub(&self, x: &Self) -> Result<Atom> {
+        use self::Atom::*;
+        match (self, x) {
+            (&Int(a), &Int(b)) => Ok(Int(a - b)),
+            _ => Err(format!(
+                "incompatible types for {}: {}, {}",
+                Symbol::Sub, self.kind(), x.kind()).into()),
+        }
+    }
+
+    pub fn mul(&self, x: &Self) -> Result<Atom> {
+        use self::Atom::*;
+        match (self, x) {
+            (&Int(a), &Int(b)) => Ok(Int(a * b)),
+            _ => Err(format!(
+                "incompatible types for {}: {}, {}",
+                Symbol::Mul, self.kind(), x.kind()).into()),
+        }
+    }
+
+    pub fn div(&self, x: &Self) -> Result<Atom> {
+        use self::Atom::*;
+        match (self, x) {
+            (&Int(a), &Int(b)) => {
+                if b == 0 {
+                    Err("division by zero".into())
+                } else {
+                    Ok(Int(a / b))
+                }
+            },
+            _ => Err(format!(
+                "incompatible types for {}: {}, {}",
+                Symbol::Div, self.kind(), x.kind()).into()),
+        }
+    }
 }
 
 impl fmt::Display for Atom {
@@ -84,54 +141,56 @@ impl From<i64> for Atom {
     }
 }
 
-impl ops::Add<Atom> for Atom {
-    type Output = Atom;
-    fn add(self, rhs: Atom) -> Self::Output {
-        use self::Atom::*;
-        match (self, rhs) {
-            (Int(i), Int(j)) => Int(i + j),
-            _ => panic!(),
-        }
-    }
-}
-
-impl ops::Sub<Atom> for Atom {
-    type Output = Atom;
-    fn sub(self, rhs: Atom) -> Self::Output {
-        use self::Atom::*;
-        match (self, rhs) {
-            (Int(i), Int(j)) => Int(i - j),
-            _ => panic!(),
-        }
-    }
-}
-
-impl ops::Mul<Atom> for Atom {
-    type Output = Atom;
-    fn mul(self, rhs: Atom) -> Self::Output {
-        use self::Atom::*;
-        match (self, rhs) {
-            (Int(i), Int(j)) => Int(i * j),
-            _ => panic!(),
-        }
-    }
-}
-
-impl ops::Div<Atom> for Atom {
-    type Output = Atom;
-    fn div(self, rhs: Atom) -> Self::Output {
-        use self::Atom::*;
-        match (self, rhs) {
-            (Int(i), Int(j)) => Int(i / j),
-            _ => panic!(),
-        }
-    }
-}
-
 #[derive(Clone, Debug, PartialEq)]
 pub enum Value {
     Atom(Atom),
     List(List),
+}
+
+impl Value {
+    fn kind(&self) -> &str {
+        use self::Value::*;
+        match *self {
+            Atom(_) => "atom",
+            List(_) => "list",
+        }
+    }
+
+    pub fn add(&self, x: &Value) -> Result<Value> {
+        use self::Value::Atom;
+        match (self, x) {
+            (&Atom(a), &Atom(b)) => a.add(&b).map(Value::from),
+            _ => Err(format!("incompatible types for {}: {}, {}",
+                Symbol::Add, self.kind(), x.kind()).into()),
+        }
+    }
+
+    pub fn sub(&self, x: &Value) -> Result<Value> {
+        use self::Value::Atom;
+        match (self, x) {
+            (&Atom(a), &Atom(b)) => a.sub(&b).map(Value::from),
+            _ => Err(format!("incompatible types for {}: {}, {}",
+                Symbol::Sub, self.kind(), x.kind()).into()),
+        }
+    }
+
+    pub fn mul(&self, x: &Value) -> Result<Value> {
+        use self::Value::Atom;
+        match (self, x) {
+            (&Atom(a), &Atom(b)) => a.mul(&b).map(Value::from),
+            _ => Err(format!("incompatible types for {}: {}, {}",
+                Symbol::Mul, self.kind(), x.kind()).into()),
+        }
+    }
+
+    pub fn div(&self, x: &Value) -> Result<Value> {
+        use self::Value::Atom;
+        match (self, x) {
+            (&Atom(a), &Atom(b)) => a.div(&b).map(Value::from),
+            _ => Err(format!("incompatible types for {}: {}, {}",
+                Symbol::Div, self.kind(), x.kind()).into()),
+        }
+    }
 }
 
 impl fmt::Display for Value {
@@ -149,50 +208,6 @@ impl<T> From<T> for Value
 {
     fn from(v: T) -> Self {
         Value::Atom(v.into())
-    }
-}
-
-impl ops::Add<Value> for Value {
-    type Output = Value;
-    fn add(self, rhs: Value) -> Self::Output {
-        use self::Value::*;
-        match (self, rhs) {
-            (Atom(i), Atom(j)) => Atom(i + j),
-            _ => panic!(),
-        }
-    }
-}
-
-impl ops::Sub<Value> for Value {
-    type Output = Value;
-    fn sub(self, rhs: Value) -> Self::Output {
-        use self::Value::*;
-        match (self, rhs) {
-            (Atom(i), Atom(j)) => Atom(i - j),
-            _ => panic!(),
-        }
-    }
-}
-
-impl ops::Mul<Value> for Value {
-    type Output = Value;
-    fn mul(self, rhs: Value) -> Self::Output {
-        use self::Value::*;
-        match (self, rhs) {
-            (Atom(i), Atom(j)) => Atom(i * j),
-            _ => panic!(),
-        }
-    }
-}
-
-impl ops::Div<Value> for Value {
-    type Output = Value;
-    fn div(self, rhs: Value) -> Self::Output {
-        use self::Value::*;
-        match (self, rhs) {
-            (Atom(i), Atom(j)) => Atom(i / j),
-            _ => panic!(),
-        }
     }
 }
 
@@ -315,7 +330,7 @@ impl Expr {
         self.args.len()
     }
 
-    pub fn expect_arity(&self, arity: Arity) -> bool {
+    fn check_arity(&self, arity: Arity) -> bool {
         use self::Arity::*;
         let num_args = self.num_args();
         match arity {
@@ -328,8 +343,6 @@ impl Expr {
     }
 
     pub fn eval(&self) -> Result<Value> {
-        // use self::Node::*;
-        // use self::Atom::*;
         use self::Symbol::*;
         use self::Arity::*;
 
@@ -349,7 +362,7 @@ impl Expr {
         };
 
         // Check if number of arguments match expected number
-        if !self.expect_arity(*expected_arity) {
+        if !self.check_arity(*expected_arity) {
             return Err(format!("{} symbol expected {} arguments, but received {}",
                                sym,
                                expected_arity,
@@ -363,22 +376,12 @@ impl Expr {
         match evaled_args {
             Err(e) => Err(e),
             Ok(v) => {
-                let mut eval_args = v.into_iter();
                 match sym {
-                    Add => Ok(eval_args.fold(0.into(), |acc, x| acc + x)),
-                    Sub => {
-                        let a = eval_args.next().unwrap();
-                        let b = eval_args.next().unwrap();
-                        Ok(a - b)
-                    }
-                    Mul => Ok(eval_args.fold(1.into(), |acc, x| acc * x)),
-                    Div => {
-                        let a = eval_args.next().unwrap();
-                        let b = eval_args.next().unwrap();
-                        Ok(a / b)
-                    }
+                    Add => ops::add(&v),
+                    Sub => ops::sub(&v),
+                    Mul => ops::mul(&v),
+                    Div => ops::div(&v),
                 }
-
             }
         }
     }
