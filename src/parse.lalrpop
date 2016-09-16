@@ -30,4 +30,4 @@ pub Sym: Symbol = {
     "%" => Symbol::Mod,
 };
 
-pub Num: i64 = r"[0-9]+" => i64::from_str(<>).unwrap();
+pub Num: i64 = r"-?[0-9]+" => i64::from_str(<>).unwrap();

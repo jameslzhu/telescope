@@ -19,7 +19,7 @@ mod __parse__Atom {
         Term_22_2f_22(&'input str),
         Term_22_5b_22(&'input str),
         Term_22_5d_22(&'input str),
-        Termr_23_22_5b0_2d9_5d_2b_22_23(&'input str),
+        Termr_23_22_2d_3f_5b0_2d9_5d_2b_22_23(&'input str),
         NtAtom(Atom),
         NtExpr(Expr),
         NtLang(Node),
@@ -48,7 +48,7 @@ mod __parse__Atom {
         9, // on "/", goto 8
         0, // on "[", error
         0, // on "]", error
-        10, // on r#"[0-9]+"#, goto 9
+        10, // on r#"-?[0-9]+"#, goto 9
         // State 1
         0, // on "%", error
         0, // on "(", error
@@ -59,7 +59,7 @@ mod __parse__Atom {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 2
         0, // on "%", error
         0, // on "(", error
@@ -70,7 +70,7 @@ mod __parse__Atom {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 3
         0, // on "%", error
         0, // on "(", error
@@ -81,7 +81,7 @@ mod __parse__Atom {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 4
         0, // on "%", error
         0, // on "(", error
@@ -92,7 +92,7 @@ mod __parse__Atom {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 5
         0, // on "%", error
         0, // on "(", error
@@ -103,7 +103,7 @@ mod __parse__Atom {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 6
         0, // on "%", error
         0, // on "(", error
@@ -114,7 +114,7 @@ mod __parse__Atom {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 7
         0, // on "%", error
         0, // on "(", error
@@ -125,7 +125,7 @@ mod __parse__Atom {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 8
         0, // on "%", error
         0, // on "(", error
@@ -136,7 +136,7 @@ mod __parse__Atom {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 9
         0, // on "%", error
         0, // on "(", error
@@ -147,7 +147,7 @@ mod __parse__Atom {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
     ];
     const __EOF_ACTION: &'static [i32] = &[
         0, // on EOF, error
@@ -159,7 +159,7 @@ mod __parse__Atom {
         -16, // on EOF, reduce `Sym = "+" => ActionFn(15);`
         -17, // on EOF, reduce `Sym = "-" => ActionFn(16);`
         -19, // on EOF, reduce `Sym = "/" => ActionFn(18);`
-        -15, // on EOF, reduce `Num = r#"[0-9]+"# => ActionFn(20);`
+        -15, // on EOF, reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
     ];
     const __GOTO: &'static [i32] = &[
         // State 0
@@ -408,7 +408,7 @@ mod __parse__Atom {
                             _ => unreachable!(),
                         },
                         9 => match __lookahead.1 {
-                            (9, __tok0) => __Symbol::Termr_23_22_5b0_2d9_5d_2b_22_23(__tok0),
+                            (9, __tok0) => __Symbol::Termr_23_22_2d_3f_5b0_2d9_5d_2b_22_23(__tok0),
                             _ => unreachable!(),
                         },
                         _ => unreachable!(),
@@ -617,8 +617,8 @@ mod __parse__Atom {
                 6
             }
             15 => {
-                // Num = r#"[0-9]+"# => ActionFn(20);
-                let __sym0 = __pop_Termr_23_22_5b0_2d9_5d_2b_22_23(__symbols);
+                // Num = r#"-?[0-9]+"# => ActionFn(20);
+                let __sym0 = __pop_Termr_23_22_2d_3f_5b0_2d9_5d_2b_22_23(__symbols);
                 let __start = __sym0.0.clone();
                 let __end = __sym0.2.clone();
                 let __nt = super::__action20(input, __sym0);
@@ -853,13 +853,13 @@ mod __parse__Atom {
             _ => panic!("symbol type mismatch")
         }
     }
-    fn __pop_Termr_23_22_5b0_2d9_5d_2b_22_23<
+    fn __pop_Termr_23_22_2d_3f_5b0_2d9_5d_2b_22_23<
       'input,
     >(
         __symbols: &mut ::std::vec::Vec<(usize,__Symbol<'input>,usize)>
     ) -> (usize, &'input str, usize) {
         match __symbols.pop().unwrap() {
-            (__l, __Symbol::Termr_23_22_5b0_2d9_5d_2b_22_23(__v), __r) => (__l, __v, __r),
+            (__l, __Symbol::Termr_23_22_2d_3f_5b0_2d9_5d_2b_22_23(__v), __r) => (__l, __v, __r),
             _ => panic!("symbol type mismatch")
         }
     }
@@ -1043,7 +1043,7 @@ mod __parse__Expr {
         Term_22_2f_22(&'input str),
         Term_22_5b_22(&'input str),
         Term_22_5d_22(&'input str),
-        Termr_23_22_5b0_2d9_5d_2b_22_23(&'input str),
+        Termr_23_22_2d_3f_5b0_2d9_5d_2b_22_23(&'input str),
         NtAtom(Atom),
         NtExpr(Expr),
         NtLang(Node),
@@ -1072,7 +1072,7 @@ mod __parse__Expr {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 1
         0, // on "%", error
         0, // on "(", error
@@ -1083,7 +1083,7 @@ mod __parse__Expr {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 2
         5, // on "%", goto 4
         0, // on "(", error
@@ -1094,7 +1094,7 @@ mod __parse__Expr {
         9, // on "/", goto 8
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 3
         5, // on "%", goto 4
         17, // on "(", goto 16
@@ -1105,7 +1105,7 @@ mod __parse__Expr {
         9, // on "/", goto 8
         19, // on "[", goto 18
         0, // on "]", error
-        20, // on r#"[0-9]+"#, goto 19
+        20, // on r#"-?[0-9]+"#, goto 19
         // State 4
         -20, // on "%", reduce `Sym = "%" => ActionFn(19);`
         -20, // on "(", reduce `Sym = "%" => ActionFn(19);`
@@ -1116,7 +1116,7 @@ mod __parse__Expr {
         -20, // on "/", reduce `Sym = "%" => ActionFn(19);`
         -20, // on "[", reduce `Sym = "%" => ActionFn(19);`
         0, // on "]", error
-        -20, // on r#"[0-9]+"#, reduce `Sym = "%" => ActionFn(19);`
+        -20, // on r#"-?[0-9]+"#, reduce `Sym = "%" => ActionFn(19);`
         // State 5
         -18, // on "%", reduce `Sym = "*" => ActionFn(17);`
         -18, // on "(", reduce `Sym = "*" => ActionFn(17);`
@@ -1127,7 +1127,7 @@ mod __parse__Expr {
         -18, // on "/", reduce `Sym = "*" => ActionFn(17);`
         -18, // on "[", reduce `Sym = "*" => ActionFn(17);`
         0, // on "]", error
-        -18, // on r#"[0-9]+"#, reduce `Sym = "*" => ActionFn(17);`
+        -18, // on r#"-?[0-9]+"#, reduce `Sym = "*" => ActionFn(17);`
         // State 6
         -16, // on "%", reduce `Sym = "+" => ActionFn(15);`
         -16, // on "(", reduce `Sym = "+" => ActionFn(15);`
@@ -1138,7 +1138,7 @@ mod __parse__Expr {
         -16, // on "/", reduce `Sym = "+" => ActionFn(15);`
         -16, // on "[", reduce `Sym = "+" => ActionFn(15);`
         0, // on "]", error
-        -16, // on r#"[0-9]+"#, reduce `Sym = "+" => ActionFn(15);`
+        -16, // on r#"-?[0-9]+"#, reduce `Sym = "+" => ActionFn(15);`
         // State 7
         -17, // on "%", reduce `Sym = "-" => ActionFn(16);`
         -17, // on "(", reduce `Sym = "-" => ActionFn(16);`
@@ -1149,7 +1149,7 @@ mod __parse__Expr {
         -17, // on "/", reduce `Sym = "-" => ActionFn(16);`
         -17, // on "[", reduce `Sym = "-" => ActionFn(16);`
         0, // on "]", error
-        -17, // on r#"[0-9]+"#, reduce `Sym = "-" => ActionFn(16);`
+        -17, // on r#"-?[0-9]+"#, reduce `Sym = "-" => ActionFn(16);`
         // State 8
         -19, // on "%", reduce `Sym = "/" => ActionFn(18);`
         -19, // on "(", reduce `Sym = "/" => ActionFn(18);`
@@ -1160,7 +1160,7 @@ mod __parse__Expr {
         -19, // on "/", reduce `Sym = "/" => ActionFn(18);`
         -19, // on "[", reduce `Sym = "/" => ActionFn(18);`
         0, // on "]", error
-        -19, // on r#"[0-9]+"#, reduce `Sym = "/" => ActionFn(18);`
+        -19, // on r#"-?[0-9]+"#, reduce `Sym = "/" => ActionFn(18);`
         // State 9
         -8, // on "%", reduce `Node = Atom => ActionFn(10);`
         -8, // on "(", reduce `Node = Atom => ActionFn(10);`
@@ -1171,7 +1171,7 @@ mod __parse__Expr {
         -8, // on "/", reduce `Node = Atom => ActionFn(10);`
         -8, // on "[", reduce `Node = Atom => ActionFn(10);`
         0, // on "]", error
-        -8, // on r#"[0-9]+"#, reduce `Node = Atom => ActionFn(10);`
+        -8, // on r#"-?[0-9]+"#, reduce `Node = Atom => ActionFn(10);`
         // State 10
         -10, // on "%", reduce `Node = Expr => ActionFn(12);`
         -10, // on "(", reduce `Node = Expr => ActionFn(12);`
@@ -1182,7 +1182,7 @@ mod __parse__Expr {
         -10, // on "/", reduce `Node = Expr => ActionFn(12);`
         -10, // on "[", reduce `Node = Expr => ActionFn(12);`
         0, // on "]", error
-        -10, // on r#"[0-9]+"#, reduce `Node = Expr => ActionFn(12);`
+        -10, // on r#"-?[0-9]+"#, reduce `Node = Expr => ActionFn(12);`
         // State 11
         -9, // on "%", reduce `Node = List => ActionFn(11);`
         -9, // on "(", reduce `Node = List => ActionFn(11);`
@@ -1193,7 +1193,7 @@ mod __parse__Expr {
         -9, // on "/", reduce `Node = List => ActionFn(11);`
         -9, // on "[", reduce `Node = List => ActionFn(11);`
         0, // on "]", error
-        -9, // on r#"[0-9]+"#, reduce `Node = List => ActionFn(11);`
+        -9, // on r#"-?[0-9]+"#, reduce `Node = List => ActionFn(11);`
         // State 12
         -13, // on "%", reduce `Node+ = Node => ActionFn(23);`
         -13, // on "(", reduce `Node+ = Node => ActionFn(23);`
@@ -1204,7 +1204,7 @@ mod __parse__Expr {
         -13, // on "/", reduce `Node+ = Node => ActionFn(23);`
         -13, // on "[", reduce `Node+ = Node => ActionFn(23);`
         0, // on "]", error
-        -13, // on r#"[0-9]+"#, reduce `Node+ = Node => ActionFn(23);`
+        -13, // on r#"-?[0-9]+"#, reduce `Node+ = Node => ActionFn(23);`
         // State 13
         5, // on "%", goto 4
         17, // on "(", goto 16
@@ -1215,7 +1215,7 @@ mod __parse__Expr {
         9, // on "/", goto 8
         19, // on "[", goto 18
         0, // on "]", error
-        20, // on r#"[0-9]+"#, goto 19
+        20, // on r#"-?[0-9]+"#, goto 19
         // State 14
         -2, // on "%", reduce `Atom = Num => ActionFn(14);`
         -2, // on "(", reduce `Atom = Num => ActionFn(14);`
@@ -1226,7 +1226,7 @@ mod __parse__Expr {
         -2, // on "/", reduce `Atom = Num => ActionFn(14);`
         -2, // on "[", reduce `Atom = Num => ActionFn(14);`
         0, // on "]", error
-        -2, // on r#"[0-9]+"#, reduce `Atom = Num => ActionFn(14);`
+        -2, // on r#"-?[0-9]+"#, reduce `Atom = Num => ActionFn(14);`
         // State 15
         -1, // on "%", reduce `Atom = Sym => ActionFn(13);`
         -1, // on "(", reduce `Atom = Sym => ActionFn(13);`
@@ -1237,7 +1237,7 @@ mod __parse__Expr {
         -1, // on "/", reduce `Atom = Sym => ActionFn(13);`
         -1, // on "[", reduce `Atom = Sym => ActionFn(13);`
         0, // on "]", error
-        -1, // on r#"[0-9]+"#, reduce `Atom = Sym => ActionFn(13);`
+        -1, // on r#"-?[0-9]+"#, reduce `Atom = Sym => ActionFn(13);`
         // State 16
         5, // on "%", goto 4
         0, // on "(", error
@@ -1248,7 +1248,7 @@ mod __parse__Expr {
         9, // on "/", goto 8
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 17
         0, // on "%", error
         0, // on "(", error
@@ -1259,7 +1259,7 @@ mod __parse__Expr {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 18
         31, // on "%", goto 30
         32, // on "(", goto 31
@@ -1270,18 +1270,18 @@ mod __parse__Expr {
         36, // on "/", goto 35
         37, // on "[", goto 36
         38, // on "]", goto 37
-        39, // on r#"[0-9]+"#, goto 38
+        39, // on r#"-?[0-9]+"#, goto 38
         // State 19
-        -15, // on "%", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "(", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on ")", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "*", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "+", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "-", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "/", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "[", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
+        -15, // on "%", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "(", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on ")", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "*", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "+", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "-", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "/", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "[", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
         0, // on "]", error
-        -15, // on r#"[0-9]+"#, reduce `Num = r#"[0-9]+"# => ActionFn(20);`
+        -15, // on r#"-?[0-9]+"#, reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
         // State 20
         -14, // on "%", reduce `Node+ = Node+, Node => ActionFn(24);`
         -14, // on "(", reduce `Node+ = Node+, Node => ActionFn(24);`
@@ -1292,7 +1292,7 @@ mod __parse__Expr {
         -14, // on "/", reduce `Node+ = Node+, Node => ActionFn(24);`
         -14, // on "[", reduce `Node+ = Node+, Node => ActionFn(24);`
         0, // on "]", error
-        -14, // on r#"[0-9]+"#, reduce `Node+ = Node+, Node => ActionFn(24);`
+        -14, // on r#"-?[0-9]+"#, reduce `Node+ = Node+, Node => ActionFn(24);`
         // State 21
         0, // on "%", error
         0, // on "(", error
@@ -1303,7 +1303,7 @@ mod __parse__Expr {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 22
         5, // on "%", goto 4
         17, // on "(", goto 16
@@ -1314,7 +1314,7 @@ mod __parse__Expr {
         9, // on "/", goto 8
         19, // on "[", goto 18
         0, // on "]", error
-        20, // on r#"[0-9]+"#, goto 19
+        20, // on r#"-?[0-9]+"#, goto 19
         // State 23
         -8, // on "%", reduce `Node = Atom => ActionFn(10);`
         -8, // on "(", reduce `Node = Atom => ActionFn(10);`
@@ -1325,7 +1325,7 @@ mod __parse__Expr {
         -8, // on "/", reduce `Node = Atom => ActionFn(10);`
         -8, // on "[", reduce `Node = Atom => ActionFn(10);`
         -8, // on "]", reduce `Node = Atom => ActionFn(10);`
-        -8, // on r#"[0-9]+"#, reduce `Node = Atom => ActionFn(10);`
+        -8, // on r#"-?[0-9]+"#, reduce `Node = Atom => ActionFn(10);`
         // State 24
         -10, // on "%", reduce `Node = Expr => ActionFn(12);`
         -10, // on "(", reduce `Node = Expr => ActionFn(12);`
@@ -1336,7 +1336,7 @@ mod __parse__Expr {
         -10, // on "/", reduce `Node = Expr => ActionFn(12);`
         -10, // on "[", reduce `Node = Expr => ActionFn(12);`
         -10, // on "]", reduce `Node = Expr => ActionFn(12);`
-        -10, // on r#"[0-9]+"#, reduce `Node = Expr => ActionFn(12);`
+        -10, // on r#"-?[0-9]+"#, reduce `Node = Expr => ActionFn(12);`
         // State 25
         -9, // on "%", reduce `Node = List => ActionFn(11);`
         -9, // on "(", reduce `Node = List => ActionFn(11);`
@@ -1347,7 +1347,7 @@ mod __parse__Expr {
         -9, // on "/", reduce `Node = List => ActionFn(11);`
         -9, // on "[", reduce `Node = List => ActionFn(11);`
         -9, // on "]", reduce `Node = List => ActionFn(11);`
-        -9, // on r#"[0-9]+"#, reduce `Node = List => ActionFn(11);`
+        -9, // on r#"-?[0-9]+"#, reduce `Node = List => ActionFn(11);`
         // State 26
         -13, // on "%", reduce `Node+ = Node => ActionFn(23);`
         -13, // on "(", reduce `Node+ = Node => ActionFn(23);`
@@ -1358,7 +1358,7 @@ mod __parse__Expr {
         -13, // on "/", reduce `Node+ = Node => ActionFn(23);`
         -13, // on "[", reduce `Node+ = Node => ActionFn(23);`
         -13, // on "]", reduce `Node+ = Node => ActionFn(23);`
-        -13, // on r#"[0-9]+"#, reduce `Node+ = Node => ActionFn(23);`
+        -13, // on r#"-?[0-9]+"#, reduce `Node+ = Node => ActionFn(23);`
         // State 27
         31, // on "%", goto 30
         32, // on "(", goto 31
@@ -1369,7 +1369,7 @@ mod __parse__Expr {
         36, // on "/", goto 35
         37, // on "[", goto 36
         43, // on "]", goto 42
-        39, // on r#"[0-9]+"#, goto 38
+        39, // on r#"-?[0-9]+"#, goto 38
         // State 28
         -2, // on "%", reduce `Atom = Num => ActionFn(14);`
         -2, // on "(", reduce `Atom = Num => ActionFn(14);`
@@ -1380,7 +1380,7 @@ mod __parse__Expr {
         -2, // on "/", reduce `Atom = Num => ActionFn(14);`
         -2, // on "[", reduce `Atom = Num => ActionFn(14);`
         -2, // on "]", reduce `Atom = Num => ActionFn(14);`
-        -2, // on r#"[0-9]+"#, reduce `Atom = Num => ActionFn(14);`
+        -2, // on r#"-?[0-9]+"#, reduce `Atom = Num => ActionFn(14);`
         // State 29
         -1, // on "%", reduce `Atom = Sym => ActionFn(13);`
         -1, // on "(", reduce `Atom = Sym => ActionFn(13);`
@@ -1391,7 +1391,7 @@ mod __parse__Expr {
         -1, // on "/", reduce `Atom = Sym => ActionFn(13);`
         -1, // on "[", reduce `Atom = Sym => ActionFn(13);`
         -1, // on "]", reduce `Atom = Sym => ActionFn(13);`
-        -1, // on r#"[0-9]+"#, reduce `Atom = Sym => ActionFn(13);`
+        -1, // on r#"-?[0-9]+"#, reduce `Atom = Sym => ActionFn(13);`
         // State 30
         -20, // on "%", reduce `Sym = "%" => ActionFn(19);`
         -20, // on "(", reduce `Sym = "%" => ActionFn(19);`
@@ -1402,7 +1402,7 @@ mod __parse__Expr {
         -20, // on "/", reduce `Sym = "%" => ActionFn(19);`
         -20, // on "[", reduce `Sym = "%" => ActionFn(19);`
         -20, // on "]", reduce `Sym = "%" => ActionFn(19);`
-        -20, // on r#"[0-9]+"#, reduce `Sym = "%" => ActionFn(19);`
+        -20, // on r#"-?[0-9]+"#, reduce `Sym = "%" => ActionFn(19);`
         // State 31
         5, // on "%", goto 4
         0, // on "(", error
@@ -1413,7 +1413,7 @@ mod __parse__Expr {
         9, // on "/", goto 8
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 32
         -18, // on "%", reduce `Sym = "*" => ActionFn(17);`
         -18, // on "(", reduce `Sym = "*" => ActionFn(17);`
@@ -1424,7 +1424,7 @@ mod __parse__Expr {
         -18, // on "/", reduce `Sym = "*" => ActionFn(17);`
         -18, // on "[", reduce `Sym = "*" => ActionFn(17);`
         -18, // on "]", reduce `Sym = "*" => ActionFn(17);`
-        -18, // on r#"[0-9]+"#, reduce `Sym = "*" => ActionFn(17);`
+        -18, // on r#"-?[0-9]+"#, reduce `Sym = "*" => ActionFn(17);`
         // State 33
         -16, // on "%", reduce `Sym = "+" => ActionFn(15);`
         -16, // on "(", reduce `Sym = "+" => ActionFn(15);`
@@ -1435,7 +1435,7 @@ mod __parse__Expr {
         -16, // on "/", reduce `Sym = "+" => ActionFn(15);`
         -16, // on "[", reduce `Sym = "+" => ActionFn(15);`
         -16, // on "]", reduce `Sym = "+" => ActionFn(15);`
-        -16, // on r#"[0-9]+"#, reduce `Sym = "+" => ActionFn(15);`
+        -16, // on r#"-?[0-9]+"#, reduce `Sym = "+" => ActionFn(15);`
         // State 34
         -17, // on "%", reduce `Sym = "-" => ActionFn(16);`
         -17, // on "(", reduce `Sym = "-" => ActionFn(16);`
@@ -1446,7 +1446,7 @@ mod __parse__Expr {
         -17, // on "/", reduce `Sym = "-" => ActionFn(16);`
         -17, // on "[", reduce `Sym = "-" => ActionFn(16);`
         -17, // on "]", reduce `Sym = "-" => ActionFn(16);`
-        -17, // on r#"[0-9]+"#, reduce `Sym = "-" => ActionFn(16);`
+        -17, // on r#"-?[0-9]+"#, reduce `Sym = "-" => ActionFn(16);`
         // State 35
         -19, // on "%", reduce `Sym = "/" => ActionFn(18);`
         -19, // on "(", reduce `Sym = "/" => ActionFn(18);`
@@ -1457,7 +1457,7 @@ mod __parse__Expr {
         -19, // on "/", reduce `Sym = "/" => ActionFn(18);`
         -19, // on "[", reduce `Sym = "/" => ActionFn(18);`
         -19, // on "]", reduce `Sym = "/" => ActionFn(18);`
-        -19, // on r#"[0-9]+"#, reduce `Sym = "/" => ActionFn(18);`
+        -19, // on r#"-?[0-9]+"#, reduce `Sym = "/" => ActionFn(18);`
         // State 36
         31, // on "%", goto 30
         32, // on "(", goto 31
@@ -1468,7 +1468,7 @@ mod __parse__Expr {
         36, // on "/", goto 35
         37, // on "[", goto 36
         46, // on "]", goto 45
-        39, // on r#"[0-9]+"#, goto 38
+        39, // on r#"-?[0-9]+"#, goto 38
         // State 37
         -6, // on "%", reduce `List = "[", "]" => ActionFn(27);`
         -6, // on "(", reduce `List = "[", "]" => ActionFn(27);`
@@ -1479,18 +1479,18 @@ mod __parse__Expr {
         -6, // on "/", reduce `List = "[", "]" => ActionFn(27);`
         -6, // on "[", reduce `List = "[", "]" => ActionFn(27);`
         0, // on "]", error
-        -6, // on r#"[0-9]+"#, reduce `List = "[", "]" => ActionFn(27);`
+        -6, // on r#"-?[0-9]+"#, reduce `List = "[", "]" => ActionFn(27);`
         // State 38
-        -15, // on "%", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "(", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
+        -15, // on "%", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "(", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
         0, // on ")", error
-        -15, // on "*", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "+", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "-", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "/", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "[", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "]", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on r#"[0-9]+"#, reduce `Num = r#"[0-9]+"# => ActionFn(20);`
+        -15, // on "*", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "+", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "-", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "/", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "[", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "]", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on r#"-?[0-9]+"#, reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
         // State 39
         5, // on "%", goto 4
         17, // on "(", goto 16
@@ -1501,7 +1501,7 @@ mod __parse__Expr {
         9, // on "/", goto 8
         19, // on "[", goto 18
         0, // on "]", error
-        20, // on r#"[0-9]+"#, goto 19
+        20, // on r#"-?[0-9]+"#, goto 19
         // State 40
         -3, // on "%", reduce `Expr = "(", Sym, ")" => ActionFn(25);`
         -3, // on "(", reduce `Expr = "(", Sym, ")" => ActionFn(25);`
@@ -1512,7 +1512,7 @@ mod __parse__Expr {
         -3, // on "/", reduce `Expr = "(", Sym, ")" => ActionFn(25);`
         -3, // on "[", reduce `Expr = "(", Sym, ")" => ActionFn(25);`
         0, // on "]", error
-        -3, // on r#"[0-9]+"#, reduce `Expr = "(", Sym, ")" => ActionFn(25);`
+        -3, // on r#"-?[0-9]+"#, reduce `Expr = "(", Sym, ")" => ActionFn(25);`
         // State 41
         -14, // on "%", reduce `Node+ = Node+, Node => ActionFn(24);`
         -14, // on "(", reduce `Node+ = Node+, Node => ActionFn(24);`
@@ -1523,7 +1523,7 @@ mod __parse__Expr {
         -14, // on "/", reduce `Node+ = Node+, Node => ActionFn(24);`
         -14, // on "[", reduce `Node+ = Node+, Node => ActionFn(24);`
         -14, // on "]", reduce `Node+ = Node+, Node => ActionFn(24);`
-        -14, // on r#"[0-9]+"#, reduce `Node+ = Node+, Node => ActionFn(24);`
+        -14, // on r#"-?[0-9]+"#, reduce `Node+ = Node+, Node => ActionFn(24);`
         // State 42
         -7, // on "%", reduce `List = "[", Node+, "]" => ActionFn(28);`
         -7, // on "(", reduce `List = "[", Node+, "]" => ActionFn(28);`
@@ -1534,7 +1534,7 @@ mod __parse__Expr {
         -7, // on "/", reduce `List = "[", Node+, "]" => ActionFn(28);`
         -7, // on "[", reduce `List = "[", Node+, "]" => ActionFn(28);`
         0, // on "]", error
-        -7, // on r#"[0-9]+"#, reduce `List = "[", Node+, "]" => ActionFn(28);`
+        -7, // on r#"-?[0-9]+"#, reduce `List = "[", Node+, "]" => ActionFn(28);`
         // State 43
         5, // on "%", goto 4
         17, // on "(", goto 16
@@ -1545,7 +1545,7 @@ mod __parse__Expr {
         9, // on "/", goto 8
         19, // on "[", goto 18
         0, // on "]", error
-        20, // on r#"[0-9]+"#, goto 19
+        20, // on r#"-?[0-9]+"#, goto 19
         // State 44
         31, // on "%", goto 30
         32, // on "(", goto 31
@@ -1556,7 +1556,7 @@ mod __parse__Expr {
         36, // on "/", goto 35
         37, // on "[", goto 36
         50, // on "]", goto 49
-        39, // on r#"[0-9]+"#, goto 38
+        39, // on r#"-?[0-9]+"#, goto 38
         // State 45
         -6, // on "%", reduce `List = "[", "]" => ActionFn(27);`
         -6, // on "(", reduce `List = "[", "]" => ActionFn(27);`
@@ -1567,7 +1567,7 @@ mod __parse__Expr {
         -6, // on "/", reduce `List = "[", "]" => ActionFn(27);`
         -6, // on "[", reduce `List = "[", "]" => ActionFn(27);`
         -6, // on "]", reduce `List = "[", "]" => ActionFn(27);`
-        -6, // on r#"[0-9]+"#, reduce `List = "[", "]" => ActionFn(27);`
+        -6, // on r#"-?[0-9]+"#, reduce `List = "[", "]" => ActionFn(27);`
         // State 46
         -4, // on "%", reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
         -4, // on "(", reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
@@ -1578,7 +1578,7 @@ mod __parse__Expr {
         -4, // on "/", reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
         -4, // on "[", reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
         0, // on "]", error
-        -4, // on r#"[0-9]+"#, reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
+        -4, // on r#"-?[0-9]+"#, reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
         // State 47
         5, // on "%", goto 4
         17, // on "(", goto 16
@@ -1589,7 +1589,7 @@ mod __parse__Expr {
         9, // on "/", goto 8
         19, // on "[", goto 18
         0, // on "]", error
-        20, // on r#"[0-9]+"#, goto 19
+        20, // on r#"-?[0-9]+"#, goto 19
         // State 48
         -3, // on "%", reduce `Expr = "(", Sym, ")" => ActionFn(25);`
         -3, // on "(", reduce `Expr = "(", Sym, ")" => ActionFn(25);`
@@ -1600,7 +1600,7 @@ mod __parse__Expr {
         -3, // on "/", reduce `Expr = "(", Sym, ")" => ActionFn(25);`
         -3, // on "[", reduce `Expr = "(", Sym, ")" => ActionFn(25);`
         -3, // on "]", reduce `Expr = "(", Sym, ")" => ActionFn(25);`
-        -3, // on r#"[0-9]+"#, reduce `Expr = "(", Sym, ")" => ActionFn(25);`
+        -3, // on r#"-?[0-9]+"#, reduce `Expr = "(", Sym, ")" => ActionFn(25);`
         // State 49
         -7, // on "%", reduce `List = "[", Node+, "]" => ActionFn(28);`
         -7, // on "(", reduce `List = "[", Node+, "]" => ActionFn(28);`
@@ -1611,7 +1611,7 @@ mod __parse__Expr {
         -7, // on "/", reduce `List = "[", Node+, "]" => ActionFn(28);`
         -7, // on "[", reduce `List = "[", Node+, "]" => ActionFn(28);`
         -7, // on "]", reduce `List = "[", Node+, "]" => ActionFn(28);`
-        -7, // on r#"[0-9]+"#, reduce `List = "[", Node+, "]" => ActionFn(28);`
+        -7, // on r#"-?[0-9]+"#, reduce `List = "[", Node+, "]" => ActionFn(28);`
         // State 50
         -4, // on "%", reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
         -4, // on "(", reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
@@ -1622,7 +1622,7 @@ mod __parse__Expr {
         -4, // on "/", reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
         -4, // on "[", reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
         -4, // on "]", reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
-        -4, // on r#"[0-9]+"#, reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
+        -4, // on r#"-?[0-9]+"#, reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
     ];
     const __EOF_ACTION: &'static [i32] = &[
         0, // on EOF, error
@@ -2621,7 +2621,7 @@ mod __parse__Expr {
                             _ => unreachable!(),
                         },
                         9 => match __lookahead.1 {
-                            (9, __tok0) => __Symbol::Termr_23_22_5b0_2d9_5d_2b_22_23(__tok0),
+                            (9, __tok0) => __Symbol::Termr_23_22_2d_3f_5b0_2d9_5d_2b_22_23(__tok0),
                             _ => unreachable!(),
                         },
                         _ => unreachable!(),
@@ -2830,8 +2830,8 @@ mod __parse__Expr {
                 6
             }
             15 => {
-                // Num = r#"[0-9]+"# => ActionFn(20);
-                let __sym0 = __pop_Termr_23_22_5b0_2d9_5d_2b_22_23(__symbols);
+                // Num = r#"-?[0-9]+"# => ActionFn(20);
+                let __sym0 = __pop_Termr_23_22_2d_3f_5b0_2d9_5d_2b_22_23(__symbols);
                 let __start = __sym0.0.clone();
                 let __end = __sym0.2.clone();
                 let __nt = super::__action20(input, __sym0);
@@ -3066,13 +3066,13 @@ mod __parse__Expr {
             _ => panic!("symbol type mismatch")
         }
     }
-    fn __pop_Termr_23_22_5b0_2d9_5d_2b_22_23<
+    fn __pop_Termr_23_22_2d_3f_5b0_2d9_5d_2b_22_23<
       'input,
     >(
         __symbols: &mut ::std::vec::Vec<(usize,__Symbol<'input>,usize)>
     ) -> (usize, &'input str, usize) {
         match __symbols.pop().unwrap() {
-            (__l, __Symbol::Termr_23_22_5b0_2d9_5d_2b_22_23(__v), __r) => (__l, __v, __r),
+            (__l, __Symbol::Termr_23_22_2d_3f_5b0_2d9_5d_2b_22_23(__v), __r) => (__l, __v, __r),
             _ => panic!("symbol type mismatch")
         }
     }
@@ -3256,7 +3256,7 @@ mod __parse__Lang {
         Term_22_2f_22(&'input str),
         Term_22_5b_22(&'input str),
         Term_22_5d_22(&'input str),
-        Termr_23_22_5b0_2d9_5d_2b_22_23(&'input str),
+        Termr_23_22_2d_3f_5b0_2d9_5d_2b_22_23(&'input str),
         NtAtom(Atom),
         NtExpr(Expr),
         NtLang(Node),
@@ -3285,7 +3285,7 @@ mod __parse__Lang {
         14, // on "/", goto 13
         15, // on "[", goto 14
         0, // on "]", error
-        16, // on r#"[0-9]+"#, goto 15
+        16, // on r#"-?[0-9]+"#, goto 15
         // State 1
         0, // on "%", error
         0, // on "(", error
@@ -3296,7 +3296,7 @@ mod __parse__Lang {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 2
         0, // on "%", error
         0, // on "(", error
@@ -3307,7 +3307,7 @@ mod __parse__Lang {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 3
         0, // on "%", error
         0, // on "(", error
@@ -3318,7 +3318,7 @@ mod __parse__Lang {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 4
         0, // on "%", error
         0, // on "(", error
@@ -3329,7 +3329,7 @@ mod __parse__Lang {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 5
         0, // on "%", error
         0, // on "(", error
@@ -3340,7 +3340,7 @@ mod __parse__Lang {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 6
         0, // on "%", error
         0, // on "(", error
@@ -3351,7 +3351,7 @@ mod __parse__Lang {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 7
         0, // on "%", error
         0, // on "(", error
@@ -3362,7 +3362,7 @@ mod __parse__Lang {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 8
         0, // on "%", error
         0, // on "(", error
@@ -3373,7 +3373,7 @@ mod __parse__Lang {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 9
         18, // on "%", goto 17
         0, // on "(", error
@@ -3384,7 +3384,7 @@ mod __parse__Lang {
         22, // on "/", goto 21
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 10
         0, // on "%", error
         0, // on "(", error
@@ -3395,7 +3395,7 @@ mod __parse__Lang {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 11
         0, // on "%", error
         0, // on "(", error
@@ -3406,7 +3406,7 @@ mod __parse__Lang {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 12
         0, // on "%", error
         0, // on "(", error
@@ -3417,7 +3417,7 @@ mod __parse__Lang {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 13
         0, // on "%", error
         0, // on "(", error
@@ -3428,7 +3428,7 @@ mod __parse__Lang {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 14
         30, // on "%", goto 29
         31, // on "(", goto 30
@@ -3439,7 +3439,7 @@ mod __parse__Lang {
         35, // on "/", goto 34
         36, // on "[", goto 35
         37, // on "]", goto 36
-        38, // on r#"[0-9]+"#, goto 37
+        38, // on r#"-?[0-9]+"#, goto 37
         // State 15
         0, // on "%", error
         0, // on "(", error
@@ -3450,7 +3450,7 @@ mod __parse__Lang {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 16
         18, // on "%", goto 17
         46, // on "(", goto 45
@@ -3461,7 +3461,7 @@ mod __parse__Lang {
         22, // on "/", goto 21
         48, // on "[", goto 47
         0, // on "]", error
-        49, // on r#"[0-9]+"#, goto 48
+        49, // on r#"-?[0-9]+"#, goto 48
         // State 17
         -20, // on "%", reduce `Sym = "%" => ActionFn(19);`
         -20, // on "(", reduce `Sym = "%" => ActionFn(19);`
@@ -3472,7 +3472,7 @@ mod __parse__Lang {
         -20, // on "/", reduce `Sym = "%" => ActionFn(19);`
         -20, // on "[", reduce `Sym = "%" => ActionFn(19);`
         0, // on "]", error
-        -20, // on r#"[0-9]+"#, reduce `Sym = "%" => ActionFn(19);`
+        -20, // on r#"-?[0-9]+"#, reduce `Sym = "%" => ActionFn(19);`
         // State 18
         -18, // on "%", reduce `Sym = "*" => ActionFn(17);`
         -18, // on "(", reduce `Sym = "*" => ActionFn(17);`
@@ -3483,7 +3483,7 @@ mod __parse__Lang {
         -18, // on "/", reduce `Sym = "*" => ActionFn(17);`
         -18, // on "[", reduce `Sym = "*" => ActionFn(17);`
         0, // on "]", error
-        -18, // on r#"[0-9]+"#, reduce `Sym = "*" => ActionFn(17);`
+        -18, // on r#"-?[0-9]+"#, reduce `Sym = "*" => ActionFn(17);`
         // State 19
         -16, // on "%", reduce `Sym = "+" => ActionFn(15);`
         -16, // on "(", reduce `Sym = "+" => ActionFn(15);`
@@ -3494,7 +3494,7 @@ mod __parse__Lang {
         -16, // on "/", reduce `Sym = "+" => ActionFn(15);`
         -16, // on "[", reduce `Sym = "+" => ActionFn(15);`
         0, // on "]", error
-        -16, // on r#"[0-9]+"#, reduce `Sym = "+" => ActionFn(15);`
+        -16, // on r#"-?[0-9]+"#, reduce `Sym = "+" => ActionFn(15);`
         // State 20
         -17, // on "%", reduce `Sym = "-" => ActionFn(16);`
         -17, // on "(", reduce `Sym = "-" => ActionFn(16);`
@@ -3505,7 +3505,7 @@ mod __parse__Lang {
         -17, // on "/", reduce `Sym = "-" => ActionFn(16);`
         -17, // on "[", reduce `Sym = "-" => ActionFn(16);`
         0, // on "]", error
-        -17, // on r#"[0-9]+"#, reduce `Sym = "-" => ActionFn(16);`
+        -17, // on r#"-?[0-9]+"#, reduce `Sym = "-" => ActionFn(16);`
         // State 21
         -19, // on "%", reduce `Sym = "/" => ActionFn(18);`
         -19, // on "(", reduce `Sym = "/" => ActionFn(18);`
@@ -3516,7 +3516,7 @@ mod __parse__Lang {
         -19, // on "/", reduce `Sym = "/" => ActionFn(18);`
         -19, // on "[", reduce `Sym = "/" => ActionFn(18);`
         0, // on "]", error
-        -19, // on r#"[0-9]+"#, reduce `Sym = "/" => ActionFn(18);`
+        -19, // on r#"-?[0-9]+"#, reduce `Sym = "/" => ActionFn(18);`
         // State 22
         -8, // on "%", reduce `Node = Atom => ActionFn(10);`
         -8, // on "(", reduce `Node = Atom => ActionFn(10);`
@@ -3527,7 +3527,7 @@ mod __parse__Lang {
         -8, // on "/", reduce `Node = Atom => ActionFn(10);`
         -8, // on "[", reduce `Node = Atom => ActionFn(10);`
         -8, // on "]", reduce `Node = Atom => ActionFn(10);`
-        -8, // on r#"[0-9]+"#, reduce `Node = Atom => ActionFn(10);`
+        -8, // on r#"-?[0-9]+"#, reduce `Node = Atom => ActionFn(10);`
         // State 23
         -10, // on "%", reduce `Node = Expr => ActionFn(12);`
         -10, // on "(", reduce `Node = Expr => ActionFn(12);`
@@ -3538,7 +3538,7 @@ mod __parse__Lang {
         -10, // on "/", reduce `Node = Expr => ActionFn(12);`
         -10, // on "[", reduce `Node = Expr => ActionFn(12);`
         -10, // on "]", reduce `Node = Expr => ActionFn(12);`
-        -10, // on r#"[0-9]+"#, reduce `Node = Expr => ActionFn(12);`
+        -10, // on r#"-?[0-9]+"#, reduce `Node = Expr => ActionFn(12);`
         // State 24
         -9, // on "%", reduce `Node = List => ActionFn(11);`
         -9, // on "(", reduce `Node = List => ActionFn(11);`
@@ -3549,7 +3549,7 @@ mod __parse__Lang {
         -9, // on "/", reduce `Node = List => ActionFn(11);`
         -9, // on "[", reduce `Node = List => ActionFn(11);`
         -9, // on "]", reduce `Node = List => ActionFn(11);`
-        -9, // on r#"[0-9]+"#, reduce `Node = List => ActionFn(11);`
+        -9, // on r#"-?[0-9]+"#, reduce `Node = List => ActionFn(11);`
         // State 25
         -13, // on "%", reduce `Node+ = Node => ActionFn(23);`
         -13, // on "(", reduce `Node+ = Node => ActionFn(23);`
@@ -3560,7 +3560,7 @@ mod __parse__Lang {
         -13, // on "/", reduce `Node+ = Node => ActionFn(23);`
         -13, // on "[", reduce `Node+ = Node => ActionFn(23);`
         -13, // on "]", reduce `Node+ = Node => ActionFn(23);`
-        -13, // on r#"[0-9]+"#, reduce `Node+ = Node => ActionFn(23);`
+        -13, // on r#"-?[0-9]+"#, reduce `Node+ = Node => ActionFn(23);`
         // State 26
         30, // on "%", goto 29
         31, // on "(", goto 30
@@ -3571,7 +3571,7 @@ mod __parse__Lang {
         35, // on "/", goto 34
         36, // on "[", goto 35
         51, // on "]", goto 50
-        38, // on r#"[0-9]+"#, goto 37
+        38, // on r#"-?[0-9]+"#, goto 37
         // State 27
         -2, // on "%", reduce `Atom = Num => ActionFn(14);`
         -2, // on "(", reduce `Atom = Num => ActionFn(14);`
@@ -3582,7 +3582,7 @@ mod __parse__Lang {
         -2, // on "/", reduce `Atom = Num => ActionFn(14);`
         -2, // on "[", reduce `Atom = Num => ActionFn(14);`
         -2, // on "]", reduce `Atom = Num => ActionFn(14);`
-        -2, // on r#"[0-9]+"#, reduce `Atom = Num => ActionFn(14);`
+        -2, // on r#"-?[0-9]+"#, reduce `Atom = Num => ActionFn(14);`
         // State 28
         -1, // on "%", reduce `Atom = Sym => ActionFn(13);`
         -1, // on "(", reduce `Atom = Sym => ActionFn(13);`
@@ -3593,7 +3593,7 @@ mod __parse__Lang {
         -1, // on "/", reduce `Atom = Sym => ActionFn(13);`
         -1, // on "[", reduce `Atom = Sym => ActionFn(13);`
         -1, // on "]", reduce `Atom = Sym => ActionFn(13);`
-        -1, // on r#"[0-9]+"#, reduce `Atom = Sym => ActionFn(13);`
+        -1, // on r#"-?[0-9]+"#, reduce `Atom = Sym => ActionFn(13);`
         // State 29
         -20, // on "%", reduce `Sym = "%" => ActionFn(19);`
         -20, // on "(", reduce `Sym = "%" => ActionFn(19);`
@@ -3604,7 +3604,7 @@ mod __parse__Lang {
         -20, // on "/", reduce `Sym = "%" => ActionFn(19);`
         -20, // on "[", reduce `Sym = "%" => ActionFn(19);`
         -20, // on "]", reduce `Sym = "%" => ActionFn(19);`
-        -20, // on r#"[0-9]+"#, reduce `Sym = "%" => ActionFn(19);`
+        -20, // on r#"-?[0-9]+"#, reduce `Sym = "%" => ActionFn(19);`
         // State 30
         18, // on "%", goto 17
         0, // on "(", error
@@ -3615,7 +3615,7 @@ mod __parse__Lang {
         22, // on "/", goto 21
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 31
         -18, // on "%", reduce `Sym = "*" => ActionFn(17);`
         -18, // on "(", reduce `Sym = "*" => ActionFn(17);`
@@ -3626,7 +3626,7 @@ mod __parse__Lang {
         -18, // on "/", reduce `Sym = "*" => ActionFn(17);`
         -18, // on "[", reduce `Sym = "*" => ActionFn(17);`
         -18, // on "]", reduce `Sym = "*" => ActionFn(17);`
-        -18, // on r#"[0-9]+"#, reduce `Sym = "*" => ActionFn(17);`
+        -18, // on r#"-?[0-9]+"#, reduce `Sym = "*" => ActionFn(17);`
         // State 32
         -16, // on "%", reduce `Sym = "+" => ActionFn(15);`
         -16, // on "(", reduce `Sym = "+" => ActionFn(15);`
@@ -3637,7 +3637,7 @@ mod __parse__Lang {
         -16, // on "/", reduce `Sym = "+" => ActionFn(15);`
         -16, // on "[", reduce `Sym = "+" => ActionFn(15);`
         -16, // on "]", reduce `Sym = "+" => ActionFn(15);`
-        -16, // on r#"[0-9]+"#, reduce `Sym = "+" => ActionFn(15);`
+        -16, // on r#"-?[0-9]+"#, reduce `Sym = "+" => ActionFn(15);`
         // State 33
         -17, // on "%", reduce `Sym = "-" => ActionFn(16);`
         -17, // on "(", reduce `Sym = "-" => ActionFn(16);`
@@ -3648,7 +3648,7 @@ mod __parse__Lang {
         -17, // on "/", reduce `Sym = "-" => ActionFn(16);`
         -17, // on "[", reduce `Sym = "-" => ActionFn(16);`
         -17, // on "]", reduce `Sym = "-" => ActionFn(16);`
-        -17, // on r#"[0-9]+"#, reduce `Sym = "-" => ActionFn(16);`
+        -17, // on r#"-?[0-9]+"#, reduce `Sym = "-" => ActionFn(16);`
         // State 34
         -19, // on "%", reduce `Sym = "/" => ActionFn(18);`
         -19, // on "(", reduce `Sym = "/" => ActionFn(18);`
@@ -3659,7 +3659,7 @@ mod __parse__Lang {
         -19, // on "/", reduce `Sym = "/" => ActionFn(18);`
         -19, // on "[", reduce `Sym = "/" => ActionFn(18);`
         -19, // on "]", reduce `Sym = "/" => ActionFn(18);`
-        -19, // on r#"[0-9]+"#, reduce `Sym = "/" => ActionFn(18);`
+        -19, // on r#"-?[0-9]+"#, reduce `Sym = "/" => ActionFn(18);`
         // State 35
         30, // on "%", goto 29
         31, // on "(", goto 30
@@ -3670,7 +3670,7 @@ mod __parse__Lang {
         35, // on "/", goto 34
         36, // on "[", goto 35
         54, // on "]", goto 53
-        38, // on r#"[0-9]+"#, goto 37
+        38, // on r#"-?[0-9]+"#, goto 37
         // State 36
         0, // on "%", error
         0, // on "(", error
@@ -3681,18 +3681,18 @@ mod __parse__Lang {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 37
-        -15, // on "%", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "(", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
+        -15, // on "%", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "(", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
         0, // on ")", error
-        -15, // on "*", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "+", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "-", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "/", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "[", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "]", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on r#"[0-9]+"#, reduce `Num = r#"[0-9]+"# => ActionFn(20);`
+        -15, // on "*", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "+", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "-", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "/", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "[", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "]", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on r#"-?[0-9]+"#, reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
         // State 38
         -8, // on "%", reduce `Node = Atom => ActionFn(10);`
         -8, // on "(", reduce `Node = Atom => ActionFn(10);`
@@ -3703,7 +3703,7 @@ mod __parse__Lang {
         -8, // on "/", reduce `Node = Atom => ActionFn(10);`
         -8, // on "[", reduce `Node = Atom => ActionFn(10);`
         0, // on "]", error
-        -8, // on r#"[0-9]+"#, reduce `Node = Atom => ActionFn(10);`
+        -8, // on r#"-?[0-9]+"#, reduce `Node = Atom => ActionFn(10);`
         // State 39
         -10, // on "%", reduce `Node = Expr => ActionFn(12);`
         -10, // on "(", reduce `Node = Expr => ActionFn(12);`
@@ -3714,7 +3714,7 @@ mod __parse__Lang {
         -10, // on "/", reduce `Node = Expr => ActionFn(12);`
         -10, // on "[", reduce `Node = Expr => ActionFn(12);`
         0, // on "]", error
-        -10, // on r#"[0-9]+"#, reduce `Node = Expr => ActionFn(12);`
+        -10, // on r#"-?[0-9]+"#, reduce `Node = Expr => ActionFn(12);`
         // State 40
         -9, // on "%", reduce `Node = List => ActionFn(11);`
         -9, // on "(", reduce `Node = List => ActionFn(11);`
@@ -3725,7 +3725,7 @@ mod __parse__Lang {
         -9, // on "/", reduce `Node = List => ActionFn(11);`
         -9, // on "[", reduce `Node = List => ActionFn(11);`
         0, // on "]", error
-        -9, // on r#"[0-9]+"#, reduce `Node = List => ActionFn(11);`
+        -9, // on r#"-?[0-9]+"#, reduce `Node = List => ActionFn(11);`
         // State 41
         -13, // on "%", reduce `Node+ = Node => ActionFn(23);`
         -13, // on "(", reduce `Node+ = Node => ActionFn(23);`
@@ -3736,7 +3736,7 @@ mod __parse__Lang {
         -13, // on "/", reduce `Node+ = Node => ActionFn(23);`
         -13, // on "[", reduce `Node+ = Node => ActionFn(23);`
         0, // on "]", error
-        -13, // on r#"[0-9]+"#, reduce `Node+ = Node => ActionFn(23);`
+        -13, // on r#"-?[0-9]+"#, reduce `Node+ = Node => ActionFn(23);`
         // State 42
         18, // on "%", goto 17
         46, // on "(", goto 45
@@ -3747,7 +3747,7 @@ mod __parse__Lang {
         22, // on "/", goto 21
         48, // on "[", goto 47
         0, // on "]", error
-        49, // on r#"[0-9]+"#, goto 48
+        49, // on r#"-?[0-9]+"#, goto 48
         // State 43
         -2, // on "%", reduce `Atom = Num => ActionFn(14);`
         -2, // on "(", reduce `Atom = Num => ActionFn(14);`
@@ -3758,7 +3758,7 @@ mod __parse__Lang {
         -2, // on "/", reduce `Atom = Num => ActionFn(14);`
         -2, // on "[", reduce `Atom = Num => ActionFn(14);`
         0, // on "]", error
-        -2, // on r#"[0-9]+"#, reduce `Atom = Num => ActionFn(14);`
+        -2, // on r#"-?[0-9]+"#, reduce `Atom = Num => ActionFn(14);`
         // State 44
         -1, // on "%", reduce `Atom = Sym => ActionFn(13);`
         -1, // on "(", reduce `Atom = Sym => ActionFn(13);`
@@ -3769,7 +3769,7 @@ mod __parse__Lang {
         -1, // on "/", reduce `Atom = Sym => ActionFn(13);`
         -1, // on "[", reduce `Atom = Sym => ActionFn(13);`
         0, // on "]", error
-        -1, // on r#"[0-9]+"#, reduce `Atom = Sym => ActionFn(13);`
+        -1, // on r#"-?[0-9]+"#, reduce `Atom = Sym => ActionFn(13);`
         // State 45
         18, // on "%", goto 17
         0, // on "(", error
@@ -3780,7 +3780,7 @@ mod __parse__Lang {
         22, // on "/", goto 21
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 46
         0, // on "%", error
         0, // on "(", error
@@ -3791,7 +3791,7 @@ mod __parse__Lang {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 47
         30, // on "%", goto 29
         31, // on "(", goto 30
@@ -3802,18 +3802,18 @@ mod __parse__Lang {
         35, // on "/", goto 34
         36, // on "[", goto 35
         59, // on "]", goto 58
-        38, // on r#"[0-9]+"#, goto 37
+        38, // on r#"-?[0-9]+"#, goto 37
         // State 48
-        -15, // on "%", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "(", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on ")", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "*", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "+", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "-", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "/", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "[", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
+        -15, // on "%", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "(", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on ")", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "*", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "+", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "-", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "/", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "[", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
         0, // on "]", error
-        -15, // on r#"[0-9]+"#, reduce `Num = r#"[0-9]+"# => ActionFn(20);`
+        -15, // on r#"-?[0-9]+"#, reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
         // State 49
         -14, // on "%", reduce `Node+ = Node+, Node => ActionFn(24);`
         -14, // on "(", reduce `Node+ = Node+, Node => ActionFn(24);`
@@ -3824,7 +3824,7 @@ mod __parse__Lang {
         -14, // on "/", reduce `Node+ = Node+, Node => ActionFn(24);`
         -14, // on "[", reduce `Node+ = Node+, Node => ActionFn(24);`
         -14, // on "]", reduce `Node+ = Node+, Node => ActionFn(24);`
-        -14, // on r#"[0-9]+"#, reduce `Node+ = Node+, Node => ActionFn(24);`
+        -14, // on r#"-?[0-9]+"#, reduce `Node+ = Node+, Node => ActionFn(24);`
         // State 50
         0, // on "%", error
         0, // on "(", error
@@ -3835,7 +3835,7 @@ mod __parse__Lang {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 51
         18, // on "%", goto 17
         46, // on "(", goto 45
@@ -3846,7 +3846,7 @@ mod __parse__Lang {
         22, // on "/", goto 21
         48, // on "[", goto 47
         0, // on "]", error
-        49, // on r#"[0-9]+"#, goto 48
+        49, // on r#"-?[0-9]+"#, goto 48
         // State 52
         30, // on "%", goto 29
         31, // on "(", goto 30
@@ -3857,7 +3857,7 @@ mod __parse__Lang {
         35, // on "/", goto 34
         36, // on "[", goto 35
         62, // on "]", goto 61
-        38, // on r#"[0-9]+"#, goto 37
+        38, // on r#"-?[0-9]+"#, goto 37
         // State 53
         -6, // on "%", reduce `List = "[", "]" => ActionFn(27);`
         -6, // on "(", reduce `List = "[", "]" => ActionFn(27);`
@@ -3868,7 +3868,7 @@ mod __parse__Lang {
         -6, // on "/", reduce `List = "[", "]" => ActionFn(27);`
         -6, // on "[", reduce `List = "[", "]" => ActionFn(27);`
         -6, // on "]", reduce `List = "[", "]" => ActionFn(27);`
-        -6, // on r#"[0-9]+"#, reduce `List = "[", "]" => ActionFn(27);`
+        -6, // on r#"-?[0-9]+"#, reduce `List = "[", "]" => ActionFn(27);`
         // State 54
         -14, // on "%", reduce `Node+ = Node+, Node => ActionFn(24);`
         -14, // on "(", reduce `Node+ = Node+, Node => ActionFn(24);`
@@ -3879,7 +3879,7 @@ mod __parse__Lang {
         -14, // on "/", reduce `Node+ = Node+, Node => ActionFn(24);`
         -14, // on "[", reduce `Node+ = Node+, Node => ActionFn(24);`
         0, // on "]", error
-        -14, // on r#"[0-9]+"#, reduce `Node+ = Node+, Node => ActionFn(24);`
+        -14, // on r#"-?[0-9]+"#, reduce `Node+ = Node+, Node => ActionFn(24);`
         // State 55
         0, // on "%", error
         0, // on "(", error
@@ -3890,7 +3890,7 @@ mod __parse__Lang {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 56
         18, // on "%", goto 17
         46, // on "(", goto 45
@@ -3901,7 +3901,7 @@ mod __parse__Lang {
         22, // on "/", goto 21
         48, // on "[", goto 47
         0, // on "]", error
-        49, // on r#"[0-9]+"#, goto 48
+        49, // on r#"-?[0-9]+"#, goto 48
         // State 57
         30, // on "%", goto 29
         31, // on "(", goto 30
@@ -3912,7 +3912,7 @@ mod __parse__Lang {
         35, // on "/", goto 34
         36, // on "[", goto 35
         65, // on "]", goto 64
-        38, // on r#"[0-9]+"#, goto 37
+        38, // on r#"-?[0-9]+"#, goto 37
         // State 58
         -6, // on "%", reduce `List = "[", "]" => ActionFn(27);`
         -6, // on "(", reduce `List = "[", "]" => ActionFn(27);`
@@ -3923,7 +3923,7 @@ mod __parse__Lang {
         -6, // on "/", reduce `List = "[", "]" => ActionFn(27);`
         -6, // on "[", reduce `List = "[", "]" => ActionFn(27);`
         0, // on "]", error
-        -6, // on r#"[0-9]+"#, reduce `List = "[", "]" => ActionFn(27);`
+        -6, // on r#"-?[0-9]+"#, reduce `List = "[", "]" => ActionFn(27);`
         // State 59
         18, // on "%", goto 17
         46, // on "(", goto 45
@@ -3934,7 +3934,7 @@ mod __parse__Lang {
         22, // on "/", goto 21
         48, // on "[", goto 47
         0, // on "]", error
-        49, // on r#"[0-9]+"#, goto 48
+        49, // on r#"-?[0-9]+"#, goto 48
         // State 60
         -3, // on "%", reduce `Expr = "(", Sym, ")" => ActionFn(25);`
         -3, // on "(", reduce `Expr = "(", Sym, ")" => ActionFn(25);`
@@ -3945,7 +3945,7 @@ mod __parse__Lang {
         -3, // on "/", reduce `Expr = "(", Sym, ")" => ActionFn(25);`
         -3, // on "[", reduce `Expr = "(", Sym, ")" => ActionFn(25);`
         -3, // on "]", reduce `Expr = "(", Sym, ")" => ActionFn(25);`
-        -3, // on r#"[0-9]+"#, reduce `Expr = "(", Sym, ")" => ActionFn(25);`
+        -3, // on r#"-?[0-9]+"#, reduce `Expr = "(", Sym, ")" => ActionFn(25);`
         // State 61
         -7, // on "%", reduce `List = "[", Node+, "]" => ActionFn(28);`
         -7, // on "(", reduce `List = "[", Node+, "]" => ActionFn(28);`
@@ -3956,7 +3956,7 @@ mod __parse__Lang {
         -7, // on "/", reduce `List = "[", Node+, "]" => ActionFn(28);`
         -7, // on "[", reduce `List = "[", Node+, "]" => ActionFn(28);`
         -7, // on "]", reduce `List = "[", Node+, "]" => ActionFn(28);`
-        -7, // on r#"[0-9]+"#, reduce `List = "[", Node+, "]" => ActionFn(28);`
+        -7, // on r#"-?[0-9]+"#, reduce `List = "[", Node+, "]" => ActionFn(28);`
         // State 62
         18, // on "%", goto 17
         46, // on "(", goto 45
@@ -3967,7 +3967,7 @@ mod __parse__Lang {
         22, // on "/", goto 21
         48, // on "[", goto 47
         0, // on "]", error
-        49, // on r#"[0-9]+"#, goto 48
+        49, // on r#"-?[0-9]+"#, goto 48
         // State 63
         -3, // on "%", reduce `Expr = "(", Sym, ")" => ActionFn(25);`
         -3, // on "(", reduce `Expr = "(", Sym, ")" => ActionFn(25);`
@@ -3978,7 +3978,7 @@ mod __parse__Lang {
         -3, // on "/", reduce `Expr = "(", Sym, ")" => ActionFn(25);`
         -3, // on "[", reduce `Expr = "(", Sym, ")" => ActionFn(25);`
         0, // on "]", error
-        -3, // on r#"[0-9]+"#, reduce `Expr = "(", Sym, ")" => ActionFn(25);`
+        -3, // on r#"-?[0-9]+"#, reduce `Expr = "(", Sym, ")" => ActionFn(25);`
         // State 64
         -7, // on "%", reduce `List = "[", Node+, "]" => ActionFn(28);`
         -7, // on "(", reduce `List = "[", Node+, "]" => ActionFn(28);`
@@ -3989,7 +3989,7 @@ mod __parse__Lang {
         -7, // on "/", reduce `List = "[", Node+, "]" => ActionFn(28);`
         -7, // on "[", reduce `List = "[", Node+, "]" => ActionFn(28);`
         0, // on "]", error
-        -7, // on r#"[0-9]+"#, reduce `List = "[", Node+, "]" => ActionFn(28);`
+        -7, // on r#"-?[0-9]+"#, reduce `List = "[", Node+, "]" => ActionFn(28);`
         // State 65
         -4, // on "%", reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
         -4, // on "(", reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
@@ -4000,7 +4000,7 @@ mod __parse__Lang {
         -4, // on "/", reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
         -4, // on "[", reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
         -4, // on "]", reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
-        -4, // on r#"[0-9]+"#, reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
+        -4, // on r#"-?[0-9]+"#, reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
         // State 66
         -4, // on "%", reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
         -4, // on "(", reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
@@ -4011,7 +4011,7 @@ mod __parse__Lang {
         -4, // on "/", reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
         -4, // on "[", reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
         0, // on "]", error
-        -4, // on r#"[0-9]+"#, reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
+        -4, // on r#"-?[0-9]+"#, reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
     ];
     const __EOF_ACTION: &'static [i32] = &[
         0, // on EOF, error
@@ -4029,7 +4029,7 @@ mod __parse__Lang {
         -17, // on EOF, reduce `Sym = "-" => ActionFn(16);`
         -19, // on EOF, reduce `Sym = "/" => ActionFn(18);`
         0, // on EOF, error
-        -15, // on EOF, reduce `Num = r#"[0-9]+"# => ActionFn(20);`
+        -15, // on EOF, reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
         0, // on EOF, error
         0, // on EOF, error
         0, // on EOF, error
@@ -5298,7 +5298,7 @@ mod __parse__Lang {
                             _ => unreachable!(),
                         },
                         9 => match __lookahead.1 {
-                            (9, __tok0) => __Symbol::Termr_23_22_5b0_2d9_5d_2b_22_23(__tok0),
+                            (9, __tok0) => __Symbol::Termr_23_22_2d_3f_5b0_2d9_5d_2b_22_23(__tok0),
                             _ => unreachable!(),
                         },
                         _ => unreachable!(),
@@ -5507,8 +5507,8 @@ mod __parse__Lang {
                 6
             }
             15 => {
-                // Num = r#"[0-9]+"# => ActionFn(20);
-                let __sym0 = __pop_Termr_23_22_5b0_2d9_5d_2b_22_23(__symbols);
+                // Num = r#"-?[0-9]+"# => ActionFn(20);
+                let __sym0 = __pop_Termr_23_22_2d_3f_5b0_2d9_5d_2b_22_23(__symbols);
                 let __start = __sym0.0.clone();
                 let __end = __sym0.2.clone();
                 let __nt = super::__action20(input, __sym0);
@@ -5743,13 +5743,13 @@ mod __parse__Lang {
             _ => panic!("symbol type mismatch")
         }
     }
-    fn __pop_Termr_23_22_5b0_2d9_5d_2b_22_23<
+    fn __pop_Termr_23_22_2d_3f_5b0_2d9_5d_2b_22_23<
       'input,
     >(
         __symbols: &mut ::std::vec::Vec<(usize,__Symbol<'input>,usize)>
     ) -> (usize, &'input str, usize) {
         match __symbols.pop().unwrap() {
-            (__l, __Symbol::Termr_23_22_5b0_2d9_5d_2b_22_23(__v), __r) => (__l, __v, __r),
+            (__l, __Symbol::Termr_23_22_2d_3f_5b0_2d9_5d_2b_22_23(__v), __r) => (__l, __v, __r),
             _ => panic!("symbol type mismatch")
         }
     }
@@ -5933,7 +5933,7 @@ mod __parse__List {
         Term_22_2f_22(&'input str),
         Term_22_5b_22(&'input str),
         Term_22_5d_22(&'input str),
-        Termr_23_22_5b0_2d9_5d_2b_22_23(&'input str),
+        Termr_23_22_2d_3f_5b0_2d9_5d_2b_22_23(&'input str),
         NtAtom(Atom),
         NtExpr(Expr),
         NtLang(Node),
@@ -5962,7 +5962,7 @@ mod __parse__List {
         0, // on "/", error
         3, // on "[", goto 2
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 1
         0, // on "%", error
         0, // on "(", error
@@ -5973,7 +5973,7 @@ mod __parse__List {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 2
         11, // on "%", goto 10
         12, // on "(", goto 11
@@ -5984,7 +5984,7 @@ mod __parse__List {
         16, // on "/", goto 15
         17, // on "[", goto 16
         18, // on "]", goto 17
-        19, // on r#"[0-9]+"#, goto 18
+        19, // on r#"-?[0-9]+"#, goto 18
         // State 3
         -8, // on "%", reduce `Node = Atom => ActionFn(10);`
         -8, // on "(", reduce `Node = Atom => ActionFn(10);`
@@ -5995,7 +5995,7 @@ mod __parse__List {
         -8, // on "/", reduce `Node = Atom => ActionFn(10);`
         -8, // on "[", reduce `Node = Atom => ActionFn(10);`
         -8, // on "]", reduce `Node = Atom => ActionFn(10);`
-        -8, // on r#"[0-9]+"#, reduce `Node = Atom => ActionFn(10);`
+        -8, // on r#"-?[0-9]+"#, reduce `Node = Atom => ActionFn(10);`
         // State 4
         -10, // on "%", reduce `Node = Expr => ActionFn(12);`
         -10, // on "(", reduce `Node = Expr => ActionFn(12);`
@@ -6006,7 +6006,7 @@ mod __parse__List {
         -10, // on "/", reduce `Node = Expr => ActionFn(12);`
         -10, // on "[", reduce `Node = Expr => ActionFn(12);`
         -10, // on "]", reduce `Node = Expr => ActionFn(12);`
-        -10, // on r#"[0-9]+"#, reduce `Node = Expr => ActionFn(12);`
+        -10, // on r#"-?[0-9]+"#, reduce `Node = Expr => ActionFn(12);`
         // State 5
         -9, // on "%", reduce `Node = List => ActionFn(11);`
         -9, // on "(", reduce `Node = List => ActionFn(11);`
@@ -6017,7 +6017,7 @@ mod __parse__List {
         -9, // on "/", reduce `Node = List => ActionFn(11);`
         -9, // on "[", reduce `Node = List => ActionFn(11);`
         -9, // on "]", reduce `Node = List => ActionFn(11);`
-        -9, // on r#"[0-9]+"#, reduce `Node = List => ActionFn(11);`
+        -9, // on r#"-?[0-9]+"#, reduce `Node = List => ActionFn(11);`
         // State 6
         -13, // on "%", reduce `Node+ = Node => ActionFn(23);`
         -13, // on "(", reduce `Node+ = Node => ActionFn(23);`
@@ -6028,7 +6028,7 @@ mod __parse__List {
         -13, // on "/", reduce `Node+ = Node => ActionFn(23);`
         -13, // on "[", reduce `Node+ = Node => ActionFn(23);`
         -13, // on "]", reduce `Node+ = Node => ActionFn(23);`
-        -13, // on r#"[0-9]+"#, reduce `Node+ = Node => ActionFn(23);`
+        -13, // on r#"-?[0-9]+"#, reduce `Node+ = Node => ActionFn(23);`
         // State 7
         11, // on "%", goto 10
         12, // on "(", goto 11
@@ -6039,7 +6039,7 @@ mod __parse__List {
         16, // on "/", goto 15
         17, // on "[", goto 16
         21, // on "]", goto 20
-        19, // on r#"[0-9]+"#, goto 18
+        19, // on r#"-?[0-9]+"#, goto 18
         // State 8
         -2, // on "%", reduce `Atom = Num => ActionFn(14);`
         -2, // on "(", reduce `Atom = Num => ActionFn(14);`
@@ -6050,7 +6050,7 @@ mod __parse__List {
         -2, // on "/", reduce `Atom = Num => ActionFn(14);`
         -2, // on "[", reduce `Atom = Num => ActionFn(14);`
         -2, // on "]", reduce `Atom = Num => ActionFn(14);`
-        -2, // on r#"[0-9]+"#, reduce `Atom = Num => ActionFn(14);`
+        -2, // on r#"-?[0-9]+"#, reduce `Atom = Num => ActionFn(14);`
         // State 9
         -1, // on "%", reduce `Atom = Sym => ActionFn(13);`
         -1, // on "(", reduce `Atom = Sym => ActionFn(13);`
@@ -6061,7 +6061,7 @@ mod __parse__List {
         -1, // on "/", reduce `Atom = Sym => ActionFn(13);`
         -1, // on "[", reduce `Atom = Sym => ActionFn(13);`
         -1, // on "]", reduce `Atom = Sym => ActionFn(13);`
-        -1, // on r#"[0-9]+"#, reduce `Atom = Sym => ActionFn(13);`
+        -1, // on r#"-?[0-9]+"#, reduce `Atom = Sym => ActionFn(13);`
         // State 10
         -20, // on "%", reduce `Sym = "%" => ActionFn(19);`
         -20, // on "(", reduce `Sym = "%" => ActionFn(19);`
@@ -6072,7 +6072,7 @@ mod __parse__List {
         -20, // on "/", reduce `Sym = "%" => ActionFn(19);`
         -20, // on "[", reduce `Sym = "%" => ActionFn(19);`
         -20, // on "]", reduce `Sym = "%" => ActionFn(19);`
-        -20, // on r#"[0-9]+"#, reduce `Sym = "%" => ActionFn(19);`
+        -20, // on r#"-?[0-9]+"#, reduce `Sym = "%" => ActionFn(19);`
         // State 11
         23, // on "%", goto 22
         0, // on "(", error
@@ -6083,7 +6083,7 @@ mod __parse__List {
         27, // on "/", goto 26
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 12
         -18, // on "%", reduce `Sym = "*" => ActionFn(17);`
         -18, // on "(", reduce `Sym = "*" => ActionFn(17);`
@@ -6094,7 +6094,7 @@ mod __parse__List {
         -18, // on "/", reduce `Sym = "*" => ActionFn(17);`
         -18, // on "[", reduce `Sym = "*" => ActionFn(17);`
         -18, // on "]", reduce `Sym = "*" => ActionFn(17);`
-        -18, // on r#"[0-9]+"#, reduce `Sym = "*" => ActionFn(17);`
+        -18, // on r#"-?[0-9]+"#, reduce `Sym = "*" => ActionFn(17);`
         // State 13
         -16, // on "%", reduce `Sym = "+" => ActionFn(15);`
         -16, // on "(", reduce `Sym = "+" => ActionFn(15);`
@@ -6105,7 +6105,7 @@ mod __parse__List {
         -16, // on "/", reduce `Sym = "+" => ActionFn(15);`
         -16, // on "[", reduce `Sym = "+" => ActionFn(15);`
         -16, // on "]", reduce `Sym = "+" => ActionFn(15);`
-        -16, // on r#"[0-9]+"#, reduce `Sym = "+" => ActionFn(15);`
+        -16, // on r#"-?[0-9]+"#, reduce `Sym = "+" => ActionFn(15);`
         // State 14
         -17, // on "%", reduce `Sym = "-" => ActionFn(16);`
         -17, // on "(", reduce `Sym = "-" => ActionFn(16);`
@@ -6116,7 +6116,7 @@ mod __parse__List {
         -17, // on "/", reduce `Sym = "-" => ActionFn(16);`
         -17, // on "[", reduce `Sym = "-" => ActionFn(16);`
         -17, // on "]", reduce `Sym = "-" => ActionFn(16);`
-        -17, // on r#"[0-9]+"#, reduce `Sym = "-" => ActionFn(16);`
+        -17, // on r#"-?[0-9]+"#, reduce `Sym = "-" => ActionFn(16);`
         // State 15
         -19, // on "%", reduce `Sym = "/" => ActionFn(18);`
         -19, // on "(", reduce `Sym = "/" => ActionFn(18);`
@@ -6127,7 +6127,7 @@ mod __parse__List {
         -19, // on "/", reduce `Sym = "/" => ActionFn(18);`
         -19, // on "[", reduce `Sym = "/" => ActionFn(18);`
         -19, // on "]", reduce `Sym = "/" => ActionFn(18);`
-        -19, // on r#"[0-9]+"#, reduce `Sym = "/" => ActionFn(18);`
+        -19, // on r#"-?[0-9]+"#, reduce `Sym = "/" => ActionFn(18);`
         // State 16
         11, // on "%", goto 10
         12, // on "(", goto 11
@@ -6138,7 +6138,7 @@ mod __parse__List {
         16, // on "/", goto 15
         17, // on "[", goto 16
         29, // on "]", goto 28
-        19, // on r#"[0-9]+"#, goto 18
+        19, // on r#"-?[0-9]+"#, goto 18
         // State 17
         0, // on "%", error
         0, // on "(", error
@@ -6149,18 +6149,18 @@ mod __parse__List {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 18
-        -15, // on "%", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "(", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
+        -15, // on "%", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "(", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
         0, // on ")", error
-        -15, // on "*", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "+", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "-", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "/", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "[", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "]", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on r#"[0-9]+"#, reduce `Num = r#"[0-9]+"# => ActionFn(20);`
+        -15, // on "*", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "+", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "-", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "/", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "[", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "]", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on r#"-?[0-9]+"#, reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
         // State 19
         -14, // on "%", reduce `Node+ = Node+, Node => ActionFn(24);`
         -14, // on "(", reduce `Node+ = Node+, Node => ActionFn(24);`
@@ -6171,7 +6171,7 @@ mod __parse__List {
         -14, // on "/", reduce `Node+ = Node+, Node => ActionFn(24);`
         -14, // on "[", reduce `Node+ = Node+, Node => ActionFn(24);`
         -14, // on "]", reduce `Node+ = Node+, Node => ActionFn(24);`
-        -14, // on r#"[0-9]+"#, reduce `Node+ = Node+, Node => ActionFn(24);`
+        -14, // on r#"-?[0-9]+"#, reduce `Node+ = Node+, Node => ActionFn(24);`
         // State 20
         0, // on "%", error
         0, // on "(", error
@@ -6182,7 +6182,7 @@ mod __parse__List {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 21
         23, // on "%", goto 22
         37, // on "(", goto 36
@@ -6193,7 +6193,7 @@ mod __parse__List {
         27, // on "/", goto 26
         39, // on "[", goto 38
         0, // on "]", error
-        40, // on r#"[0-9]+"#, goto 39
+        40, // on r#"-?[0-9]+"#, goto 39
         // State 22
         -20, // on "%", reduce `Sym = "%" => ActionFn(19);`
         -20, // on "(", reduce `Sym = "%" => ActionFn(19);`
@@ -6204,7 +6204,7 @@ mod __parse__List {
         -20, // on "/", reduce `Sym = "%" => ActionFn(19);`
         -20, // on "[", reduce `Sym = "%" => ActionFn(19);`
         0, // on "]", error
-        -20, // on r#"[0-9]+"#, reduce `Sym = "%" => ActionFn(19);`
+        -20, // on r#"-?[0-9]+"#, reduce `Sym = "%" => ActionFn(19);`
         // State 23
         -18, // on "%", reduce `Sym = "*" => ActionFn(17);`
         -18, // on "(", reduce `Sym = "*" => ActionFn(17);`
@@ -6215,7 +6215,7 @@ mod __parse__List {
         -18, // on "/", reduce `Sym = "*" => ActionFn(17);`
         -18, // on "[", reduce `Sym = "*" => ActionFn(17);`
         0, // on "]", error
-        -18, // on r#"[0-9]+"#, reduce `Sym = "*" => ActionFn(17);`
+        -18, // on r#"-?[0-9]+"#, reduce `Sym = "*" => ActionFn(17);`
         // State 24
         -16, // on "%", reduce `Sym = "+" => ActionFn(15);`
         -16, // on "(", reduce `Sym = "+" => ActionFn(15);`
@@ -6226,7 +6226,7 @@ mod __parse__List {
         -16, // on "/", reduce `Sym = "+" => ActionFn(15);`
         -16, // on "[", reduce `Sym = "+" => ActionFn(15);`
         0, // on "]", error
-        -16, // on r#"[0-9]+"#, reduce `Sym = "+" => ActionFn(15);`
+        -16, // on r#"-?[0-9]+"#, reduce `Sym = "+" => ActionFn(15);`
         // State 25
         -17, // on "%", reduce `Sym = "-" => ActionFn(16);`
         -17, // on "(", reduce `Sym = "-" => ActionFn(16);`
@@ -6237,7 +6237,7 @@ mod __parse__List {
         -17, // on "/", reduce `Sym = "-" => ActionFn(16);`
         -17, // on "[", reduce `Sym = "-" => ActionFn(16);`
         0, // on "]", error
-        -17, // on r#"[0-9]+"#, reduce `Sym = "-" => ActionFn(16);`
+        -17, // on r#"-?[0-9]+"#, reduce `Sym = "-" => ActionFn(16);`
         // State 26
         -19, // on "%", reduce `Sym = "/" => ActionFn(18);`
         -19, // on "(", reduce `Sym = "/" => ActionFn(18);`
@@ -6248,7 +6248,7 @@ mod __parse__List {
         -19, // on "/", reduce `Sym = "/" => ActionFn(18);`
         -19, // on "[", reduce `Sym = "/" => ActionFn(18);`
         0, // on "]", error
-        -19, // on r#"[0-9]+"#, reduce `Sym = "/" => ActionFn(18);`
+        -19, // on r#"-?[0-9]+"#, reduce `Sym = "/" => ActionFn(18);`
         // State 27
         11, // on "%", goto 10
         12, // on "(", goto 11
@@ -6259,7 +6259,7 @@ mod __parse__List {
         16, // on "/", goto 15
         17, // on "[", goto 16
         41, // on "]", goto 40
-        19, // on r#"[0-9]+"#, goto 18
+        19, // on r#"-?[0-9]+"#, goto 18
         // State 28
         -6, // on "%", reduce `List = "[", "]" => ActionFn(27);`
         -6, // on "(", reduce `List = "[", "]" => ActionFn(27);`
@@ -6270,7 +6270,7 @@ mod __parse__List {
         -6, // on "/", reduce `List = "[", "]" => ActionFn(27);`
         -6, // on "[", reduce `List = "[", "]" => ActionFn(27);`
         -6, // on "]", reduce `List = "[", "]" => ActionFn(27);`
-        -6, // on r#"[0-9]+"#, reduce `List = "[", "]" => ActionFn(27);`
+        -6, // on r#"-?[0-9]+"#, reduce `List = "[", "]" => ActionFn(27);`
         // State 29
         -8, // on "%", reduce `Node = Atom => ActionFn(10);`
         -8, // on "(", reduce `Node = Atom => ActionFn(10);`
@@ -6281,7 +6281,7 @@ mod __parse__List {
         -8, // on "/", reduce `Node = Atom => ActionFn(10);`
         -8, // on "[", reduce `Node = Atom => ActionFn(10);`
         0, // on "]", error
-        -8, // on r#"[0-9]+"#, reduce `Node = Atom => ActionFn(10);`
+        -8, // on r#"-?[0-9]+"#, reduce `Node = Atom => ActionFn(10);`
         // State 30
         -10, // on "%", reduce `Node = Expr => ActionFn(12);`
         -10, // on "(", reduce `Node = Expr => ActionFn(12);`
@@ -6292,7 +6292,7 @@ mod __parse__List {
         -10, // on "/", reduce `Node = Expr => ActionFn(12);`
         -10, // on "[", reduce `Node = Expr => ActionFn(12);`
         0, // on "]", error
-        -10, // on r#"[0-9]+"#, reduce `Node = Expr => ActionFn(12);`
+        -10, // on r#"-?[0-9]+"#, reduce `Node = Expr => ActionFn(12);`
         // State 31
         -9, // on "%", reduce `Node = List => ActionFn(11);`
         -9, // on "(", reduce `Node = List => ActionFn(11);`
@@ -6303,7 +6303,7 @@ mod __parse__List {
         -9, // on "/", reduce `Node = List => ActionFn(11);`
         -9, // on "[", reduce `Node = List => ActionFn(11);`
         0, // on "]", error
-        -9, // on r#"[0-9]+"#, reduce `Node = List => ActionFn(11);`
+        -9, // on r#"-?[0-9]+"#, reduce `Node = List => ActionFn(11);`
         // State 32
         -13, // on "%", reduce `Node+ = Node => ActionFn(23);`
         -13, // on "(", reduce `Node+ = Node => ActionFn(23);`
@@ -6314,7 +6314,7 @@ mod __parse__List {
         -13, // on "/", reduce `Node+ = Node => ActionFn(23);`
         -13, // on "[", reduce `Node+ = Node => ActionFn(23);`
         0, // on "]", error
-        -13, // on r#"[0-9]+"#, reduce `Node+ = Node => ActionFn(23);`
+        -13, // on r#"-?[0-9]+"#, reduce `Node+ = Node => ActionFn(23);`
         // State 33
         23, // on "%", goto 22
         37, // on "(", goto 36
@@ -6325,7 +6325,7 @@ mod __parse__List {
         27, // on "/", goto 26
         39, // on "[", goto 38
         0, // on "]", error
-        40, // on r#"[0-9]+"#, goto 39
+        40, // on r#"-?[0-9]+"#, goto 39
         // State 34
         -2, // on "%", reduce `Atom = Num => ActionFn(14);`
         -2, // on "(", reduce `Atom = Num => ActionFn(14);`
@@ -6336,7 +6336,7 @@ mod __parse__List {
         -2, // on "/", reduce `Atom = Num => ActionFn(14);`
         -2, // on "[", reduce `Atom = Num => ActionFn(14);`
         0, // on "]", error
-        -2, // on r#"[0-9]+"#, reduce `Atom = Num => ActionFn(14);`
+        -2, // on r#"-?[0-9]+"#, reduce `Atom = Num => ActionFn(14);`
         // State 35
         -1, // on "%", reduce `Atom = Sym => ActionFn(13);`
         -1, // on "(", reduce `Atom = Sym => ActionFn(13);`
@@ -6347,7 +6347,7 @@ mod __parse__List {
         -1, // on "/", reduce `Atom = Sym => ActionFn(13);`
         -1, // on "[", reduce `Atom = Sym => ActionFn(13);`
         0, // on "]", error
-        -1, // on r#"[0-9]+"#, reduce `Atom = Sym => ActionFn(13);`
+        -1, // on r#"-?[0-9]+"#, reduce `Atom = Sym => ActionFn(13);`
         // State 36
         23, // on "%", goto 22
         0, // on "(", error
@@ -6358,7 +6358,7 @@ mod __parse__List {
         27, // on "/", goto 26
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 37
         -3, // on "%", reduce `Expr = "(", Sym, ")" => ActionFn(25);`
         -3, // on "(", reduce `Expr = "(", Sym, ")" => ActionFn(25);`
@@ -6369,7 +6369,7 @@ mod __parse__List {
         -3, // on "/", reduce `Expr = "(", Sym, ")" => ActionFn(25);`
         -3, // on "[", reduce `Expr = "(", Sym, ")" => ActionFn(25);`
         -3, // on "]", reduce `Expr = "(", Sym, ")" => ActionFn(25);`
-        -3, // on r#"[0-9]+"#, reduce `Expr = "(", Sym, ")" => ActionFn(25);`
+        -3, // on r#"-?[0-9]+"#, reduce `Expr = "(", Sym, ")" => ActionFn(25);`
         // State 38
         11, // on "%", goto 10
         12, // on "(", goto 11
@@ -6380,18 +6380,18 @@ mod __parse__List {
         16, // on "/", goto 15
         17, // on "[", goto 16
         46, // on "]", goto 45
-        19, // on r#"[0-9]+"#, goto 18
+        19, // on r#"-?[0-9]+"#, goto 18
         // State 39
-        -15, // on "%", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "(", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on ")", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "*", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "+", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "-", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "/", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "[", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
+        -15, // on "%", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "(", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on ")", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "*", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "+", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "-", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "/", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "[", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
         0, // on "]", error
-        -15, // on r#"[0-9]+"#, reduce `Num = r#"[0-9]+"# => ActionFn(20);`
+        -15, // on r#"-?[0-9]+"#, reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
         // State 40
         -7, // on "%", reduce `List = "[", Node+, "]" => ActionFn(28);`
         -7, // on "(", reduce `List = "[", Node+, "]" => ActionFn(28);`
@@ -6402,7 +6402,7 @@ mod __parse__List {
         -7, // on "/", reduce `List = "[", Node+, "]" => ActionFn(28);`
         -7, // on "[", reduce `List = "[", Node+, "]" => ActionFn(28);`
         -7, // on "]", reduce `List = "[", Node+, "]" => ActionFn(28);`
-        -7, // on r#"[0-9]+"#, reduce `List = "[", Node+, "]" => ActionFn(28);`
+        -7, // on r#"-?[0-9]+"#, reduce `List = "[", Node+, "]" => ActionFn(28);`
         // State 41
         -14, // on "%", reduce `Node+ = Node+, Node => ActionFn(24);`
         -14, // on "(", reduce `Node+ = Node+, Node => ActionFn(24);`
@@ -6413,7 +6413,7 @@ mod __parse__List {
         -14, // on "/", reduce `Node+ = Node+, Node => ActionFn(24);`
         -14, // on "[", reduce `Node+ = Node+, Node => ActionFn(24);`
         0, // on "]", error
-        -14, // on r#"[0-9]+"#, reduce `Node+ = Node+, Node => ActionFn(24);`
+        -14, // on r#"-?[0-9]+"#, reduce `Node+ = Node+, Node => ActionFn(24);`
         // State 42
         -4, // on "%", reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
         -4, // on "(", reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
@@ -6424,7 +6424,7 @@ mod __parse__List {
         -4, // on "/", reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
         -4, // on "[", reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
         -4, // on "]", reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
-        -4, // on r#"[0-9]+"#, reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
+        -4, // on r#"-?[0-9]+"#, reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
         // State 43
         23, // on "%", goto 22
         37, // on "(", goto 36
@@ -6435,7 +6435,7 @@ mod __parse__List {
         27, // on "/", goto 26
         39, // on "[", goto 38
         0, // on "]", error
-        40, // on r#"[0-9]+"#, goto 39
+        40, // on r#"-?[0-9]+"#, goto 39
         // State 44
         11, // on "%", goto 10
         12, // on "(", goto 11
@@ -6446,7 +6446,7 @@ mod __parse__List {
         16, // on "/", goto 15
         17, // on "[", goto 16
         49, // on "]", goto 48
-        19, // on r#"[0-9]+"#, goto 18
+        19, // on r#"-?[0-9]+"#, goto 18
         // State 45
         -6, // on "%", reduce `List = "[", "]" => ActionFn(27);`
         -6, // on "(", reduce `List = "[", "]" => ActionFn(27);`
@@ -6457,7 +6457,7 @@ mod __parse__List {
         -6, // on "/", reduce `List = "[", "]" => ActionFn(27);`
         -6, // on "[", reduce `List = "[", "]" => ActionFn(27);`
         0, // on "]", error
-        -6, // on r#"[0-9]+"#, reduce `List = "[", "]" => ActionFn(27);`
+        -6, // on r#"-?[0-9]+"#, reduce `List = "[", "]" => ActionFn(27);`
         // State 46
         23, // on "%", goto 22
         37, // on "(", goto 36
@@ -6468,7 +6468,7 @@ mod __parse__List {
         27, // on "/", goto 26
         39, // on "[", goto 38
         0, // on "]", error
-        40, // on r#"[0-9]+"#, goto 39
+        40, // on r#"-?[0-9]+"#, goto 39
         // State 47
         -3, // on "%", reduce `Expr = "(", Sym, ")" => ActionFn(25);`
         -3, // on "(", reduce `Expr = "(", Sym, ")" => ActionFn(25);`
@@ -6479,7 +6479,7 @@ mod __parse__List {
         -3, // on "/", reduce `Expr = "(", Sym, ")" => ActionFn(25);`
         -3, // on "[", reduce `Expr = "(", Sym, ")" => ActionFn(25);`
         0, // on "]", error
-        -3, // on r#"[0-9]+"#, reduce `Expr = "(", Sym, ")" => ActionFn(25);`
+        -3, // on r#"-?[0-9]+"#, reduce `Expr = "(", Sym, ")" => ActionFn(25);`
         // State 48
         -7, // on "%", reduce `List = "[", Node+, "]" => ActionFn(28);`
         -7, // on "(", reduce `List = "[", Node+, "]" => ActionFn(28);`
@@ -6490,7 +6490,7 @@ mod __parse__List {
         -7, // on "/", reduce `List = "[", Node+, "]" => ActionFn(28);`
         -7, // on "[", reduce `List = "[", Node+, "]" => ActionFn(28);`
         0, // on "]", error
-        -7, // on r#"[0-9]+"#, reduce `List = "[", Node+, "]" => ActionFn(28);`
+        -7, // on r#"-?[0-9]+"#, reduce `List = "[", Node+, "]" => ActionFn(28);`
         // State 49
         -4, // on "%", reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
         -4, // on "(", reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
@@ -6501,7 +6501,7 @@ mod __parse__List {
         -4, // on "/", reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
         -4, // on "[", reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
         0, // on "]", error
-        -4, // on r#"[0-9]+"#, reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
+        -4, // on r#"-?[0-9]+"#, reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
     ];
     const __EOF_ACTION: &'static [i32] = &[
         0, // on EOF, error
@@ -7482,7 +7482,7 @@ mod __parse__List {
                             _ => unreachable!(),
                         },
                         9 => match __lookahead.1 {
-                            (9, __tok0) => __Symbol::Termr_23_22_5b0_2d9_5d_2b_22_23(__tok0),
+                            (9, __tok0) => __Symbol::Termr_23_22_2d_3f_5b0_2d9_5d_2b_22_23(__tok0),
                             _ => unreachable!(),
                         },
                         _ => unreachable!(),
@@ -7691,8 +7691,8 @@ mod __parse__List {
                 6
             }
             15 => {
-                // Num = r#"[0-9]+"# => ActionFn(20);
-                let __sym0 = __pop_Termr_23_22_5b0_2d9_5d_2b_22_23(__symbols);
+                // Num = r#"-?[0-9]+"# => ActionFn(20);
+                let __sym0 = __pop_Termr_23_22_2d_3f_5b0_2d9_5d_2b_22_23(__symbols);
                 let __start = __sym0.0.clone();
                 let __end = __sym0.2.clone();
                 let __nt = super::__action20(input, __sym0);
@@ -7927,13 +7927,13 @@ mod __parse__List {
             _ => panic!("symbol type mismatch")
         }
     }
-    fn __pop_Termr_23_22_5b0_2d9_5d_2b_22_23<
+    fn __pop_Termr_23_22_2d_3f_5b0_2d9_5d_2b_22_23<
       'input,
     >(
         __symbols: &mut ::std::vec::Vec<(usize,__Symbol<'input>,usize)>
     ) -> (usize, &'input str, usize) {
         match __symbols.pop().unwrap() {
-            (__l, __Symbol::Termr_23_22_5b0_2d9_5d_2b_22_23(__v), __r) => (__l, __v, __r),
+            (__l, __Symbol::Termr_23_22_2d_3f_5b0_2d9_5d_2b_22_23(__v), __r) => (__l, __v, __r),
             _ => panic!("symbol type mismatch")
         }
     }
@@ -8117,7 +8117,7 @@ mod __parse__Node {
         Term_22_2f_22(&'input str),
         Term_22_5b_22(&'input str),
         Term_22_5d_22(&'input str),
-        Termr_23_22_5b0_2d9_5d_2b_22_23(&'input str),
+        Termr_23_22_2d_3f_5b0_2d9_5d_2b_22_23(&'input str),
         NtAtom(Atom),
         NtExpr(Expr),
         NtLang(Node),
@@ -8146,7 +8146,7 @@ mod __parse__Node {
         13, // on "/", goto 12
         14, // on "[", goto 13
         0, // on "]", error
-        15, // on r#"[0-9]+"#, goto 14
+        15, // on r#"-?[0-9]+"#, goto 14
         // State 1
         0, // on "%", error
         0, // on "(", error
@@ -8157,7 +8157,7 @@ mod __parse__Node {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 2
         0, // on "%", error
         0, // on "(", error
@@ -8168,7 +8168,7 @@ mod __parse__Node {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 3
         0, // on "%", error
         0, // on "(", error
@@ -8179,7 +8179,7 @@ mod __parse__Node {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 4
         0, // on "%", error
         0, // on "(", error
@@ -8190,7 +8190,7 @@ mod __parse__Node {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 5
         0, // on "%", error
         0, // on "(", error
@@ -8201,7 +8201,7 @@ mod __parse__Node {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 6
         0, // on "%", error
         0, // on "(", error
@@ -8212,7 +8212,7 @@ mod __parse__Node {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 7
         0, // on "%", error
         0, // on "(", error
@@ -8223,7 +8223,7 @@ mod __parse__Node {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 8
         17, // on "%", goto 16
         0, // on "(", error
@@ -8234,7 +8234,7 @@ mod __parse__Node {
         21, // on "/", goto 20
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 9
         0, // on "%", error
         0, // on "(", error
@@ -8245,7 +8245,7 @@ mod __parse__Node {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 10
         0, // on "%", error
         0, // on "(", error
@@ -8256,7 +8256,7 @@ mod __parse__Node {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 11
         0, // on "%", error
         0, // on "(", error
@@ -8267,7 +8267,7 @@ mod __parse__Node {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 12
         0, // on "%", error
         0, // on "(", error
@@ -8278,7 +8278,7 @@ mod __parse__Node {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 13
         29, // on "%", goto 28
         30, // on "(", goto 29
@@ -8289,7 +8289,7 @@ mod __parse__Node {
         34, // on "/", goto 33
         35, // on "[", goto 34
         36, // on "]", goto 35
-        37, // on r#"[0-9]+"#, goto 36
+        37, // on r#"-?[0-9]+"#, goto 36
         // State 14
         0, // on "%", error
         0, // on "(", error
@@ -8300,7 +8300,7 @@ mod __parse__Node {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 15
         17, // on "%", goto 16
         45, // on "(", goto 44
@@ -8311,7 +8311,7 @@ mod __parse__Node {
         21, // on "/", goto 20
         47, // on "[", goto 46
         0, // on "]", error
-        48, // on r#"[0-9]+"#, goto 47
+        48, // on r#"-?[0-9]+"#, goto 47
         // State 16
         -20, // on "%", reduce `Sym = "%" => ActionFn(19);`
         -20, // on "(", reduce `Sym = "%" => ActionFn(19);`
@@ -8322,7 +8322,7 @@ mod __parse__Node {
         -20, // on "/", reduce `Sym = "%" => ActionFn(19);`
         -20, // on "[", reduce `Sym = "%" => ActionFn(19);`
         0, // on "]", error
-        -20, // on r#"[0-9]+"#, reduce `Sym = "%" => ActionFn(19);`
+        -20, // on r#"-?[0-9]+"#, reduce `Sym = "%" => ActionFn(19);`
         // State 17
         -18, // on "%", reduce `Sym = "*" => ActionFn(17);`
         -18, // on "(", reduce `Sym = "*" => ActionFn(17);`
@@ -8333,7 +8333,7 @@ mod __parse__Node {
         -18, // on "/", reduce `Sym = "*" => ActionFn(17);`
         -18, // on "[", reduce `Sym = "*" => ActionFn(17);`
         0, // on "]", error
-        -18, // on r#"[0-9]+"#, reduce `Sym = "*" => ActionFn(17);`
+        -18, // on r#"-?[0-9]+"#, reduce `Sym = "*" => ActionFn(17);`
         // State 18
         -16, // on "%", reduce `Sym = "+" => ActionFn(15);`
         -16, // on "(", reduce `Sym = "+" => ActionFn(15);`
@@ -8344,7 +8344,7 @@ mod __parse__Node {
         -16, // on "/", reduce `Sym = "+" => ActionFn(15);`
         -16, // on "[", reduce `Sym = "+" => ActionFn(15);`
         0, // on "]", error
-        -16, // on r#"[0-9]+"#, reduce `Sym = "+" => ActionFn(15);`
+        -16, // on r#"-?[0-9]+"#, reduce `Sym = "+" => ActionFn(15);`
         // State 19
         -17, // on "%", reduce `Sym = "-" => ActionFn(16);`
         -17, // on "(", reduce `Sym = "-" => ActionFn(16);`
@@ -8355,7 +8355,7 @@ mod __parse__Node {
         -17, // on "/", reduce `Sym = "-" => ActionFn(16);`
         -17, // on "[", reduce `Sym = "-" => ActionFn(16);`
         0, // on "]", error
-        -17, // on r#"[0-9]+"#, reduce `Sym = "-" => ActionFn(16);`
+        -17, // on r#"-?[0-9]+"#, reduce `Sym = "-" => ActionFn(16);`
         // State 20
         -19, // on "%", reduce `Sym = "/" => ActionFn(18);`
         -19, // on "(", reduce `Sym = "/" => ActionFn(18);`
@@ -8366,7 +8366,7 @@ mod __parse__Node {
         -19, // on "/", reduce `Sym = "/" => ActionFn(18);`
         -19, // on "[", reduce `Sym = "/" => ActionFn(18);`
         0, // on "]", error
-        -19, // on r#"[0-9]+"#, reduce `Sym = "/" => ActionFn(18);`
+        -19, // on r#"-?[0-9]+"#, reduce `Sym = "/" => ActionFn(18);`
         // State 21
         -8, // on "%", reduce `Node = Atom => ActionFn(10);`
         -8, // on "(", reduce `Node = Atom => ActionFn(10);`
@@ -8377,7 +8377,7 @@ mod __parse__Node {
         -8, // on "/", reduce `Node = Atom => ActionFn(10);`
         -8, // on "[", reduce `Node = Atom => ActionFn(10);`
         -8, // on "]", reduce `Node = Atom => ActionFn(10);`
-        -8, // on r#"[0-9]+"#, reduce `Node = Atom => ActionFn(10);`
+        -8, // on r#"-?[0-9]+"#, reduce `Node = Atom => ActionFn(10);`
         // State 22
         -10, // on "%", reduce `Node = Expr => ActionFn(12);`
         -10, // on "(", reduce `Node = Expr => ActionFn(12);`
@@ -8388,7 +8388,7 @@ mod __parse__Node {
         -10, // on "/", reduce `Node = Expr => ActionFn(12);`
         -10, // on "[", reduce `Node = Expr => ActionFn(12);`
         -10, // on "]", reduce `Node = Expr => ActionFn(12);`
-        -10, // on r#"[0-9]+"#, reduce `Node = Expr => ActionFn(12);`
+        -10, // on r#"-?[0-9]+"#, reduce `Node = Expr => ActionFn(12);`
         // State 23
         -9, // on "%", reduce `Node = List => ActionFn(11);`
         -9, // on "(", reduce `Node = List => ActionFn(11);`
@@ -8399,7 +8399,7 @@ mod __parse__Node {
         -9, // on "/", reduce `Node = List => ActionFn(11);`
         -9, // on "[", reduce `Node = List => ActionFn(11);`
         -9, // on "]", reduce `Node = List => ActionFn(11);`
-        -9, // on r#"[0-9]+"#, reduce `Node = List => ActionFn(11);`
+        -9, // on r#"-?[0-9]+"#, reduce `Node = List => ActionFn(11);`
         // State 24
         -13, // on "%", reduce `Node+ = Node => ActionFn(23);`
         -13, // on "(", reduce `Node+ = Node => ActionFn(23);`
@@ -8410,7 +8410,7 @@ mod __parse__Node {
         -13, // on "/", reduce `Node+ = Node => ActionFn(23);`
         -13, // on "[", reduce `Node+ = Node => ActionFn(23);`
         -13, // on "]", reduce `Node+ = Node => ActionFn(23);`
-        -13, // on r#"[0-9]+"#, reduce `Node+ = Node => ActionFn(23);`
+        -13, // on r#"-?[0-9]+"#, reduce `Node+ = Node => ActionFn(23);`
         // State 25
         29, // on "%", goto 28
         30, // on "(", goto 29
@@ -8421,7 +8421,7 @@ mod __parse__Node {
         34, // on "/", goto 33
         35, // on "[", goto 34
         50, // on "]", goto 49
-        37, // on r#"[0-9]+"#, goto 36
+        37, // on r#"-?[0-9]+"#, goto 36
         // State 26
         -2, // on "%", reduce `Atom = Num => ActionFn(14);`
         -2, // on "(", reduce `Atom = Num => ActionFn(14);`
@@ -8432,7 +8432,7 @@ mod __parse__Node {
         -2, // on "/", reduce `Atom = Num => ActionFn(14);`
         -2, // on "[", reduce `Atom = Num => ActionFn(14);`
         -2, // on "]", reduce `Atom = Num => ActionFn(14);`
-        -2, // on r#"[0-9]+"#, reduce `Atom = Num => ActionFn(14);`
+        -2, // on r#"-?[0-9]+"#, reduce `Atom = Num => ActionFn(14);`
         // State 27
         -1, // on "%", reduce `Atom = Sym => ActionFn(13);`
         -1, // on "(", reduce `Atom = Sym => ActionFn(13);`
@@ -8443,7 +8443,7 @@ mod __parse__Node {
         -1, // on "/", reduce `Atom = Sym => ActionFn(13);`
         -1, // on "[", reduce `Atom = Sym => ActionFn(13);`
         -1, // on "]", reduce `Atom = Sym => ActionFn(13);`
-        -1, // on r#"[0-9]+"#, reduce `Atom = Sym => ActionFn(13);`
+        -1, // on r#"-?[0-9]+"#, reduce `Atom = Sym => ActionFn(13);`
         // State 28
         -20, // on "%", reduce `Sym = "%" => ActionFn(19);`
         -20, // on "(", reduce `Sym = "%" => ActionFn(19);`
@@ -8454,7 +8454,7 @@ mod __parse__Node {
         -20, // on "/", reduce `Sym = "%" => ActionFn(19);`
         -20, // on "[", reduce `Sym = "%" => ActionFn(19);`
         -20, // on "]", reduce `Sym = "%" => ActionFn(19);`
-        -20, // on r#"[0-9]+"#, reduce `Sym = "%" => ActionFn(19);`
+        -20, // on r#"-?[0-9]+"#, reduce `Sym = "%" => ActionFn(19);`
         // State 29
         17, // on "%", goto 16
         0, // on "(", error
@@ -8465,7 +8465,7 @@ mod __parse__Node {
         21, // on "/", goto 20
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 30
         -18, // on "%", reduce `Sym = "*" => ActionFn(17);`
         -18, // on "(", reduce `Sym = "*" => ActionFn(17);`
@@ -8476,7 +8476,7 @@ mod __parse__Node {
         -18, // on "/", reduce `Sym = "*" => ActionFn(17);`
         -18, // on "[", reduce `Sym = "*" => ActionFn(17);`
         -18, // on "]", reduce `Sym = "*" => ActionFn(17);`
-        -18, // on r#"[0-9]+"#, reduce `Sym = "*" => ActionFn(17);`
+        -18, // on r#"-?[0-9]+"#, reduce `Sym = "*" => ActionFn(17);`
         // State 31
         -16, // on "%", reduce `Sym = "+" => ActionFn(15);`
         -16, // on "(", reduce `Sym = "+" => ActionFn(15);`
@@ -8487,7 +8487,7 @@ mod __parse__Node {
         -16, // on "/", reduce `Sym = "+" => ActionFn(15);`
         -16, // on "[", reduce `Sym = "+" => ActionFn(15);`
         -16, // on "]", reduce `Sym = "+" => ActionFn(15);`
-        -16, // on r#"[0-9]+"#, reduce `Sym = "+" => ActionFn(15);`
+        -16, // on r#"-?[0-9]+"#, reduce `Sym = "+" => ActionFn(15);`
         // State 32
         -17, // on "%", reduce `Sym = "-" => ActionFn(16);`
         -17, // on "(", reduce `Sym = "-" => ActionFn(16);`
@@ -8498,7 +8498,7 @@ mod __parse__Node {
         -17, // on "/", reduce `Sym = "-" => ActionFn(16);`
         -17, // on "[", reduce `Sym = "-" => ActionFn(16);`
         -17, // on "]", reduce `Sym = "-" => ActionFn(16);`
-        -17, // on r#"[0-9]+"#, reduce `Sym = "-" => ActionFn(16);`
+        -17, // on r#"-?[0-9]+"#, reduce `Sym = "-" => ActionFn(16);`
         // State 33
         -19, // on "%", reduce `Sym = "/" => ActionFn(18);`
         -19, // on "(", reduce `Sym = "/" => ActionFn(18);`
@@ -8509,7 +8509,7 @@ mod __parse__Node {
         -19, // on "/", reduce `Sym = "/" => ActionFn(18);`
         -19, // on "[", reduce `Sym = "/" => ActionFn(18);`
         -19, // on "]", reduce `Sym = "/" => ActionFn(18);`
-        -19, // on r#"[0-9]+"#, reduce `Sym = "/" => ActionFn(18);`
+        -19, // on r#"-?[0-9]+"#, reduce `Sym = "/" => ActionFn(18);`
         // State 34
         29, // on "%", goto 28
         30, // on "(", goto 29
@@ -8520,7 +8520,7 @@ mod __parse__Node {
         34, // on "/", goto 33
         35, // on "[", goto 34
         53, // on "]", goto 52
-        37, // on r#"[0-9]+"#, goto 36
+        37, // on r#"-?[0-9]+"#, goto 36
         // State 35
         0, // on "%", error
         0, // on "(", error
@@ -8531,18 +8531,18 @@ mod __parse__Node {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 36
-        -15, // on "%", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "(", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
+        -15, // on "%", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "(", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
         0, // on ")", error
-        -15, // on "*", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "+", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "-", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "/", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "[", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "]", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on r#"[0-9]+"#, reduce `Num = r#"[0-9]+"# => ActionFn(20);`
+        -15, // on "*", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "+", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "-", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "/", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "[", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "]", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on r#"-?[0-9]+"#, reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
         // State 37
         -8, // on "%", reduce `Node = Atom => ActionFn(10);`
         -8, // on "(", reduce `Node = Atom => ActionFn(10);`
@@ -8553,7 +8553,7 @@ mod __parse__Node {
         -8, // on "/", reduce `Node = Atom => ActionFn(10);`
         -8, // on "[", reduce `Node = Atom => ActionFn(10);`
         0, // on "]", error
-        -8, // on r#"[0-9]+"#, reduce `Node = Atom => ActionFn(10);`
+        -8, // on r#"-?[0-9]+"#, reduce `Node = Atom => ActionFn(10);`
         // State 38
         -10, // on "%", reduce `Node = Expr => ActionFn(12);`
         -10, // on "(", reduce `Node = Expr => ActionFn(12);`
@@ -8564,7 +8564,7 @@ mod __parse__Node {
         -10, // on "/", reduce `Node = Expr => ActionFn(12);`
         -10, // on "[", reduce `Node = Expr => ActionFn(12);`
         0, // on "]", error
-        -10, // on r#"[0-9]+"#, reduce `Node = Expr => ActionFn(12);`
+        -10, // on r#"-?[0-9]+"#, reduce `Node = Expr => ActionFn(12);`
         // State 39
         -9, // on "%", reduce `Node = List => ActionFn(11);`
         -9, // on "(", reduce `Node = List => ActionFn(11);`
@@ -8575,7 +8575,7 @@ mod __parse__Node {
         -9, // on "/", reduce `Node = List => ActionFn(11);`
         -9, // on "[", reduce `Node = List => ActionFn(11);`
         0, // on "]", error
-        -9, // on r#"[0-9]+"#, reduce `Node = List => ActionFn(11);`
+        -9, // on r#"-?[0-9]+"#, reduce `Node = List => ActionFn(11);`
         // State 40
         -13, // on "%", reduce `Node+ = Node => ActionFn(23);`
         -13, // on "(", reduce `Node+ = Node => ActionFn(23);`
@@ -8586,7 +8586,7 @@ mod __parse__Node {
         -13, // on "/", reduce `Node+ = Node => ActionFn(23);`
         -13, // on "[", reduce `Node+ = Node => ActionFn(23);`
         0, // on "]", error
-        -13, // on r#"[0-9]+"#, reduce `Node+ = Node => ActionFn(23);`
+        -13, // on r#"-?[0-9]+"#, reduce `Node+ = Node => ActionFn(23);`
         // State 41
         17, // on "%", goto 16
         45, // on "(", goto 44
@@ -8597,7 +8597,7 @@ mod __parse__Node {
         21, // on "/", goto 20
         47, // on "[", goto 46
         0, // on "]", error
-        48, // on r#"[0-9]+"#, goto 47
+        48, // on r#"-?[0-9]+"#, goto 47
         // State 42
         -2, // on "%", reduce `Atom = Num => ActionFn(14);`
         -2, // on "(", reduce `Atom = Num => ActionFn(14);`
@@ -8608,7 +8608,7 @@ mod __parse__Node {
         -2, // on "/", reduce `Atom = Num => ActionFn(14);`
         -2, // on "[", reduce `Atom = Num => ActionFn(14);`
         0, // on "]", error
-        -2, // on r#"[0-9]+"#, reduce `Atom = Num => ActionFn(14);`
+        -2, // on r#"-?[0-9]+"#, reduce `Atom = Num => ActionFn(14);`
         // State 43
         -1, // on "%", reduce `Atom = Sym => ActionFn(13);`
         -1, // on "(", reduce `Atom = Sym => ActionFn(13);`
@@ -8619,7 +8619,7 @@ mod __parse__Node {
         -1, // on "/", reduce `Atom = Sym => ActionFn(13);`
         -1, // on "[", reduce `Atom = Sym => ActionFn(13);`
         0, // on "]", error
-        -1, // on r#"[0-9]+"#, reduce `Atom = Sym => ActionFn(13);`
+        -1, // on r#"-?[0-9]+"#, reduce `Atom = Sym => ActionFn(13);`
         // State 44
         17, // on "%", goto 16
         0, // on "(", error
@@ -8630,7 +8630,7 @@ mod __parse__Node {
         21, // on "/", goto 20
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 45
         0, // on "%", error
         0, // on "(", error
@@ -8641,7 +8641,7 @@ mod __parse__Node {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 46
         29, // on "%", goto 28
         30, // on "(", goto 29
@@ -8652,18 +8652,18 @@ mod __parse__Node {
         34, // on "/", goto 33
         35, // on "[", goto 34
         58, // on "]", goto 57
-        37, // on r#"[0-9]+"#, goto 36
+        37, // on r#"-?[0-9]+"#, goto 36
         // State 47
-        -15, // on "%", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "(", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on ")", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "*", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "+", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "-", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "/", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
-        -15, // on "[", reduce `Num = r#"[0-9]+"# => ActionFn(20);`
+        -15, // on "%", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "(", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on ")", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "*", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "+", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "-", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "/", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
+        -15, // on "[", reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
         0, // on "]", error
-        -15, // on r#"[0-9]+"#, reduce `Num = r#"[0-9]+"# => ActionFn(20);`
+        -15, // on r#"-?[0-9]+"#, reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
         // State 48
         -14, // on "%", reduce `Node+ = Node+, Node => ActionFn(24);`
         -14, // on "(", reduce `Node+ = Node+, Node => ActionFn(24);`
@@ -8674,7 +8674,7 @@ mod __parse__Node {
         -14, // on "/", reduce `Node+ = Node+, Node => ActionFn(24);`
         -14, // on "[", reduce `Node+ = Node+, Node => ActionFn(24);`
         -14, // on "]", reduce `Node+ = Node+, Node => ActionFn(24);`
-        -14, // on r#"[0-9]+"#, reduce `Node+ = Node+, Node => ActionFn(24);`
+        -14, // on r#"-?[0-9]+"#, reduce `Node+ = Node+, Node => ActionFn(24);`
         // State 49
         0, // on "%", error
         0, // on "(", error
@@ -8685,7 +8685,7 @@ mod __parse__Node {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 50
         17, // on "%", goto 16
         45, // on "(", goto 44
@@ -8696,7 +8696,7 @@ mod __parse__Node {
         21, // on "/", goto 20
         47, // on "[", goto 46
         0, // on "]", error
-        48, // on r#"[0-9]+"#, goto 47
+        48, // on r#"-?[0-9]+"#, goto 47
         // State 51
         29, // on "%", goto 28
         30, // on "(", goto 29
@@ -8707,7 +8707,7 @@ mod __parse__Node {
         34, // on "/", goto 33
         35, // on "[", goto 34
         61, // on "]", goto 60
-        37, // on r#"[0-9]+"#, goto 36
+        37, // on r#"-?[0-9]+"#, goto 36
         // State 52
         -6, // on "%", reduce `List = "[", "]" => ActionFn(27);`
         -6, // on "(", reduce `List = "[", "]" => ActionFn(27);`
@@ -8718,7 +8718,7 @@ mod __parse__Node {
         -6, // on "/", reduce `List = "[", "]" => ActionFn(27);`
         -6, // on "[", reduce `List = "[", "]" => ActionFn(27);`
         -6, // on "]", reduce `List = "[", "]" => ActionFn(27);`
-        -6, // on r#"[0-9]+"#, reduce `List = "[", "]" => ActionFn(27);`
+        -6, // on r#"-?[0-9]+"#, reduce `List = "[", "]" => ActionFn(27);`
         // State 53
         -14, // on "%", reduce `Node+ = Node+, Node => ActionFn(24);`
         -14, // on "(", reduce `Node+ = Node+, Node => ActionFn(24);`
@@ -8729,7 +8729,7 @@ mod __parse__Node {
         -14, // on "/", reduce `Node+ = Node+, Node => ActionFn(24);`
         -14, // on "[", reduce `Node+ = Node+, Node => ActionFn(24);`
         0, // on "]", error
-        -14, // on r#"[0-9]+"#, reduce `Node+ = Node+, Node => ActionFn(24);`
+        -14, // on r#"-?[0-9]+"#, reduce `Node+ = Node+, Node => ActionFn(24);`
         // State 54
         0, // on "%", error
         0, // on "(", error
@@ -8740,7 +8740,7 @@ mod __parse__Node {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 55
         17, // on "%", goto 16
         45, // on "(", goto 44
@@ -8751,7 +8751,7 @@ mod __parse__Node {
         21, // on "/", goto 20
         47, // on "[", goto 46
         0, // on "]", error
-        48, // on r#"[0-9]+"#, goto 47
+        48, // on r#"-?[0-9]+"#, goto 47
         // State 56
         29, // on "%", goto 28
         30, // on "(", goto 29
@@ -8762,7 +8762,7 @@ mod __parse__Node {
         34, // on "/", goto 33
         35, // on "[", goto 34
         64, // on "]", goto 63
-        37, // on r#"[0-9]+"#, goto 36
+        37, // on r#"-?[0-9]+"#, goto 36
         // State 57
         -6, // on "%", reduce `List = "[", "]" => ActionFn(27);`
         -6, // on "(", reduce `List = "[", "]" => ActionFn(27);`
@@ -8773,7 +8773,7 @@ mod __parse__Node {
         -6, // on "/", reduce `List = "[", "]" => ActionFn(27);`
         -6, // on "[", reduce `List = "[", "]" => ActionFn(27);`
         0, // on "]", error
-        -6, // on r#"[0-9]+"#, reduce `List = "[", "]" => ActionFn(27);`
+        -6, // on r#"-?[0-9]+"#, reduce `List = "[", "]" => ActionFn(27);`
         // State 58
         17, // on "%", goto 16
         45, // on "(", goto 44
@@ -8784,7 +8784,7 @@ mod __parse__Node {
         21, // on "/", goto 20
         47, // on "[", goto 46
         0, // on "]", error
-        48, // on r#"[0-9]+"#, goto 47
+        48, // on r#"-?[0-9]+"#, goto 47
         // State 59
         -3, // on "%", reduce `Expr = "(", Sym, ")" => ActionFn(25);`
         -3, // on "(", reduce `Expr = "(", Sym, ")" => ActionFn(25);`
@@ -8795,7 +8795,7 @@ mod __parse__Node {
         -3, // on "/", reduce `Expr = "(", Sym, ")" => ActionFn(25);`
         -3, // on "[", reduce `Expr = "(", Sym, ")" => ActionFn(25);`
         -3, // on "]", reduce `Expr = "(", Sym, ")" => ActionFn(25);`
-        -3, // on r#"[0-9]+"#, reduce `Expr = "(", Sym, ")" => ActionFn(25);`
+        -3, // on r#"-?[0-9]+"#, reduce `Expr = "(", Sym, ")" => ActionFn(25);`
         // State 60
         -7, // on "%", reduce `List = "[", Node+, "]" => ActionFn(28);`
         -7, // on "(", reduce `List = "[", Node+, "]" => ActionFn(28);`
@@ -8806,7 +8806,7 @@ mod __parse__Node {
         -7, // on "/", reduce `List = "[", Node+, "]" => ActionFn(28);`
         -7, // on "[", reduce `List = "[", Node+, "]" => ActionFn(28);`
         -7, // on "]", reduce `List = "[", Node+, "]" => ActionFn(28);`
-        -7, // on r#"[0-9]+"#, reduce `List = "[", Node+, "]" => ActionFn(28);`
+        -7, // on r#"-?[0-9]+"#, reduce `List = "[", Node+, "]" => ActionFn(28);`
         // State 61
         17, // on "%", goto 16
         45, // on "(", goto 44
@@ -8817,7 +8817,7 @@ mod __parse__Node {
         21, // on "/", goto 20
         47, // on "[", goto 46
         0, // on "]", error
-        48, // on r#"[0-9]+"#, goto 47
+        48, // on r#"-?[0-9]+"#, goto 47
         // State 62
         -3, // on "%", reduce `Expr = "(", Sym, ")" => ActionFn(25);`
         -3, // on "(", reduce `Expr = "(", Sym, ")" => ActionFn(25);`
@@ -8828,7 +8828,7 @@ mod __parse__Node {
         -3, // on "/", reduce `Expr = "(", Sym, ")" => ActionFn(25);`
         -3, // on "[", reduce `Expr = "(", Sym, ")" => ActionFn(25);`
         0, // on "]", error
-        -3, // on r#"[0-9]+"#, reduce `Expr = "(", Sym, ")" => ActionFn(25);`
+        -3, // on r#"-?[0-9]+"#, reduce `Expr = "(", Sym, ")" => ActionFn(25);`
         // State 63
         -7, // on "%", reduce `List = "[", Node+, "]" => ActionFn(28);`
         -7, // on "(", reduce `List = "[", Node+, "]" => ActionFn(28);`
@@ -8839,7 +8839,7 @@ mod __parse__Node {
         -7, // on "/", reduce `List = "[", Node+, "]" => ActionFn(28);`
         -7, // on "[", reduce `List = "[", Node+, "]" => ActionFn(28);`
         0, // on "]", error
-        -7, // on r#"[0-9]+"#, reduce `List = "[", Node+, "]" => ActionFn(28);`
+        -7, // on r#"-?[0-9]+"#, reduce `List = "[", Node+, "]" => ActionFn(28);`
         // State 64
         -4, // on "%", reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
         -4, // on "(", reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
@@ -8850,7 +8850,7 @@ mod __parse__Node {
         -4, // on "/", reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
         -4, // on "[", reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
         -4, // on "]", reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
-        -4, // on r#"[0-9]+"#, reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
+        -4, // on r#"-?[0-9]+"#, reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
         // State 65
         -4, // on "%", reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
         -4, // on "(", reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
@@ -8861,7 +8861,7 @@ mod __parse__Node {
         -4, // on "/", reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
         -4, // on "[", reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
         0, // on "]", error
-        -4, // on r#"[0-9]+"#, reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
+        -4, // on r#"-?[0-9]+"#, reduce `Expr = "(", Sym, Node+, ")" => ActionFn(26);`
     ];
     const __EOF_ACTION: &'static [i32] = &[
         0, // on EOF, error
@@ -8878,7 +8878,7 @@ mod __parse__Node {
         -17, // on EOF, reduce `Sym = "-" => ActionFn(16);`
         -19, // on EOF, reduce `Sym = "/" => ActionFn(18);`
         0, // on EOF, error
-        -15, // on EOF, reduce `Num = r#"[0-9]+"# => ActionFn(20);`
+        -15, // on EOF, reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
         0, // on EOF, error
         0, // on EOF, error
         0, // on EOF, error
@@ -10130,7 +10130,7 @@ mod __parse__Node {
                             _ => unreachable!(),
                         },
                         9 => match __lookahead.1 {
-                            (9, __tok0) => __Symbol::Termr_23_22_5b0_2d9_5d_2b_22_23(__tok0),
+                            (9, __tok0) => __Symbol::Termr_23_22_2d_3f_5b0_2d9_5d_2b_22_23(__tok0),
                             _ => unreachable!(),
                         },
                         _ => unreachable!(),
@@ -10339,8 +10339,8 @@ mod __parse__Node {
                 6
             }
             15 => {
-                // Num = r#"[0-9]+"# => ActionFn(20);
-                let __sym0 = __pop_Termr_23_22_5b0_2d9_5d_2b_22_23(__symbols);
+                // Num = r#"-?[0-9]+"# => ActionFn(20);
+                let __sym0 = __pop_Termr_23_22_2d_3f_5b0_2d9_5d_2b_22_23(__symbols);
                 let __start = __sym0.0.clone();
                 let __end = __sym0.2.clone();
                 let __nt = super::__action20(input, __sym0);
@@ -10575,13 +10575,13 @@ mod __parse__Node {
             _ => panic!("symbol type mismatch")
         }
     }
-    fn __pop_Termr_23_22_5b0_2d9_5d_2b_22_23<
+    fn __pop_Termr_23_22_2d_3f_5b0_2d9_5d_2b_22_23<
       'input,
     >(
         __symbols: &mut ::std::vec::Vec<(usize,__Symbol<'input>,usize)>
     ) -> (usize, &'input str, usize) {
         match __symbols.pop().unwrap() {
-            (__l, __Symbol::Termr_23_22_5b0_2d9_5d_2b_22_23(__v), __r) => (__l, __v, __r),
+            (__l, __Symbol::Termr_23_22_2d_3f_5b0_2d9_5d_2b_22_23(__v), __r) => (__l, __v, __r),
             _ => panic!("symbol type mismatch")
         }
     }
@@ -10765,7 +10765,7 @@ mod __parse__Num {
         Term_22_2f_22(&'input str),
         Term_22_5b_22(&'input str),
         Term_22_5d_22(&'input str),
-        Termr_23_22_5b0_2d9_5d_2b_22_23(&'input str),
+        Termr_23_22_2d_3f_5b0_2d9_5d_2b_22_23(&'input str),
         NtAtom(Atom),
         NtExpr(Expr),
         NtLang(Node),
@@ -10794,7 +10794,7 @@ mod __parse__Num {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        3, // on r#"[0-9]+"#, goto 2
+        3, // on r#"-?[0-9]+"#, goto 2
         // State 1
         0, // on "%", error
         0, // on "(", error
@@ -10805,7 +10805,7 @@ mod __parse__Num {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 2
         0, // on "%", error
         0, // on "(", error
@@ -10816,12 +10816,12 @@ mod __parse__Num {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
     ];
     const __EOF_ACTION: &'static [i32] = &[
         0, // on EOF, error
         -26, // on EOF, reduce `__Num = Num => ActionFn(6);`
-        -15, // on EOF, reduce `Num = r#"[0-9]+"# => ActionFn(20);`
+        -15, // on EOF, reduce `Num = r#"-?[0-9]+"# => ActionFn(20);`
     ];
     const __GOTO: &'static [i32] = &[
         // State 0
@@ -10951,7 +10951,7 @@ mod __parse__Num {
                             _ => unreachable!(),
                         },
                         9 => match __lookahead.1 {
-                            (9, __tok0) => __Symbol::Termr_23_22_5b0_2d9_5d_2b_22_23(__tok0),
+                            (9, __tok0) => __Symbol::Termr_23_22_2d_3f_5b0_2d9_5d_2b_22_23(__tok0),
                             _ => unreachable!(),
                         },
                         _ => unreachable!(),
@@ -11160,8 +11160,8 @@ mod __parse__Num {
                 6
             }
             15 => {
-                // Num = r#"[0-9]+"# => ActionFn(20);
-                let __sym0 = __pop_Termr_23_22_5b0_2d9_5d_2b_22_23(__symbols);
+                // Num = r#"-?[0-9]+"# => ActionFn(20);
+                let __sym0 = __pop_Termr_23_22_2d_3f_5b0_2d9_5d_2b_22_23(__symbols);
                 let __start = __sym0.0.clone();
                 let __end = __sym0.2.clone();
                 let __nt = super::__action20(input, __sym0);
@@ -11396,13 +11396,13 @@ mod __parse__Num {
             _ => panic!("symbol type mismatch")
         }
     }
-    fn __pop_Termr_23_22_5b0_2d9_5d_2b_22_23<
+    fn __pop_Termr_23_22_2d_3f_5b0_2d9_5d_2b_22_23<
       'input,
     >(
         __symbols: &mut ::std::vec::Vec<(usize,__Symbol<'input>,usize)>
     ) -> (usize, &'input str, usize) {
         match __symbols.pop().unwrap() {
-            (__l, __Symbol::Termr_23_22_5b0_2d9_5d_2b_22_23(__v), __r) => (__l, __v, __r),
+            (__l, __Symbol::Termr_23_22_2d_3f_5b0_2d9_5d_2b_22_23(__v), __r) => (__l, __v, __r),
             _ => panic!("symbol type mismatch")
         }
     }
@@ -11586,7 +11586,7 @@ mod __parse__Sym {
         Term_22_2f_22(&'input str),
         Term_22_5b_22(&'input str),
         Term_22_5d_22(&'input str),
-        Termr_23_22_5b0_2d9_5d_2b_22_23(&'input str),
+        Termr_23_22_2d_3f_5b0_2d9_5d_2b_22_23(&'input str),
         NtAtom(Atom),
         NtExpr(Expr),
         NtLang(Node),
@@ -11615,7 +11615,7 @@ mod __parse__Sym {
         7, // on "/", goto 6
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 1
         0, // on "%", error
         0, // on "(", error
@@ -11626,7 +11626,7 @@ mod __parse__Sym {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 2
         0, // on "%", error
         0, // on "(", error
@@ -11637,7 +11637,7 @@ mod __parse__Sym {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 3
         0, // on "%", error
         0, // on "(", error
@@ -11648,7 +11648,7 @@ mod __parse__Sym {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 4
         0, // on "%", error
         0, // on "(", error
@@ -11659,7 +11659,7 @@ mod __parse__Sym {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 5
         0, // on "%", error
         0, // on "(", error
@@ -11670,7 +11670,7 @@ mod __parse__Sym {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
         // State 6
         0, // on "%", error
         0, // on "(", error
@@ -11681,7 +11681,7 @@ mod __parse__Sym {
         0, // on "/", error
         0, // on "[", error
         0, // on "]", error
-        0, // on r#"[0-9]+"#, error
+        0, // on r#"-?[0-9]+"#, error
     ];
     const __EOF_ACTION: &'static [i32] = &[
         0, // on EOF, error
@@ -11888,7 +11888,7 @@ mod __parse__Sym {
                             _ => unreachable!(),
                         },
                         9 => match __lookahead.1 {
-                            (9, __tok0) => __Symbol::Termr_23_22_5b0_2d9_5d_2b_22_23(__tok0),
+                            (9, __tok0) => __Symbol::Termr_23_22_2d_3f_5b0_2d9_5d_2b_22_23(__tok0),
                             _ => unreachable!(),
                         },
                         _ => unreachable!(),
@@ -12097,8 +12097,8 @@ mod __parse__Sym {
                 6
             }
             15 => {
-                // Num = r#"[0-9]+"# => ActionFn(20);
-                let __sym0 = __pop_Termr_23_22_5b0_2d9_5d_2b_22_23(__symbols);
+                // Num = r#"-?[0-9]+"# => ActionFn(20);
+                let __sym0 = __pop_Termr_23_22_2d_3f_5b0_2d9_5d_2b_22_23(__symbols);
                 let __start = __sym0.0.clone();
                 let __end = __sym0.2.clone();
                 let __nt = super::__action20(input, __sym0);
@@ -12333,13 +12333,13 @@ mod __parse__Sym {
             _ => panic!("symbol type mismatch")
         }
     }
-    fn __pop_Termr_23_22_5b0_2d9_5d_2b_22_23<
+    fn __pop_Termr_23_22_2d_3f_5b0_2d9_5d_2b_22_23<
       'input,
     >(
         __symbols: &mut ::std::vec::Vec<(usize,__Symbol<'input>,usize)>
     ) -> (usize, &'input str, usize) {
         match __symbols.pop().unwrap() {
-            (__l, __Symbol::Termr_23_22_5b0_2d9_5d_2b_22_23(__v), __r) => (__l, __v, __r),
+            (__l, __Symbol::Termr_23_22_2d_3f_5b0_2d9_5d_2b_22_23(__v), __r) => (__l, __v, __r),
             _ => panic!("symbol type mismatch")
         }
     }
@@ -12619,6 +12619,11 @@ mod __intern_token {
                 6 => {
                     let (__index, __ch) = match __chars.next() { Some(p) => p, None => return __current_match };
                     match __ch as u32 {
+                        48 ... 57 => {
+                            __current_match = Some((9, __index + __ch.len_utf8()));
+                            __current_state = 8;
+                            continue;
+                        }
                         _ => {
                             return __current_match;
                         }
@@ -12637,7 +12642,7 @@ mod __intern_token {
                     match __ch as u32 {
                         48 ... 57 => {
                             __current_match = Some((9, __index + __ch.len_utf8()));
-                            __current_state = 12;
+                            __current_state = 8;
                             continue;
                         }
                         _ => {
@@ -12664,19 +12669,6 @@ mod __intern_token {
                 11 => {
                     let (__index, __ch) = match __chars.next() { Some(p) => p, None => return __current_match };
                     match __ch as u32 {
-                        _ => {
-                            return __current_match;
-                        }
-                    }
-                }
-                12 => {
-                    let (__index, __ch) = match __chars.next() { Some(p) => p, None => return __current_match };
-                    match __ch as u32 {
-                        48 ... 57 => {
-                            __current_match = Some((9, __index + __ch.len_utf8()));
-                            __current_state = 12;
-                            continue;
-                        }
                         _ => {
                             return __current_match;
                         }
