@@ -1,7 +1,6 @@
 use error::*;
 use ops;
 
-use std::collections::HashMap;
 use std::fmt;
 // use std::iter;
 use std::slice;
@@ -29,30 +28,6 @@ impl fmt::Display for Symbol {
     }
 }
 
-#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
-pub enum Arity {
-    Nullary,
-    Unary,
-    Binary,
-    Ternary,
-    Multiary, // 2+ arguments
-}
-
-impl fmt::Display for Arity {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        use self::Arity::*;
-        let text = match *self {
-            Nullary => "0",
-            Unary => "1",
-            Binary => "2",
-            Ternary => "3",
-            Multiary => "at least 2",
-        };
-
-        write!(f, "{}", text)
-    }
-}
-
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Atom {
     Sym(Symbol),
@@ -68,6 +43,16 @@ impl Atom {
         match *self {
             Sym(_) => "sym",
             Int(_) => "int",
+        }
+    }
+
+    pub fn neg(&self) -> Result<Atom> {
+        use self::Atom::*;
+        match self {
+            &Int(x) => Ok(Int(-x)),
+            _ => Err(format!(
+                "incompatible type for {}: {}",
+                Symbol::Sub, self.kind()).into()),
         }
     }
 
@@ -174,6 +159,17 @@ impl Value {
         }
     }
 
+    fn unary<F>(&self, symbol: Symbol, f: F) -> Result<Value>
+        where F: Fn(&Atom) -> Result<Atom>
+    {
+        use self::Value::Atom;
+        match self {
+            &Atom(ref x) => f(x).map(Value::from),
+            _ => Err(format!("incompatible types for {}: {}",
+                symbol, self.kind()).into()),
+        }
+    }
+
     fn binary<F>(&self, x: &Self, symbol: Symbol, f: F) -> Result<Value>
         where F: Fn(&Atom, &Atom) -> Result<Atom>
     {
@@ -183,6 +179,10 @@ impl Value {
             _ => Err(format!("incompatible types for {}: {}, {}",
                 symbol, self.kind(), x.kind()).into()),
         }
+    }
+
+    pub fn neg(&self) -> Result<Value> {
+        self.unary(Symbol::Sub, Atom::neg)
     }
 
     pub fn add(&self, x: &Value) -> Result<Value> {
@@ -294,48 +294,30 @@ impl Expr {
         self.args.len()
     }
 
-    fn check_arity(&self, arity: Arity) -> bool {
-        use self::Arity::*;
+    fn check_num_args(&self) -> bool {
+        use self::Symbol::*;
         let num_args = self.num_args();
-        match arity {
-            Nullary => num_args == 0,
-            Unary => num_args == 1,
-            Binary => num_args == 2,
-            Ternary => num_args == 3,
-            Multiary => num_args >= 2,
+        match self.sym() {
+            Add => num_args >= 2,
+            Sub => num_args == 1 || num_args == 2,
+            Mul => num_args >= 2,
+            Div => num_args == 2,
+            Mod => num_args == 2,
         }
     }
 
     pub fn eval(&self) -> Result<Value> {
         use self::Symbol::*;
-        use self::Arity::*;
-
-        // Arity = number of arguments accepted
-        let mut arity = HashMap::new();
-
-        arity.insert(Add, Multiary);
-        arity.insert(Sub, Binary);
-        arity.insert(Mul, Multiary);
-        arity.insert(Div, Binary);
-        arity.insert(Mod, Binary);
 
         let sym = self.sym();
 
-        let expected_arity = match arity.get(&sym) {
-            Some(e) => e,
-            None => return Err(format!("symbol {} has unknown number of arguments", sym).into()),
-        };
-
         // Check if number of arguments match expected number
-        if !self.check_arity(*expected_arity) {
-            return Err(format!("{} symbol expected {} arguments, but received {}",
-                               sym,
-                               expected_arity,
-                               self.num_args())
+        if !self.check_num_args() {
+            return Err(format!("\'{}\' symbol did not expect {} args", sym, self.num_args())
                 .into());
         }
 
-        let evaled_args: Result<Vec<_>> = self.args().map(Node::eval).collect();
+        let evaled_args = self.args().map(Node::eval).collect::<Result<Vec<_>>>();
 
         // Return the first expr that cannot eval correctly
         match evaled_args {
@@ -416,8 +398,6 @@ impl fmt::Display for Node {
 #[cfg(test)]
 mod tests {
     // Symbol tests
-
-    // Arity tests
 
     // Atom tests
 

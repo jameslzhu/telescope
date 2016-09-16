@@ -7,9 +7,14 @@ pub fn add(v: &[Value]) -> Result<Value> {
 }
 
 pub fn sub(v: &[Value]) -> Result<Value> {
-    assert!(v.len() == 2);
-    v[0].sub(&v[1])
+    assert!(v.len() == 1 || v.len() == 2);
+    if v.len() == 1 {
+        v[0].neg()
+    } else {
+        v[0].sub(&v[1])
+    }
 }
+
 pub fn mul(v: &[Value]) -> Result<Value> {
     assert!(v.len() >= 2);
     v.iter().fold(Ok(1.into()), |acc, x| acc.and_then(|a| a.mul(x)))
