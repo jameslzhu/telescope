@@ -28,6 +28,8 @@ pub Sym: Symbol = {
     "*" => Symbol::Mul,
     "/" => Symbol::Div,
     "%" => Symbol::Mod,
+    "head" => Symbol::Head,
+    "tail" => Symbol::Tail,
 };
 
 pub Num: i64 = r"-?[0-9]+" => i64::from_str(<>).unwrap();

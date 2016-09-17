@@ -29,3 +29,13 @@ pub fn modulus(v: &[Value]) -> Result<Value> {
     assert!(v.len() == 2);
     v[0].modulus(&v[1])
 }
+
+pub fn head(v: &[Value]) -> Result<Value> {
+    assert!(v.len() == 1);
+    v[0].head()
+}
+
+pub fn tail(v: &[Value]) -> Result<Value> {
+    assert!(v.len() == 1);
+    v[0].tail()
+}

@@ -12,6 +12,8 @@ pub enum Symbol {
     Mul,
     Div,
     Mod,
+    Head,
+    Tail,
 }
 
 #[cfg_attr(rustfmt, rustfmt_skip)]
@@ -24,6 +26,8 @@ impl fmt::Display for Symbol {
             Mul => "*",
             Div => "/",
             Mod => "%",
+            Head => "head",
+            Tail => "tail",
         })
     }
 }
@@ -204,6 +208,25 @@ impl Value {
     pub fn modulus(&self, x: &Value) -> Result<Value> {
         self.binary(x, Symbol::Mod, Atom::modulus)
     }
+
+    fn unary_list<F>(&self, symbol: Symbol, f: F) -> Result<Value>
+        where F: Fn(&List) -> Result<Value>
+    {
+        use self::Value::List;
+        match self {
+            &List(ref v) => f(v),
+            _ => Err(format!("incompatible types for {}: {}",
+                symbol, self.kind()).into()),
+        }
+    }
+
+    pub fn head(&self) -> Result<Value> {
+        self.unary_list(Symbol::Head, List::head)
+    }
+
+    pub fn tail(&self) -> Result<Value> {
+        self.unary_list(Symbol::Tail, List::tail)
+    }
 }
 
 impl fmt::Display for Value {
@@ -248,6 +271,28 @@ pub struct List {
 impl List {
     pub fn new() -> Self {
         List::default()
+    }
+
+    pub fn head(&self) -> Result<Value> {
+        self.inner
+            .first()
+            .ok_or("cannot get head of empty list".into())
+            .and_then(Node::eval)
+    }
+
+    pub fn tail(&self) -> Result<Value> {
+        let output = self.inner
+            .split_first()
+            .map(|x| x.1)
+            .unwrap_or(&[]);
+
+        Ok(Value::List(List::from(output)))
+    }
+}
+
+impl<'a> From<&'a [Node]> for List {
+    fn from(v: &'a [Node]) -> Self {
+        List { inner: Vec::from(v) }
     }
 }
 
@@ -298,11 +343,10 @@ impl Expr {
         use self::Symbol::*;
         let num_args = self.num_args();
         match self.sym() {
-            Add => num_args >= 2,
+            Add | Mul => num_args >= 2,
             Sub => num_args == 1 || num_args == 2,
-            Mul => num_args >= 2,
-            Div => num_args == 2,
-            Mod => num_args == 2,
+            Div | Mod => num_args == 2,
+            Head | Tail => num_args == 1,
         }
     }
 
@@ -329,6 +373,8 @@ impl Expr {
                     Mul => ops::mul(&v),
                     Div => ops::div(&v),
                     Mod => ops::modulus(&v),
+                    Head => ops::head(&v),
+                    Tail => ops::tail(&v),
                 }
             }
         }
@@ -364,11 +410,22 @@ impl Node {
     }
 }
 
+// impl<T> From<T> for Node
+//     where T: Into<Atom>
+// {
+//     fn from(v: T) -> Self {
+//         Node::Atom(v.into())
+//     }
+// }
+
 impl<T> From<T> for Node
-    where T: Into<Atom>
+    where T: Into<Value>
 {
     fn from(v: T) -> Self {
-        Node::Atom(v.into())
+        match v.into() {
+            Value::Atom(a) => Node::Atom(a),
+            Value::List(l) => Node::List(l),
+        }
     }
 }
 
