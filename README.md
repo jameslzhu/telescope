@@ -30,3 +30,10 @@ A list literal is denoted by a '(), as in Scheme:
 '(elements ...)
 
 ### Data layout
+There is a series of recursive data structures:
+- Atom
+- List
+- Value
+- Expr
+- Node
+
