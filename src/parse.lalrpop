@@ -1,0 +1,33 @@
+use std::str::FromStr;
+use atom::*;
+
+grammar;
+
+pub Lang: Node = {
+    Node
+};
+
+pub Expr: Expr = "(" <Sym> <Node*> ")" => Expr::new(<>);
+
+pub List: List = "[" <Node*> "]" => List::from(<>);
+
+pub Node: Node = {
+    Atom => Node::Atom(<>),
+    List => Node::List(<>),
+    Expr => Node::Expr(<>),
+};
+
+pub Atom: Atom = {
+    Sym => Atom::from(<>),
+    Num => Atom::from(<>),
+};
+
+pub Sym: Symbol = {
+    "+" => Symbol::Add,
+    "-" => Symbol::Sub,
+    "*" => Symbol::Mul,
+    "/" => Symbol::Div,
+    "%" => Symbol::Mod,
+};
+
+pub Num: i64 = r"[0-9]+" => i64::from_str(<>).unwrap();
