@@ -29,14 +29,14 @@ mod __parse__Atom {
         NtNode(Node),
         NtNode_2a(::std::vec::Vec<Node>),
         NtNode_2b(::std::vec::Vec<Node>),
-        NtNum(i64),
+        NtNum(i32),
         NtSym(Symbol),
         Nt____Atom(Atom),
         Nt____Expr(Expr),
         Nt____Lang(Node),
         Nt____List(List),
         Nt____Node(Node),
-        Nt____Num(i64),
+        Nt____Num(i32),
         Nt____Sym(Symbol),
     }
     const __ACTION: &'static [i32] = &[
@@ -1073,7 +1073,7 @@ mod __parse__Atom {
       'input,
     >(
         __symbols: &mut ::std::vec::Vec<(usize,__Symbol<'input>,usize)>
-    ) -> (usize, i64, usize) {
+    ) -> (usize, i32, usize) {
         match __symbols.pop().unwrap() {
             (__l, __Symbol::NtNum(__v), __r) => (__l, __v, __r),
             _ => panic!("symbol type mismatch")
@@ -1143,7 +1143,7 @@ mod __parse__Atom {
       'input,
     >(
         __symbols: &mut ::std::vec::Vec<(usize,__Symbol<'input>,usize)>
-    ) -> (usize, i64, usize) {
+    ) -> (usize, i32, usize) {
         match __symbols.pop().unwrap() {
             (__l, __Symbol::Nt____Num(__v), __r) => (__l, __v, __r),
             _ => panic!("symbol type mismatch")
@@ -1189,14 +1189,14 @@ mod __parse__Expr {
         NtNode(Node),
         NtNode_2a(::std::vec::Vec<Node>),
         NtNode_2b(::std::vec::Vec<Node>),
-        NtNum(i64),
+        NtNum(i32),
         NtSym(Symbol),
         Nt____Atom(Atom),
         Nt____Expr(Expr),
         Nt____Lang(Node),
         Nt____List(List),
         Nt____Node(Node),
-        Nt____Num(i64),
+        Nt____Num(i32),
         Nt____Sym(Symbol),
     }
     const __ACTION: &'static [i32] = &[
@@ -3566,7 +3566,7 @@ mod __parse__Expr {
       'input,
     >(
         __symbols: &mut ::std::vec::Vec<(usize,__Symbol<'input>,usize)>
-    ) -> (usize, i64, usize) {
+    ) -> (usize, i32, usize) {
         match __symbols.pop().unwrap() {
             (__l, __Symbol::NtNum(__v), __r) => (__l, __v, __r),
             _ => panic!("symbol type mismatch")
@@ -3636,7 +3636,7 @@ mod __parse__Expr {
       'input,
     >(
         __symbols: &mut ::std::vec::Vec<(usize,__Symbol<'input>,usize)>
-    ) -> (usize, i64, usize) {
+    ) -> (usize, i32, usize) {
         match __symbols.pop().unwrap() {
             (__l, __Symbol::Nt____Num(__v), __r) => (__l, __v, __r),
             _ => panic!("symbol type mismatch")
@@ -3682,14 +3682,14 @@ mod __parse__Lang {
         NtNode(Node),
         NtNode_2a(::std::vec::Vec<Node>),
         NtNode_2b(::std::vec::Vec<Node>),
-        NtNum(i64),
+        NtNum(i32),
         NtSym(Symbol),
         Nt____Atom(Atom),
         Nt____Expr(Expr),
         Nt____Lang(Node),
         Nt____List(List),
         Nt____Node(Node),
-        Nt____Num(i64),
+        Nt____Num(i32),
         Nt____Sym(Symbol),
     }
     const __ACTION: &'static [i32] = &[
@@ -6617,7 +6617,7 @@ mod __parse__Lang {
       'input,
     >(
         __symbols: &mut ::std::vec::Vec<(usize,__Symbol<'input>,usize)>
-    ) -> (usize, i64, usize) {
+    ) -> (usize, i32, usize) {
         match __symbols.pop().unwrap() {
             (__l, __Symbol::NtNum(__v), __r) => (__l, __v, __r),
             _ => panic!("symbol type mismatch")
@@ -6687,7 +6687,7 @@ mod __parse__Lang {
       'input,
     >(
         __symbols: &mut ::std::vec::Vec<(usize,__Symbol<'input>,usize)>
-    ) -> (usize, i64, usize) {
+    ) -> (usize, i32, usize) {
         match __symbols.pop().unwrap() {
             (__l, __Symbol::Nt____Num(__v), __r) => (__l, __v, __r),
             _ => panic!("symbol type mismatch")
@@ -6733,14 +6733,14 @@ mod __parse__List {
         NtNode(Node),
         NtNode_2a(::std::vec::Vec<Node>),
         NtNode_2b(::std::vec::Vec<Node>),
-        NtNum(i64),
+        NtNum(i32),
         NtSym(Symbol),
         Nt____Atom(Atom),
         Nt____Expr(Expr),
         Nt____Lang(Node),
         Nt____List(List),
         Nt____Node(Node),
-        Nt____Num(i64),
+        Nt____Num(i32),
         Nt____Sym(Symbol),
     }
     const __ACTION: &'static [i32] = &[
@@ -9079,7 +9079,7 @@ mod __parse__List {
       'input,
     >(
         __symbols: &mut ::std::vec::Vec<(usize,__Symbol<'input>,usize)>
-    ) -> (usize, i64, usize) {
+    ) -> (usize, i32, usize) {
         match __symbols.pop().unwrap() {
             (__l, __Symbol::NtNum(__v), __r) => (__l, __v, __r),
             _ => panic!("symbol type mismatch")
@@ -9149,7 +9149,7 @@ mod __parse__List {
       'input,
     >(
         __symbols: &mut ::std::vec::Vec<(usize,__Symbol<'input>,usize)>
-    ) -> (usize, i64, usize) {
+    ) -> (usize, i32, usize) {
         match __symbols.pop().unwrap() {
             (__l, __Symbol::Nt____Num(__v), __r) => (__l, __v, __r),
             _ => panic!("symbol type mismatch")
@@ -9195,14 +9195,14 @@ mod __parse__Node {
         NtNode(Node),
         NtNode_2a(::std::vec::Vec<Node>),
         NtNode_2b(::std::vec::Vec<Node>),
-        NtNum(i64),
+        NtNum(i32),
         NtSym(Symbol),
         Nt____Atom(Atom),
         Nt____Expr(Expr),
         Nt____Lang(Node),
         Nt____List(List),
         Nt____Node(Node),
-        Nt____Num(i64),
+        Nt____Num(i32),
         Nt____Sym(Symbol),
     }
     const __ACTION: &'static [i32] = &[
@@ -12099,7 +12099,7 @@ mod __parse__Node {
       'input,
     >(
         __symbols: &mut ::std::vec::Vec<(usize,__Symbol<'input>,usize)>
-    ) -> (usize, i64, usize) {
+    ) -> (usize, i32, usize) {
         match __symbols.pop().unwrap() {
             (__l, __Symbol::NtNum(__v), __r) => (__l, __v, __r),
             _ => panic!("symbol type mismatch")
@@ -12169,7 +12169,7 @@ mod __parse__Node {
       'input,
     >(
         __symbols: &mut ::std::vec::Vec<(usize,__Symbol<'input>,usize)>
-    ) -> (usize, i64, usize) {
+    ) -> (usize, i32, usize) {
         match __symbols.pop().unwrap() {
             (__l, __Symbol::Nt____Num(__v), __r) => (__l, __v, __r),
             _ => panic!("symbol type mismatch")
@@ -12215,14 +12215,14 @@ mod __parse__Num {
         NtNode(Node),
         NtNode_2a(::std::vec::Vec<Node>),
         NtNode_2b(::std::vec::Vec<Node>),
-        NtNum(i64),
+        NtNum(i32),
         NtSym(Symbol),
         Nt____Atom(Atom),
         Nt____Expr(Expr),
         Nt____Lang(Node),
         Nt____List(List),
         Nt____Node(Node),
-        Nt____Num(i64),
+        Nt____Num(i32),
         Nt____Sym(Symbol),
     }
     const __ACTION: &'static [i32] = &[
@@ -12328,7 +12328,7 @@ mod __parse__Num {
         'input,
     >(
         input: &'input str,
-    ) -> Result<i64, __lalrpop_util::ParseError<usize,(usize, &'input str),()>>
+    ) -> Result<i32, __lalrpop_util::ParseError<usize,(usize, &'input str),()>>
     {
         let mut __tokens = super::__intern_token::__Matcher::new(input);
         let mut __states = vec![0_i32];
@@ -12452,7 +12452,7 @@ mod __parse__Num {
         __lookahead_start: Option<&usize>,
         __states: &mut ::std::vec::Vec<i32>,
         __symbols: &mut ::std::vec::Vec<(usize,__Symbol<'input>,usize)>,
-    ) -> Option<Result<i64,__lalrpop_util::ParseError<usize,(usize, &'input str),()>>>
+    ) -> Option<Result<i32,__lalrpop_util::ParseError<usize,(usize, &'input str),()>>>
     {
         let __nonterminal = match -__action {
             1 => {
@@ -12980,7 +12980,7 @@ mod __parse__Num {
       'input,
     >(
         __symbols: &mut ::std::vec::Vec<(usize,__Symbol<'input>,usize)>
-    ) -> (usize, i64, usize) {
+    ) -> (usize, i32, usize) {
         match __symbols.pop().unwrap() {
             (__l, __Symbol::NtNum(__v), __r) => (__l, __v, __r),
             _ => panic!("symbol type mismatch")
@@ -13050,7 +13050,7 @@ mod __parse__Num {
       'input,
     >(
         __symbols: &mut ::std::vec::Vec<(usize,__Symbol<'input>,usize)>
-    ) -> (usize, i64, usize) {
+    ) -> (usize, i32, usize) {
         match __symbols.pop().unwrap() {
             (__l, __Symbol::Nt____Num(__v), __r) => (__l, __v, __r),
             _ => panic!("symbol type mismatch")
@@ -13096,14 +13096,14 @@ mod __parse__Sym {
         NtNode(Node),
         NtNode_2a(::std::vec::Vec<Node>),
         NtNode_2b(::std::vec::Vec<Node>),
-        NtNum(i64),
+        NtNum(i32),
         NtSym(Symbol),
         Nt____Atom(Atom),
         Nt____Expr(Expr),
         Nt____Lang(Node),
         Nt____List(List),
         Nt____Node(Node),
-        Nt____Num(i64),
+        Nt____Num(i32),
         Nt____Sym(Symbol),
     }
     const __ACTION: &'static [i32] = &[
@@ -14047,7 +14047,7 @@ mod __parse__Sym {
       'input,
     >(
         __symbols: &mut ::std::vec::Vec<(usize,__Symbol<'input>,usize)>
-    ) -> (usize, i64, usize) {
+    ) -> (usize, i32, usize) {
         match __symbols.pop().unwrap() {
             (__l, __Symbol::NtNum(__v), __r) => (__l, __v, __r),
             _ => panic!("symbol type mismatch")
@@ -14117,7 +14117,7 @@ mod __parse__Sym {
       'input,
     >(
         __symbols: &mut ::std::vec::Vec<(usize,__Symbol<'input>,usize)>
-    ) -> (usize, i64, usize) {
+    ) -> (usize, i32, usize) {
         match __symbols.pop().unwrap() {
             (__l, __Symbol::Nt____Num(__v), __r) => (__l, __v, __r),
             _ => panic!("symbol type mismatch")
@@ -14514,8 +14514,8 @@ pub fn __action6<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, i64, usize),
-) -> i64
+    (_, __0, _): (usize, i32, usize),
+) -> i32
 {
     (__0)
 }
@@ -14607,7 +14607,7 @@ pub fn __action14<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, i64, usize),
+    (_, __0, _): (usize, i32, usize),
 ) -> Atom
 {
     Atom::from(__0)
@@ -14696,9 +14696,9 @@ pub fn __action22<
 >(
     input: &'input str,
     (_, __0, _): (usize, &'input str, usize),
-) -> i64
+) -> i32
 {
-    i64::from_str(__0).unwrap()
+    i32::from_str(__0).unwrap()
 }
 
 #[allow(unused_variables)]

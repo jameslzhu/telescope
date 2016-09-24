@@ -36,7 +36,7 @@ impl fmt::Display for Symbol {
 pub enum Atom {
     Sym(Symbol),
     // Bool(bool),
-    Int(i64),
+    Int(i32),
     // Float(f64),
     //Str(String),
 }
@@ -142,8 +142,8 @@ impl From<Symbol> for Atom {
     }
 }
 
-impl From<i64> for Atom {
-    fn from(x: i64) -> Self {
+impl From<i32> for Atom {
+    fn from(x: i32) -> Self {
         Atom::Int(x)
     }
 }
