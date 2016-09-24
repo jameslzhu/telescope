@@ -454,9 +454,80 @@ impl fmt::Display for Node {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
+    // Printing tests
+    fn print_symbol() {
+        assert_eq!(Symbol::Add.to_string(),  "+");
+        assert_eq!(Symbol::Sub.to_string(),  "-");
+        assert_eq!(Symbol::Mul.to_string(),  "*");
+        assert_eq!(Symbol::Div.to_string(),  "/");
+        assert_eq!(Symbol::Mod.to_string(),  "%");
+        assert_eq!(Symbol::Head.to_string(), "head");
+        assert_eq!(Symbol::Tail.to_string(), "tail");
+    }
+
+    quickcheck! {
+        fn print_atom_int(xs: i32) -> bool {
+            Atom::from(xs).to_string() == xs.to_string()
+        }
+    }
+
     // Symbol tests
 
     // Atom tests
+    quickcheck!{
+        fn atom_neg(x: i32) -> bool {
+            if let Ok(Atom::Int(i)) = Atom::from(x).neg() {
+                i == -x
+            } else {
+                false
+            }
+        }
+
+        fn atom_neg_identity(x: i32) -> bool {
+            if let Ok(Atom::Int(i)) = Atom::from(x).neg().and_then(|x| x.neg()) {
+                x == i
+            } else {
+                false
+            }
+        }
+
+        fn atom_add(x: i32, y: i32) -> bool {
+            if let Ok(Atom::Int(i)) = Atom::from(x).add(&y.into()) {
+                i == x + y
+            } else {
+                false
+            }
+        }
+
+        fn atom_sub(x: i32, y: i32) -> bool {
+            if let Ok(Atom::Int(i)) = Atom::from(x).sub(&y.into()) {
+                i == x - y
+            } else {
+                false
+            }
+        }
+
+        fn atom_mul(x: i32, y: i32) -> bool {
+            if let Ok(Atom::Int(i)) = Atom::from(x).mul(&y.into()) {
+                i == x * y
+            } else {
+                false
+            }
+        }
+
+        fn atom_div(x: i32, y: i32) -> bool {
+            let result = Atom::from(x).div(&y.into());
+            if y == 0 {
+                result.is_err()
+            } else if let Ok(Atom::Int(i)) = result {
+                i == x / y
+            } else {
+                false
+            }
+        }
+    }
 
     // List tests
 
