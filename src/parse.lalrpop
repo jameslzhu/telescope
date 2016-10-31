@@ -3,13 +3,17 @@ use atom::*;
 
 grammar;
 
+extern {
+    type Error = ::error::Error;
+}
+
 pub Lang: Node = {
     Node
 };
 
 pub Expr: Expr = "(" <Sym> <Node*> ")" => Expr::new(<>);
 
-pub List: List = "[" <Node*> "]" => List::from(<>);
+pub List: List = "[" <Node*> "]" => <List as From<&[Node]>>::from(&<>);
 
 pub Node: Node = {
     Atom => Node::Atom(<>),

@@ -2,17 +2,26 @@ use error::*;
 use ops;
 
 use std::fmt;
-// use std::iter;
+use std::iter;
 use std::slice;
 
+
+/// Represents an object, notably functions and variables.
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
 pub enum Symbol {
+    /// Addition symbol
     Add,
+    /// Subtraction symbol
     Sub,
+    /// Multiplication symbol
     Mul,
+    /// Division symbol
     Div,
+    /// Moduluo (remainder) symbol
     Mod,
+    /// Head symbol (see `List::head`)
     Head,
+    /// Tail symbol (see `List::tail`)
     Tail,
 }
 
@@ -32,6 +41,7 @@ impl fmt::Display for Symbol {
     }
 }
 
+/// Fundamental data type.
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Atom {
     Sym(Symbol),
@@ -42,6 +52,7 @@ pub enum Atom {
 }
 
 impl Atom {
+    /// Return a string denoting the payload data type.
     fn kind(&self) -> &str {
         use self::Atom::*;
         match *self {
@@ -50,6 +61,7 @@ impl Atom {
         }
     }
 
+    /// Unary negation of an integer.
     pub fn neg(&self) -> Result<Atom> {
         use self::Atom::*;
         match self {
@@ -60,6 +72,7 @@ impl Atom {
         }
     }
 
+    /// Binary addition of two numbers.
     pub fn add(&self, x: &Self) -> Result<Atom> {
         use self::Atom::*;
         match (self, x) {
@@ -70,6 +83,7 @@ impl Atom {
         }
     }
 
+    /// Binary multiplication of two numbers.
     pub fn sub(&self, x: &Self) -> Result<Atom> {
         use self::Atom::*;
         match (self, x) {
@@ -80,6 +94,7 @@ impl Atom {
         }
     }
 
+    /// Binary multiplication of two numbers.
     pub fn mul(&self, x: &Self) -> Result<Atom> {
         use self::Atom::*;
         match (self, x) {
@@ -90,6 +105,7 @@ impl Atom {
         }
     }
 
+    /// Binary division of two integers. Errors on zero division.
     pub fn div(&self, x: &Self) -> Result<Atom> {
         use self::Atom::*;
         match (self, x) {
@@ -106,6 +122,7 @@ impl Atom {
         }
     }
 
+    /// Return the integer remainder when divided by a divisor `x`.
     pub fn modulus(&self, x: &Self) -> Result<Atom> {
         use self::Atom::*;
         match (self, x) {
@@ -148,6 +165,7 @@ impl From<i32> for Atom {
     }
 }
 
+/// The value of an expression, when evaluated.
 #[derive(Clone, Debug, PartialEq)]
 pub enum Value {
     Atom(Atom),
@@ -239,40 +257,45 @@ impl fmt::Display for Value {
     }
 }
 
-impl<T> From<T> for Value
-    where T: Into<Atom>
+impl<T> From<T> for Value where T: Into<Atom>
 {
-    fn from(v: T) -> Self {
-        Value::Atom(v.into())
+    fn from(x: T) -> Self {
+        Value::Atom(x.into())
     }
 }
 
-// Unstable feature iter_arith_traits - issue #34529
-// Stabilized by Rust 1.12
-// impl iter::Sum<Value> for Value {
-//     fn sum<I>(iter: I) -> Self where I: Iterator<Item=Value> {
-//         iter.fold(0.into(), |acc, x| acc + x)
-//     }
-// }
+impl From<List> for Value
+{
+    fn from(x: List) -> Self {
+        Value::List(x)
+    }
+}
 
-// Unstable feature iter_arith_traits - issue #34529
-// Stabilized by Rust 1.12
-// impl iter::Mul<Value> for Value {
-//     fn mul<I>(iter: I) -> Self where I: Iterator<Item=Value> {
-//         iter.fold(1.into(), |acc, x| acc * x)
-//     }
-// }
+impl iter::Sum<Value> for Value {
+    fn sum<I>(iter: I) -> Self where I: Iterator<Item=Value> {
+        iter.fold(0.into(), |acc, x| acc.add(&x).unwrap())
+    }
+}
 
+impl iter::Product<Value> for Value {
+    fn product<I>(iter: I) -> Self where I: Iterator<Item=Value> {
+        iter.fold(1.into(), |acc, x| acc.mul(&x).unwrap())
+    }
+}
+
+/// A (possibly recursive) collection of any value (Atom, Expr, or itself).
 #[derive(Clone, Default, Debug, PartialEq)]
 pub struct List {
     inner: Vec<Node>,
 }
 
 impl List {
+    /// Construct an empty List.
     pub fn new() -> Self {
         List::default()
     }
 
+    /// Return the first element of the List.
     pub fn head(&self) -> Result<Value> {
         self.inner
             .first()
@@ -280,6 +303,7 @@ impl List {
             .and_then(Node::eval)
     }
 
+    /// Return all elements excepting the first.
     pub fn tail(&self) -> Result<Value> {
         let output = self.inner
             .split_first()
@@ -296,12 +320,6 @@ impl<'a> From<&'a [Node]> for List {
     }
 }
 
-impl From<Vec<Node>> for List {
-    fn from(v: Vec<Node>) -> Self {
-        List { inner: v }
-    }
-}
-
 impl fmt::Display for List {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let elements = self.inner
@@ -313,6 +331,8 @@ impl fmt::Display for List {
     }
 }
 
+/// A evaluable list, with the first element `sym` operating upon the
+/// other elements `args`.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Expr {
     sym: Symbol,
@@ -320,6 +340,7 @@ pub struct Expr {
 }
 
 impl Expr {
+    /// Constructs an `Expr`, with function `sym` and a `Vec` of arguments.
     pub fn new(sym: Symbol, args: Vec<Node>) -> Self {
         Expr {
             sym: sym,
@@ -327,18 +348,23 @@ impl Expr {
         }
     }
 
+    /// Return the function itself.
     pub fn sym(&self) -> Symbol {
         self.sym
     }
 
+    /// Return an iterator over the arguments.
     pub fn args(&self) -> slice::Iter<Node> {
         self.args.iter()
     }
 
+    /// Return the number of arguments.
     pub fn num_args(&self) -> usize {
         self.args.len()
     }
 
+    /// Enforces the correct number of arguments (arity) is used for the
+    /// indicated operation.
     fn check_num_args(&self) -> bool {
         use self::Symbol::*;
         let num_args = self.num_args();
@@ -350,6 +376,16 @@ impl Expr {
         }
     }
 
+    /// Evaluate the expression recursively, first evaluating its arguments
+    /// before evaluating itself.
+    ///
+    /// # Errors
+    /// `eval` returns an `Error` if any of the following occur (in
+    /// descending precedence):
+    /// * The number of arguments is incorrect
+    /// * Any argument has the wrong type
+    /// * Any argument evaluates to an `Error`
+    /// * The function itself returns an error
     pub fn eval(&self) -> Result<Value> {
         use self::Symbol::*;
 
@@ -357,7 +393,7 @@ impl Expr {
 
         // Check if number of arguments match expected number
         if !self.check_num_args() {
-            return Err(format!("\'{}\' symbol did not expect {} args", sym, self.num_args())
+            return Err(format!("error: \'{}\' symbol did not expect {} args", sym, self.num_args())
                 .into());
         }
 
@@ -366,17 +402,15 @@ impl Expr {
         // Return the first expr that cannot eval correctly
         match evaled_args {
             Err(e) => Err(e),
-            Ok(v) => {
-                match sym {
-                    Add => ops::add(&v),
-                    Sub => ops::sub(&v),
-                    Mul => ops::mul(&v),
-                    Div => ops::div(&v),
-                    Mod => ops::modulus(&v),
-                    Head => ops::head(&v),
-                    Tail => ops::tail(&v),
-                }
-            }
+            Ok(v) => match sym {
+                Add => ops::add(&v),
+                Sub => ops::sub(&v),
+                Mul => ops::mul(&v),
+                Div => ops::div(&v),
+                Mod => ops::modulus(&v),
+                Head => ops::head(&v),
+                Tail => ops::tail(&v),
+            },
         }
     }
 }
@@ -392,6 +426,7 @@ impl fmt::Display for Expr {
     }
 }
 
+/// The recursive element type of `List` and `Expr`.
 #[derive(Clone, Debug, PartialEq)]
 pub enum Node {
     Atom(Atom),
@@ -400,6 +435,11 @@ pub enum Node {
 }
 
 impl Node {
+    /// Evaluate the inner value.
+    ///
+    /// If the node is an atom or list, it evaluates to itself.
+    /// If the node is an expression, it returns the result of evaluating
+    /// the expression.
     pub fn eval(&self) -> Result<Value> {
         use self::Node::*;
         match *self {
@@ -410,36 +450,22 @@ impl Node {
     }
 }
 
-// impl<T> From<T> for Node
-//     where T: Into<Atom>
-// {
-//     fn from(v: T) -> Self {
-//         Node::Atom(v.into())
-//     }
-// }
-
-impl<T> From<T> for Node
-    where T: Into<Value>
+impl<T> From<T> for Node where T: Into<Value>
 {
-    fn from(v: T) -> Self {
-        match v.into() {
+    fn from(x: T) -> Self {
+        match x.into() {
             Value::Atom(a) => Node::Atom(a),
             Value::List(l) => Node::List(l),
         }
     }
 }
 
-// impl<T> From<T> for Node where T: Into<List> {
-//     fn from(l: T) -> Self {
-//         Node::List(l.into())
-//     }
-// }
-//
-// impl<T> From<T> for Node where T: Into<Expr> {
-//     fn from(e: T) -> Self {
-//         Node::Expr(e.into())
-//     }
-// }
+impl From<Expr> for Node
+{
+    fn from(x: Expr) -> Self {
+        Node::Expr(x)
+    }
+}
 
 impl fmt::Display for Node {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

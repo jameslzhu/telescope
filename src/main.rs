@@ -19,35 +19,28 @@ fn main() {
         match readline {
             Ok(line) => {
                 rl.add_history_entry(&line);
-                match line.as_str() {
-                    "exit" | "quit" => break,
-                    _ => {
-                        let parsed = parse::parse_Lang(&line);
-
-                        match parsed {
-                            Ok(result) => {
-                                match result.eval() {
-                                    Ok(value) => println!("{}", value),
-                                    Err(e) => println!("{}", e),
-                                }
-                            }
-                            Err(e) => println!("Error: {:?}", e),
-                        }
-                    }
-                };
-            }
+                if line == "exit" || line == "quit" {
+                    break;
+                } else {
+                    let _ = parse::parse_Lang(&line)
+                        .map_err(|e| e.into())
+                        .and_then(|x| x.eval())
+                        .map(|v| println!("{}", v))
+                        .map_err(|e| println!("{}", e));
+                }
+            },
             Err(RLError::Interrupted) => {
-                println!("CTRL-C");
+                // println!("CTRL-C");
                 break;
-            }
+            },
             Err(RLError::Eof) => {
-                println!("CTRL-D");
+                // println!("CTRL-D");
                 break;
-            }
+            },
             Err(err) => {
                 println!("Error: {:?}", err);
                 break;
-            }
-        }
+            },
+        };
     }
 }
