@@ -1,14 +1,13 @@
 extern crate rustyline;
-extern crate lrs;
+extern crate telescope;
 
-
-use lrs::parse;
+use telescope::parse;
 use rustyline::Editor;
 use rustyline::error::ReadlineError as RLError;
 
 fn main() {
     // Prompt constants
-    let header = format!("lrs v{}", env!("CARGO_PKG_VERSION"));
+    let header = format!("telescope v{}", env!("CARGO_PKG_VERSION"));
     let prompt = "> ";
 
     let mut rl = Editor::<()>::new();

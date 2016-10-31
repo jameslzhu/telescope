@@ -1,4 +1,4 @@
-extern crate lrs;
+extern crate telescope;
 
 #[test]
 fn parse_num() {
