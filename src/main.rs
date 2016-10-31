@@ -7,7 +7,7 @@ use rustyline::error::ReadlineError as RLError;
 
 fn main() {
     // Prompt constants
-    let header = format!("telescope v{}", env!("CARGO_PKG_VERSION"));
+    let header = format!("telescope v{}\n---------", env!("CARGO_PKG_VERSION"));
     let prompt = "> ";
 
     let mut rl = Editor::<()>::new();
@@ -21,22 +21,14 @@ fn main() {
                 rl.add_history_entry(&line);
                 if line == "exit" || line == "quit" {
                     break;
-                } else {
-                    let _ = parse::parse_Lang(&line)
-                        .map_err(|e| e.into())
-                        .and_then(|x| x.eval())
-                        .map(|v| println!("{}", v))
-                        .map_err(|e| println!("{}", e));
                 }
+                let _ = parse::parse_Lang(&line)
+                    .map_err(|e| e.into())
+                    .and_then(|x| x.eval())
+                    .map(|v| println!("{}", v))
+                    .map_err(|e| println!("{}", e));
             },
-            Err(RLError::Interrupted) => {
-                // println!("CTRL-C");
-                break;
-            },
-            Err(RLError::Eof) => {
-                // println!("CTRL-D");
-                break;
-            },
+            Err(RLError::Interrupted) | Err(RLError::Eof) => break,
             Err(err) => {
                 println!("Error: {:?}", err);
                 break;
