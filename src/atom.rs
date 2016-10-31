@@ -64,8 +64,8 @@ impl Atom {
     /// Unary negation of an integer.
     pub fn neg(&self) -> Result<Atom> {
         use self::Atom::*;
-        match self {
-            &Int(x) => Ok(Int(-x)),
+        match *self {
+            Int(x) => Ok(Int(-x)),
             _ => Err(format!(
                 "incompatible type for {}: {}",
                 Symbol::Sub, self.kind()).into()),
@@ -75,8 +75,8 @@ impl Atom {
     /// Binary addition of two numbers.
     pub fn add(&self, x: &Self) -> Result<Atom> {
         use self::Atom::*;
-        match (self, x) {
-            (&Int(a), &Int(b)) => Ok(Int(a + b)),
+        match (*self, *x) {
+            (Int(a), Int(b)) => Ok(Int(a + b)),
             _ => Err(format!(
                 "incompatible types for {}: {}, {}",
                 Symbol::Add, self.kind(), x.kind()).into()),
@@ -86,8 +86,8 @@ impl Atom {
     /// Binary multiplication of two numbers.
     pub fn sub(&self, x: &Self) -> Result<Atom> {
         use self::Atom::*;
-        match (self, x) {
-            (&Int(a), &Int(b)) => Ok(Int(a - b)),
+        match (*self, *x) {
+            (Int(a), Int(b)) => Ok(Int(a - b)),
             _ => Err(format!(
                 "incompatible types for {}: {}, {}",
                 Symbol::Sub, self.kind(), x.kind()).into()),
@@ -97,8 +97,8 @@ impl Atom {
     /// Binary multiplication of two numbers.
     pub fn mul(&self, x: &Self) -> Result<Atom> {
         use self::Atom::*;
-        match (self, x) {
-            (&Int(a), &Int(b)) => Ok(Int(a * b)),
+        match (*self, *x) {
+            (Int(a), Int(b)) => Ok(Int(a * b)),
             _ => Err(format!(
                 "incompatible types for {}: {}, {}",
                 Symbol::Mul, self.kind(), x.kind()).into()),
@@ -108,8 +108,8 @@ impl Atom {
     /// Binary division of two integers. Errors on zero division.
     pub fn div(&self, x: &Self) -> Result<Atom> {
         use self::Atom::*;
-        match (self, x) {
-            (&Int(a), &Int(b)) => {
+        match (*self, *x) {
+            (Int(a), Int(b)) => {
                 if b == 0 {
                     Err("division by zero".into())
                 } else {
@@ -125,8 +125,8 @@ impl Atom {
     /// Return the integer remainder when divided by a divisor `x`.
     pub fn modulus(&self, x: &Self) -> Result<Atom> {
         use self::Atom::*;
-        match (self, x) {
-            (&Int(a), &Int(b)) => {
+        match (*self, *x) {
+            (Int(a), Int(b)) => {
                 if b == 0 {
                     Err("modulus by zero".into())
                 } else {
@@ -185,8 +185,8 @@ impl Value {
         where F: Fn(&Atom) -> Result<Atom>
     {
         use self::Value::Atom;
-        match self {
-            &Atom(ref x) => f(x).map(Value::from),
+        match *self {
+            Atom(ref x) => f(x).map(Value::from),
             _ => Err(format!("incompatible types for {}: {}",
                 symbol, self.kind()).into()),
         }
@@ -231,8 +231,8 @@ impl Value {
         where F: Fn(&List) -> Result<Value>
     {
         use self::Value::List;
-        match self {
-            &List(ref v) => f(v),
+        match *self {
+            List(ref v) => f(v),
             _ => Err(format!("incompatible types for {}: {}",
                 symbol, self.kind()).into()),
         }
