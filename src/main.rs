@@ -1,9 +1,9 @@
 extern crate rustyline;
 extern crate telescope;
 
-use telescope::parse;
 use rustyline::Editor;
 use rustyline::error::ReadlineError as RLError;
+use telescope::parse;
 
 
 fn main() {
@@ -28,12 +28,13 @@ fn main() {
                     .and_then(|x| x.eval())
                     .map(|v| println!("{}", v))
                     .map_err(|e| println!("{}", e));
-            },
-            Err(RLError::Interrupted) | Err(RLError::Eof) => break,
+            }
+            Err(RLError::Interrupted) |
+            Err(RLError::Eof) => break,
             Err(err) => {
                 println!("Error: {:?}", err);
                 break;
-            },
+            }
         };
     }
 }

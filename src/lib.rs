@@ -11,4 +11,3 @@ extern crate lalrpop_util;
 pub mod atom;
 pub mod error;
 pub mod parse;
-mod ops;

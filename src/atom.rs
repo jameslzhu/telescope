@@ -1,8 +1,6 @@
 use error::*;
-use ops;
 
 use std::fmt;
-use std::iter;
 use std::slice;
 
 
@@ -46,9 +44,8 @@ impl fmt::Display for Symbol {
 pub enum Atom {
     Sym(Symbol),
     // Bool(bool),
-    Int(i32),
-    // Float(f64),
-    //Str(String),
+    Int(i32), /* Float(f64),
+               * Str(String), */
 }
 
 impl Atom {
@@ -66,60 +63,75 @@ impl Atom {
         use self::Atom::*;
         match *self {
             Int(x) => Ok(Int(-x)),
-            _ => Err(format!(
-                "incompatible type for {}: {}",
-                Symbol::Sub, self.kind()).into()),
+            _ => Err(format!("incompatible type for {}: {}", Symbol::Sub, self.kind()).into()),
         }
     }
 
-    /// Binary addition of two numbers.
-    pub fn add(&self, x: &Self) -> Result<Atom> {
-        use self::Atom::*;
-        match (*self, *x) {
-            (Int(a), Int(b)) => Ok(Int(a + b)),
-            _ => Err(format!(
-                "incompatible types for {}: {}, {}",
-                Symbol::Add, self.kind(), x.kind()).into()),
+    fn add<I>(iter: I) -> Result<Atom>
+        where I: Iterator<Item = Atom>
+    {
+        iter.fold(Ok(0.into()), |acc, x| {
+            acc.and_then(|sum| match (sum, x) {
+                (Atom::Int(a), Atom::Int(b)) => Ok((a + b).into()),
+                _ => Err(format!("incompatible type for [+]: {}",
+                    x.kind()).into())
+            })
+        })
+    }
+
+    fn sub<I>(mut iter: I) -> Result<Atom>
+        where I: Iterator<Item = Atom>
+    {
+        let first = iter.by_ref().next();
+        let second = iter.by_ref().peekable().next();
+
+        if let Some(f) = first {
+            if second.is_some() {
+                iter.fold(
+                    Ok(f),
+                    |acc, x| {
+                        acc.and_then(|diff| match (diff, x) {
+                            (Atom::Int(a), Atom::Int(b)) => Ok((a - b).into()),
+                            _ => Err(format!("incompatible type for [-]: {}",
+                                x.kind()).into())
+                    })
+                })
+            }
+            else {
+                f.neg()
+            }
+        } else {
+            Err("need >= 1 args for [-]".into())
         }
     }
 
-    /// Binary multiplication of two numbers.
-    pub fn sub(&self, x: &Self) -> Result<Atom> {
-        use self::Atom::*;
-        match (*self, *x) {
-            (Int(a), Int(b)) => Ok(Int(a - b)),
-            _ => Err(format!(
-                "incompatible types for {}: {}, {}",
-                Symbol::Sub, self.kind(), x.kind()).into()),
+    fn mul<I>(mut iter: I) -> Result<Atom>
+        where I: Iterator<Item = Atom>
+    {
+        match iter.next() {
+            Some(first) => iter.fold(Ok(first),
+                |acc, x| {
+                    acc.and_then(|prod| match (prod, x) {
+                        (Atom::Int(a), Atom::Int(b)) => Ok((a * b).into()),
+                        _ => Err(format!("incompatible type for [*]: {}",
+                            x.kind()).into())
+                    })
+                }),
+            None => Ok(1.into())
         }
     }
 
-    /// Binary multiplication of two numbers.
-    pub fn mul(&self, x: &Self) -> Result<Atom> {
-        use self::Atom::*;
-        match (*self, *x) {
-            (Int(a), Int(b)) => Ok(Int(a * b)),
-            _ => Err(format!(
-                "incompatible types for {}: {}, {}",
-                Symbol::Mul, self.kind(), x.kind()).into()),
-        }
-    }
-
-    /// Binary division of two integers. Errors on zero division.
-    pub fn div(&self, x: &Self) -> Result<Atom> {
-        use self::Atom::*;
-        match (*self, *x) {
-            (Int(a), Int(b)) => {
-                if b == 0 {
-                    Err("division by zero".into())
-                } else {
-                    Ok(Int(a / b))
-                }
-            },
-            _ => Err(format!(
-                "incompatible types for {}: {}, {}",
-                Symbol::Div, self.kind(), x.kind()).into()),
-        }
+    fn div<I>(mut iter: I) -> Result<Atom>
+        where I: Iterator<Item = Atom>
+    {
+        let first = iter.by_ref().next().ok_or("need >= 2 args for [/]".into());
+        iter.fold(first, |acc, x| {
+            acc.and_then(|diff| match (diff, x) {
+                (Atom::Int(a), Atom::Int(b)) => Ok((a / b).into()),
+                _ => Err(format!("incompatible type for [/]: {}",
+                    x.kind()).into())
+            })
+        })
     }
 
     /// Return the integer remainder when divided by a divisor `x`.
@@ -132,10 +144,14 @@ impl Atom {
                 } else {
                     Ok(Int(a % b))
                 }
-            },
-            _ => Err(format!(
-                "incompatible types for {}: {}, {}",
-                Symbol::Mod, self.kind(), x.kind()).into()),
+            }
+            _ => {
+                Err(format!("incompatible types for {}: {}, {}",
+                            Symbol::Mod,
+                            self.kind(),
+                            x.kind())
+                    .into())
+            }
         }
     }
 }
@@ -181,50 +197,82 @@ impl Value {
         }
     }
 
-    fn unary<F>(&self, symbol: Symbol, f: F) -> Result<Value>
-        where F: Fn(&Atom) -> Result<Atom>
-    {
+    pub fn neg(&self) -> Result<Value> {
         use self::Value::Atom;
         match *self {
-            Atom(ref x) => f(x).map(Value::from),
-            _ => Err(format!("incompatible types for {}: {}",
-                symbol, self.kind()).into()),
+            ref x @ Atom(_) => x.neg().into(),
+            _ => Err(format!("incompatible types for {}: {}", Symbol::Sub, self.kind()).into()),
         }
     }
 
-    fn binary<F>(&self, x: &Self, symbol: Symbol, f: F) -> Result<Value>
-        where F: Fn(&Atom, &Atom) -> Result<Atom>
+    pub fn add<I>(iter: I) -> Result<Value>
+        where I: Iterator<Item = Value>
     {
-        use self::Value::Atom;
-        match (self, x) {
-            (&Atom(ref a), &Atom(ref b)) => f(a, b).map(Value::from),
-            _ => Err(format!("incompatible types for {}: {}, {}",
-                symbol, self.kind(), x.kind()).into()),
+        let args: Result<Vec<Atom>> = iter.map(|x| match x {
+            Value::Atom(y) => Ok(y),
+            _ => Err(format!("incompatible types for [+]: {}", x).into())
+        }).collect();
+
+        match args {
+            Ok(atoms) => Atom::add(atoms.into_iter()).map(Value::from),
+            Err(e) => Err(e),
         }
     }
 
-    pub fn neg(&self) -> Result<Value> {
-        self.unary(Symbol::Sub, Atom::neg)
+    pub fn sub<I>(iter: I) -> Result<Value>
+        where I: Iterator<Item = Value>
+    {
+        let args: Result<Vec<Atom>> = iter.map(|x| match x {
+            Value::Atom(y) => Ok(y),
+            _ => Err(format!("incompatible types for [+]: {}", x).into())
+        }).collect();
+
+        match args {
+            Ok(atoms) => Atom::sub(atoms.into_iter()).map(Value::from),
+            Err(e) => Err(e),
+        }
     }
 
-    pub fn add(&self, x: &Value) -> Result<Value> {
-        self.binary(x, Symbol::Add, Atom::add)
+    pub fn mul<I>(iter: I) -> Result<Value>
+        where I: Iterator<Item = Value>
+    {
+        let args: Result<Vec<Atom>> = iter.map(|x| match x {
+            Value::Atom(y) => Ok(y),
+            _ => Err(format!("incompatible types for [+]: {}", x).into())
+        }).collect();
+
+        match args {
+            Ok(atoms) => Atom::mul(atoms.into_iter()).map(Value::from),
+            Err(e) => Err(e),
+        }
     }
 
-    pub fn sub(&self, x: &Value) -> Result<Value> {
-        self.binary(x, Symbol::Sub, Atom::sub)
+    pub fn div<I>(iter: I) -> Result<Value>
+        where I: Iterator<Item = Value>
+    {
+        let args: Result<Vec<Atom>> = iter.map(|x| match x {
+            Value::Atom(y) => Ok(y),
+            _ => Err(format!("incompatible types for [+]: {}", x).into())
+        }).collect();
+
+        match args {
+            Ok(atoms) => Atom::div(atoms.into_iter()).map(Value::from),
+            Err(e) => Err(e),
+        }
     }
 
-    pub fn mul(&self, x: &Value) -> Result<Value> {
-        self.binary(x, Symbol::Mul, Atom::mul)
-    }
+    pub fn modulus<I>(iter: I) -> Result<Value>
+        where I: Iterator<Item = Value>
+    {
+        let args: Result<Vec<Atom>> = iter.map(|x| match x {
+            Value::Atom(y) => Ok(y),
+            _ => Err(format!("incompatible types for [+]: {}", x).into())
+        }).collect();
 
-    pub fn div(&self, x: &Value) -> Result<Value> {
-        self.binary(x, Symbol::Div, Atom::div)
-    }
-
-    pub fn modulus(&self, x: &Value) -> Result<Value> {
-        self.binary(x, Symbol::Mod, Atom::modulus)
+        match args {
+            Ok(atoms) => Atom::modulus(&atoms[0], &atoms[1]).map(Value::from),
+            Err(e) => Err(e)
+        }
     }
 
     fn unary_list<F>(&self, symbol: Symbol, f: F) -> Result<Value>
@@ -233,8 +281,7 @@ impl Value {
         use self::Value::List;
         match *self {
             List(ref v) => f(v),
-            _ => Err(format!("incompatible types for {}: {}",
-                symbol, self.kind()).into()),
+            _ => Err(format!("incompatible types for {}: {}", symbol, self.kind()).into()),
         }
     }
 
@@ -257,29 +304,17 @@ impl fmt::Display for Value {
     }
 }
 
-impl<T> From<T> for Value where T: Into<Atom>
+impl<T> From<T> for Value
+    where T: Into<Atom>
 {
     fn from(x: T) -> Self {
         Value::Atom(x.into())
     }
 }
 
-impl From<List> for Value
-{
+impl From<List> for Value {
     fn from(x: List) -> Self {
         Value::List(x)
-    }
-}
-
-impl iter::Sum<Value> for Value {
-    fn sum<I>(iter: I) -> Self where I: Iterator<Item=Value> {
-        iter.fold(0.into(), |acc, x| acc.add(&x).unwrap())
-    }
-}
-
-impl iter::Product<Value> for Value {
-    fn product<I>(iter: I) -> Self where I: Iterator<Item=Value> {
-        iter.fold(1.into(), |acc, x| acc.mul(&x).unwrap())
     }
 }
 
@@ -369,9 +404,9 @@ impl Expr {
         use self::Symbol::*;
         let num_args = self.num_args();
         match self.sym() {
-            Add | Mul => num_args >= 2,
-            Sub => num_args == 1 || num_args == 2,
-            Div | Mod => num_args == 2,
+            Add | Mul | Sub => num_args >= 1,
+            Div => num_args >= 2,
+            Mod => num_args == 2,
             Head | Tail => num_args == 1,
         }
     }
@@ -393,24 +428,26 @@ impl Expr {
 
         // Check if number of arguments match expected number
         if !self.check_num_args() {
-            return Err(format!("error: \'{}\' symbol did not expect {} args", sym, self.num_args())
-                .into());
+            return Err(format!("error: \'{}\' symbol did not expect {} args",
+                               sym, self.num_args()).into());
         }
 
         let evaled_args = self.args().map(Node::eval).collect::<Result<Vec<_>>>();
 
-        // Return the first expr that cannot eval correctly
         match evaled_args {
+            // Return the first expr that cannot eval correctly
             Err(e) => Err(e),
-            Ok(v) => match sym {
-                Add => ops::add(&v),
-                Sub => ops::sub(&v),
-                Mul => ops::mul(&v),
-                Div => ops::div(&v),
-                Mod => ops::modulus(&v),
-                Head => ops::head(&v),
-                Tail => ops::tail(&v),
-            },
+            Ok(v) => {
+                match sym {
+                    Add => Value::add(v.into_iter()),
+                    Sub => Value::sub(v.into_iter()),
+                    Mul => Value::mul(v.into_iter()),
+                    Div => Value::div(v.into_iter()),
+                    Mod => Value::modulus(v.into_iter()),
+                    Head => Value::head(&v[0]),
+                    Tail => Value::tail(&v[0]),
+                }
+            }
         }
     }
 }
@@ -450,7 +487,8 @@ impl Node {
     }
 }
 
-impl<T> From<T> for Node where T: Into<Value>
+impl<T> From<T> for Node
+    where T: Into<Value>
 {
     fn from(x: T) -> Self {
         match x.into() {
@@ -460,8 +498,7 @@ impl<T> From<T> for Node where T: Into<Value>
     }
 }
 
-impl From<Expr> for Node
-{
+impl From<Expr> for Node {
     fn from(x: Expr) -> Self {
         Node::Expr(x)
     }
@@ -484,11 +521,11 @@ mod tests {
 
     // Printing tests
     fn print_symbol() {
-        assert_eq!(Symbol::Add.to_string(),  "+");
-        assert_eq!(Symbol::Sub.to_string(),  "-");
-        assert_eq!(Symbol::Mul.to_string(),  "*");
-        assert_eq!(Symbol::Div.to_string(),  "/");
-        assert_eq!(Symbol::Mod.to_string(),  "%");
+        assert_eq!(Symbol::Add.to_string(), "+");
+        assert_eq!(Symbol::Sub.to_string(), "-");
+        assert_eq!(Symbol::Mul.to_string(), "*");
+        assert_eq!(Symbol::Div.to_string(), "/");
+        assert_eq!(Symbol::Mod.to_string(), "%");
         assert_eq!(Symbol::Head.to_string(), "head");
         assert_eq!(Symbol::Tail.to_string(), "tail");
     }

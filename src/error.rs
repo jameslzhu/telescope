@@ -1,5 +1,5 @@
-use std::fmt;
 use lalrpop_util::ParseError;
+use std::fmt;
 
 error_chain! {
     links {}
@@ -12,24 +12,28 @@ error_chain! {
     }
 }
 
-impl<L,T> From<ParseError<L,T,Error>> for Error
-    where L: Into<usize>, T: fmt::Debug
+impl<L, T> From<ParseError<L, T, Error>> for Error
+    where L: Into<usize>,
+          T: fmt::Debug
 {
-    fn from(e: ParseError<L,T,Error>) -> Self {
+    fn from(e: ParseError<L, T, Error>) -> Self {
         match e {
-            ParseError::InvalidToken{ location } => {
+            ParseError::InvalidToken { location } => {
                 ErrorKind::Parse(format!("invalid token at {}", location.into())).into()
-            },
+            }
             ParseError::UnrecognizedToken { token, expected } => {
-                ErrorKind::Parse(format!(
-                    "unrecognized token {}, expected ({})",
-                    token.map(|(l, t, r)| format!("{:?} at [{}:{}]", t, l.into(), r.into()))
-                         .unwrap_or(String::new()),
-                    expected.join(", "))).into()
-            },
+                ErrorKind::Parse(format!("unrecognized token {}, expected ({})",
+                                         token.map(|(l, t, r)| {
+                                                 format!("{:?} at [{}:{}]", t, l.into(), r.into())
+                                             })
+                                             .unwrap_or(String::new()),
+                                         expected.join(", ")))
+                    .into()
+            }
             ParseError::ExtraToken { token: (l, t, r) } => {
-                ErrorKind::Parse(format!("extra token {:?} at [{}:{}]", t, l.into(), r.into())).into()
-            },
+                ErrorKind::Parse(format!("extra token {:?} at [{}:{}]", t, l.into(), r.into()))
+                    .into()
+            }
             ParseError::User { error } => error,
         }
     }
