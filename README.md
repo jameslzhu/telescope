@@ -13,13 +13,16 @@ Most notably, Telescope lists are not backed by singly-linked lists, but by vect
 
 ## Design
 
-### Expressions
+### Syntax
+
+#### Expressions
+
 As a functional language, everything is an expression that
 evaluates to either a value, which is either  are referred to as an *atom*, or a *list*.
 
-- ()    (unit)
-- int   (i64)
-- flt   (f64)
+- ()    (nil)
+- int   (i32)
+- flt   (f32)
 - bool  (boolean)
 - str   (string)
 - fn    (function)
@@ -30,7 +33,13 @@ An expression appears as follows:
 (operator operands ...)
 ```
 
-A list literal is denoted by a '(), as in Scheme:
-'(elements ...)
+A list literal is denoted by `[]`:
+
+```scheme
+> [1 2 3]
+(1 2 3)
+```
 
 ### Data layout
+There are five major data structures in Telescope.
+

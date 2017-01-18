@@ -5,9 +5,10 @@ use telescope::parse;
 use rustyline::Editor;
 use rustyline::error::ReadlineError as RLError;
 
+
 fn main() {
     // Prompt constants
-    let header = format!("telescope v{}\n---------", env!("CARGO_PKG_VERSION"));
+    let header = format!(r"telescope v{}", env!("CARGO_PKG_VERSION"));
     let prompt = "> ";
 
     let mut rl = Editor::<()>::new();
