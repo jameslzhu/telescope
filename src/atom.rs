@@ -1,5 +1,6 @@
 use error::*;
 
+use std::vec;
 use std::fmt;
 use std::slice;
 
@@ -44,8 +45,9 @@ impl fmt::Display for Symbol {
 pub enum Atom {
     Sym(Symbol),
     // Bool(bool),
-    Int(i32), /* Float(f64),
-               * Str(String), */
+    Int(i32), 
+    // Float(f64),
+    // Str(String),
 }
 
 impl Atom {
@@ -67,16 +69,22 @@ impl Atom {
         }
     }
 
+    fn fold_int<I, F>(iter: I, init: Atom, sym: Symbol, f: F) -> Result<Atom>
+        where I: Iterator<Item = Atom>,
+              F: Fn(i32, i32) -> i32
+    {
+        iter.fold(Ok(init), |acc, x| {
+            acc.and_then(|total| match (total, x) {
+                (Atom::Int(a), Atom::Int(b)) => Ok(f(a, b).into()),
+                _ => Err(format!("incompatible type for [{}]: {}", sym, x.kind()).into())
+            })
+        })
+    }
+
     fn add<I>(iter: I) -> Result<Atom>
         where I: Iterator<Item = Atom>
     {
-        iter.fold(Ok(0.into()), |acc, x| {
-            acc.and_then(|sum| match (sum, x) {
-                (Atom::Int(a), Atom::Int(b)) => Ok((a + b).into()),
-                _ => Err(format!("incompatible type for [+]: {}",
-                    x.kind()).into())
-            })
-        })
+        Atom::fold_int(iter, 0.into(), Symbol::Add, |a, b| a + b)
     }
 
     fn sub<I>(mut iter: I) -> Result<Atom>
@@ -87,17 +95,8 @@ impl Atom {
 
         if let Some(f) = first {
             if second.is_some() {
-                iter.fold(
-                    Ok(f),
-                    |acc, x| {
-                        acc.and_then(|diff| match (diff, x) {
-                            (Atom::Int(a), Atom::Int(b)) => Ok((a - b).into()),
-                            _ => Err(format!("incompatible type for [-]: {}",
-                                x.kind()).into())
-                    })
-                })
-            }
-            else {
+                Atom::fold_int(iter, f, Symbol::Sub, |a, b| a - b)
+            } else {
                 f.neg()
             }
         } else {
@@ -105,33 +104,19 @@ impl Atom {
         }
     }
 
-    fn mul<I>(mut iter: I) -> Result<Atom>
+    fn mul<I>(iter: I) -> Result<Atom>
         where I: Iterator<Item = Atom>
     {
-        match iter.next() {
-            Some(first) => iter.fold(Ok(first),
-                |acc, x| {
-                    acc.and_then(|prod| match (prod, x) {
-                        (Atom::Int(a), Atom::Int(b)) => Ok((a * b).into()),
-                        _ => Err(format!("incompatible type for [*]: {}",
-                            x.kind()).into())
-                    })
-                }),
-            None => Ok(1.into())
-        }
+        Atom::fold_int(iter, 1.into(), Symbol::Mul, |a, b| a * b)
     }
 
     fn div<I>(mut iter: I) -> Result<Atom>
         where I: Iterator<Item = Atom>
     {
-        let first = iter.by_ref().next().ok_or("need >= 2 args for [/]".into());
-        iter.fold(first, |acc, x| {
-            acc.and_then(|diff| match (diff, x) {
-                (Atom::Int(a), Atom::Int(b)) => Ok((a / b).into()),
-                _ => Err(format!("incompatible type for [/]: {}",
-                    x.kind()).into())
-            })
-        })
+        iter.by_ref()
+            .next()
+            .ok_or("need >= 2 args for [/]".into())
+            .and_then(|f| Atom::fold_int(iter, f, Symbol::Div, |a, b| a / b))
     }
 
     /// Return the integer remainder when divided by a divisor `x`.
@@ -205,8 +190,9 @@ impl Value {
         }
     }
 
-    pub fn add<I>(iter: I) -> Result<Value>
-        where I: Iterator<Item = Value>
+    pub fn lift<I, F>(iter: I, f: F) -> Result<Value>
+        where I: Iterator<Item = Value>,
+              F: Fn(vec::IntoIter<Atom>) -> Result<Atom>
     {
         let args: Result<Vec<Atom>> = iter.map(|x| match x {
             Value::Atom(y) => Ok(y),
@@ -214,51 +200,33 @@ impl Value {
         }).collect();
 
         match args {
-            Ok(atoms) => Atom::add(atoms.into_iter()).map(Value::from),
+            Ok(atoms) => f(atoms.into_iter()).map(Value::from),
             Err(e) => Err(e),
         }
+    }
+
+    pub fn add<I>(iter: I) -> Result<Value>
+        where I: Iterator<Item = Value>
+    {
+        Value::lift(iter, Atom::add)
     }
 
     pub fn sub<I>(iter: I) -> Result<Value>
         where I: Iterator<Item = Value>
     {
-        let args: Result<Vec<Atom>> = iter.map(|x| match x {
-            Value::Atom(y) => Ok(y),
-            _ => Err(format!("incompatible types for [+]: {}", x).into())
-        }).collect();
-
-        match args {
-            Ok(atoms) => Atom::sub(atoms.into_iter()).map(Value::from),
-            Err(e) => Err(e),
-        }
+        Value::lift(iter, Atom::sub)
     }
 
     pub fn mul<I>(iter: I) -> Result<Value>
         where I: Iterator<Item = Value>
     {
-        let args: Result<Vec<Atom>> = iter.map(|x| match x {
-            Value::Atom(y) => Ok(y),
-            _ => Err(format!("incompatible types for [+]: {}", x).into())
-        }).collect();
-
-        match args {
-            Ok(atoms) => Atom::mul(atoms.into_iter()).map(Value::from),
-            Err(e) => Err(e),
-        }
+        Value::lift(iter, Atom::mul)
     }
 
     pub fn div<I>(iter: I) -> Result<Value>
         where I: Iterator<Item = Value>
     {
-        let args: Result<Vec<Atom>> = iter.map(|x| match x {
-            Value::Atom(y) => Ok(y),
-            _ => Err(format!("incompatible types for [+]: {}", x).into())
-        }).collect();
-
-        match args {
-            Ok(atoms) => Atom::div(atoms.into_iter()).map(Value::from),
-            Err(e) => Err(e),
-        }
+        Value::lift(iter, Atom::div)
     }
 
     pub fn modulus<I>(iter: I) -> Result<Value>
@@ -557,7 +525,7 @@ mod tests {
         }
 
         fn atom_add(x: i32, y: i32) -> bool {
-            if let Ok(Atom::Int(i)) = Atom::from(x).add(&y.into()) {
+            if let Ok(Atom::Int(i)) = Atom::add(vec![Atom::from(x), Atom::from(y)].into_iter()) {
                 i == x + y
             } else {
                 false
@@ -565,7 +533,7 @@ mod tests {
         }
 
         fn atom_sub(x: i32, y: i32) -> bool {
-            if let Ok(Atom::Int(i)) = Atom::from(x).sub(&y.into()) {
+            if let Ok(Atom::Int(i)) = Atom::sub(vec![Atom::from(x), Atom::from(y)].into_iter()) {
                 i == x - y
             } else {
                 false
@@ -573,7 +541,7 @@ mod tests {
         }
 
         fn atom_mul(x: i32, y: i32) -> bool {
-            if let Ok(Atom::Int(i)) = Atom::from(x).mul(&y.into()) {
+            if let Ok(Atom::Int(i)) = Atom::mul(vec![Atom::from(x), Atom::from(y)].into_iter()) {
                 i == x * y
             } else {
                 false
@@ -581,7 +549,7 @@ mod tests {
         }
 
         fn atom_div(x: i32, y: i32) -> bool {
-            let result = Atom::from(x).div(&y.into());
+            let result = Atom::div(vec![Atom::from(x), Atom::from(y)].into_iter());
             if y == 0 {
                 result.is_err()
             } else if let Ok(Atom::Int(i)) = result {
