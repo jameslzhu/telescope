@@ -61,12 +61,15 @@ impl Atom {
     }
 
     /// Unary negation of an integer.
-    pub fn neg(&self) -> Result<Atom> {
-        use self::Atom::*;
-        match *self {
-            Int(x) => Ok(Int(-x)),
-            _ => Err(format!("incompatible type for {}: {}", Symbol::Sub, self.kind()).into()),
-        }
+    fn neg<I>(iter: I) -> Result<Atom>
+        where I: Iterator<Item = Atom>
+    {
+        iter.last()
+            .ok_or("expected one argument to [-]".into())
+            .and_then(|n| match n {
+                Atom::Int(x) => Ok(Atom::Int(-x)),
+                _ => Err(format!("incompatible type for {}: {}", Symbol::Sub, n.kind()).into()),
+            })
     }
 
     fn fold_int<I, F>(iter: I, init: Atom, sym: Symbol, f: F) -> Result<Atom>
@@ -90,18 +93,8 @@ impl Atom {
     fn sub<I>(mut iter: I) -> Result<Atom>
         where I: Iterator<Item = Atom>
     {
-        let first = iter.by_ref().next();
-        let second = iter.by_ref().peekable().next();
-
-        if let Some(f) = first {
-            if second.is_some() {
-                Atom::fold_int(iter, f, Symbol::Sub, |a, b| a - b)
-            } else {
-                f.neg()
-            }
-        } else {
-            Err("need >= 1 args for [-]".into())
-        }
+        let first = iter.next().unwrap();
+        Atom::fold_int(iter, first, Symbol::Sub, |a, b| a - b)
     }
 
     fn mul<I>(iter: I) -> Result<Atom>
@@ -131,8 +124,7 @@ impl Atom {
                 }
             }
             _ => {
-                Err(format!("incompatible types for {}: {}, {}",
-                            Symbol::Mod,
+                Err(format!("incompatible types for [%]: {}, {}",
                             self.kind(),
                             x.kind())
                     .into())
@@ -182,51 +174,49 @@ impl Value {
         }
     }
 
-    pub fn neg(&self) -> Result<Value> {
-        use self::Value::Atom;
-        match *self {
-            ref x @ Atom(_) => x.neg().into(),
-            _ => Err(format!("incompatible types for {}: {}", Symbol::Sub, self.kind()).into()),
-        }
+    pub fn lift<I, F, G>(iter: I, f: F, fn_args: G) -> Result<Value>
+        where I: Iterator<Item = Value>,
+              F: Fn(vec::IntoIter<Atom>) -> Result<Atom>,
+              G: Fn(&[Atom]) -> bool,
+    {
+        iter.map(|x| match x {
+                Value::Atom(y) => Ok(y),
+                _ => Err(format!("incompatible types for [+]: {}", x).into())
+            })
+            .collect::<Result<Vec<Atom>>>()
+            .and_then(|a| if fn_args(&a) { Ok(a) } else { Err("unexpected number of arguments".into()) })
+            .and_then(|a| f(a.into_iter()))
+            .map(Value::from)
     }
 
-    pub fn lift<I, F>(iter: I, f: F) -> Result<Value>
-        where I: Iterator<Item = Value>,
-              F: Fn(vec::IntoIter<Atom>) -> Result<Atom>
+    pub fn neg<I>(iter: I) -> Result<Value>
+        where I: Iterator<Item = Value>
     {
-        let args: Result<Vec<Atom>> = iter.map(|x| match x {
-            Value::Atom(y) => Ok(y),
-            _ => Err(format!("incompatible types for [+]: {}", x).into())
-        }).collect();
-
-        match args {
-            Ok(atoms) => f(atoms.into_iter()).map(Value::from),
-            Err(e) => Err(e),
-        }
+        Value::lift(iter, Atom::neg, |v| v.len() == 1)
     }
 
     pub fn add<I>(iter: I) -> Result<Value>
         where I: Iterator<Item = Value>
     {
-        Value::lift(iter, Atom::add)
+        Value::lift(iter, Atom::add, |_| true)
     }
 
     pub fn sub<I>(iter: I) -> Result<Value>
         where I: Iterator<Item = Value>
     {
-        Value::lift(iter, Atom::sub)
+        Value::lift(iter, Atom::sub, |v| v.len() >= 2)
     }
 
     pub fn mul<I>(iter: I) -> Result<Value>
         where I: Iterator<Item = Value>
     {
-        Value::lift(iter, Atom::mul)
+        Value::lift(iter, Atom::mul, |_| true)
     }
 
     pub fn div<I>(iter: I) -> Result<Value>
         where I: Iterator<Item = Value>
     {
-        Value::lift(iter, Atom::div)
+        Value::lift(iter, Atom::div, |v| v.len() >= 2)
     }
 
     pub fn modulus<I>(iter: I) -> Result<Value>
@@ -369,10 +359,9 @@ impl Expr {
         use self::Symbol::*;
         let num_args = self.num_args();
         match self.sym() {
-            Add | Mul | Sub => num_args >= 1,
-            Div => num_args >= 2,
             Mod => num_args == 2,
             Head | Tail => num_args == 1,
+            _ => true
         }
     }
 
@@ -405,7 +394,13 @@ impl Expr {
             Ok(mut v) => {
                 match sym {
                     Add => Value::add(v.into_iter()),
-                    Sub => Value::sub(v.into_iter()),
+                    Sub => {
+                        if self.num_args() == 1 {
+                            Value::neg(v.into_iter())    
+                        } else {
+                            Value::sub(v.into_iter())
+                        }
+                    },
                     Mul => Value::mul(v.into_iter()),
                     Div => Value::div(v.into_iter()),
                     Mod => Value::modulus(v.into_iter()),
