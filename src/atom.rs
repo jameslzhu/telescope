@@ -28,7 +28,7 @@ pub enum Symbol {
 impl fmt::Display for Symbol {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use self::Symbol::*;
-        write!(f, "{}", match *self {
+        f.write_str(match *self {
             Add => "+",
             Sub => "-",
             Mul => "*",
@@ -234,7 +234,7 @@ impl Value {
     {
         let args: Result<Vec<Atom>> = iter.map(|x| match x {
             Value::Atom(y) => Ok(y),
-            _ => Err(format!("incompatible types for [+]: {}", x).into())
+            _ => Err(format!("incompatible types for [%]: {}", x).into())
         }).collect();
 
         match args {
@@ -243,22 +243,21 @@ impl Value {
         }
     }
 
-    fn unary_list<F>(&self, symbol: Symbol, f: F) -> Result<Value>
-        where F: Fn(&List) -> Result<Value>
+    fn lift_list<F>(self, symbol: Symbol, f: F) -> Result<Value>
+        where F: Fn(List) -> Result<Value>
     {
-        use self::Value::List;
-        match *self {
-            List(ref v) => f(v),
+        match self {
+            Value::List(v) => f(v).map(Value::from),
             _ => Err(format!("incompatible types for {}: {}", symbol, self.kind()).into()),
         }
     }
 
-    pub fn head(&self) -> Result<Value> {
-        self.unary_list(Symbol::Head, List::head)
+    pub fn head(self) -> Result<Value> {
+        self.lift_list(Symbol::Head, List::head)
     }
 
-    pub fn tail(&self) -> Result<Value> {
-        self.unary_list(Symbol::Tail, List::tail)
+    pub fn tail(self) -> Result<Value> {
+        self.lift_list(Symbol::Tail, List::tail)
     }
 }
 
@@ -299,7 +298,7 @@ impl List {
     }
 
     /// Return the first element of the List.
-    pub fn head(&self) -> Result<Value> {
+    pub fn head(self) -> Result<Value> {
         self.inner
             .first()
             .ok_or("cannot get head of empty list".into())
@@ -307,13 +306,11 @@ impl List {
     }
 
     /// Return all elements excepting the first.
-    pub fn tail(&self) -> Result<Value> {
-        let output = self.inner
-            .split_first()
-            .map(|x| x.1)
-            .unwrap_or(&[]);
-
-        Ok(Value::List(List::from(output)))
+    pub fn tail(mut self) -> Result<Value> {
+        if !&self.inner.is_empty() {
+            self.inner.remove(0);
+        }
+        Ok(self.into())
     }
 }
 
@@ -405,15 +402,15 @@ impl Expr {
         match evaled_args {
             // Return the first expr that cannot eval correctly
             Err(e) => Err(e),
-            Ok(v) => {
+            Ok(mut v) => {
                 match sym {
                     Add => Value::add(v.into_iter()),
                     Sub => Value::sub(v.into_iter()),
                     Mul => Value::mul(v.into_iter()),
                     Div => Value::div(v.into_iter()),
                     Mod => Value::modulus(v.into_iter()),
-                    Head => Value::head(&v[0]),
-                    Tail => Value::tail(&v[0]),
+                    Head => Value::head(v.pop().unwrap()),
+                    Tail => Value::tail(v.pop().unwrap()),
                 }
             }
         }
