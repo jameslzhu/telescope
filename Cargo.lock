@@ -2,7 +2,7 @@
 name = "telescope"
 version = "0.2.0"
 dependencies = [
- "error-chain 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "error-chain 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "lalrpop 0.12.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "lalrpop-util 0.12.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "quickcheck 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -114,7 +114,7 @@ dependencies = [
 
 [[package]]
 name = "error-chain"
-version = "0.7.2"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "backtrace 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -370,7 +370,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum docopt 0.6.86 (registry+https://github.com/rust-lang/crates.io-index)" = "4a7ef30445607f6fc8720f0a0a2c7442284b629cf0d049286860fae23e71c4d9"
 "checksum encode_unicode 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)" = "28d65f1f5841ef7c6792861294b72beda34c664deb8be27970f36c306b7da1ce"
 "checksum env_logger 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)" = "15abd780e45b3ea4f76b4e9a26ff4843258dd8a3eed2775a0e7368c2e7936c2f"
-"checksum error-chain 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)" = "318cb3c71ee4cdea69fdc9e15c173b245ed6063e1709029e8fd32525a881120f"
+"checksum error-chain 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)" = "be0e023a846964db231e26b9acccefffb49565036526e6e07095eab0ab21a186"
 "checksum fixedbitset 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)" = "88c3c33fc4c00db33f5174eb98aea809c4c007db0b71351d810a7e094ea3b64d"
 "checksum gcc 0.3.41 (registry+https://github.com/rust-lang/crates.io-index)" = "3689e1982a563af74960ae3a4758aa632bb8fd984cfc3cc3b60ee6109477ab6e"
 "checksum itertools 0.3.25 (registry+https://github.com/rust-lang/crates.io-index)" = "16b73f1c685cfd8ff8d75698ed87e6188cd09944b30c0863d45c2c3699d1da0c"

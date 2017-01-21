@@ -10,8 +10,8 @@ lalrpop = "0.12.0"
 [dependencies]
 lalrpop-util = "0.12.0"
 rustyline = "1.0.0"
-error-chain = "0.7.0"
+error-chain = "0.8.0"
 quickcheck = "0.4.0"
 
 [[bin]]
-name = "tscope"
+name = "tele"

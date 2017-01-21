@@ -27,7 +27,7 @@ fn main() {
                     .map_err(|e| e.into())
                     .and_then(|x| x.eval())
                     .map(|v| println!("{}", v))
-                    .map_err(|e| println!("{}", e));
+                    .map_err(|e| println!("Error: {}", e));
             }
             Err(RLError::Interrupted) |
             Err(RLError::Eof) => break,

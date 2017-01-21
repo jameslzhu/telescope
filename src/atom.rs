@@ -51,15 +51,6 @@ pub enum Atom {
 }
 
 impl Atom {
-    /// Return a string denoting the payload data type.
-    fn kind(&self) -> &str {
-        use self::Atom::*;
-        match *self {
-            Sym(_) => "sym",
-            Int(_) => "int",
-        }
-    }
-
     /// Unary negation of an integer.
     fn neg<I>(iter: I) -> Result<Atom>
         where I: Iterator<Item = Atom>
@@ -68,18 +59,30 @@ impl Atom {
             .ok_or("expected one argument to [-]".into())
             .and_then(|n| match n {
                 Atom::Int(x) => Ok(Atom::Int(-x)),
-                _ => Err(format!("incompatible type for {}: {}", Symbol::Sub, n.kind()).into()),
+                e @ _ => Err(format!("incompatible type for [-]: {}", e).into()),
             })
     }
 
-    fn fold_int<I, F>(iter: I, init: Atom, sym: Symbol, f: F) -> Result<Atom>
+    fn fold<I, F>(iter: I, init: Atom, sym: Symbol, f: F) -> Result<Atom>
         where I: Iterator<Item = Atom>,
               F: Fn(i32, i32) -> i32
     {
         iter.fold(Ok(init), |acc, x| {
             acc.and_then(|total| match (total, x) {
                 (Atom::Int(a), Atom::Int(b)) => Ok(f(a, b).into()),
-                _ => Err(format!("incompatible type for [{}]: {}", sym, x.kind()).into())
+                e @ _ => Err(format!("incompatible type for [{}]: {}", sym, e.1).into()),
+            })
+        })
+    }
+
+    fn fold_flat<I, F>(iter: I, init: Atom, sym: Symbol, f: F) -> Result<Atom>
+        where I: Iterator<Item = Atom>,
+              F: Fn(i32, i32) -> Result<i32>
+    {
+        iter.fold(Ok(init), |acc, x| {
+            acc.and_then(|total| match (total, x) {
+                (Atom::Int(a), Atom::Int(b)) => f(a, b).map(Into::into),
+                e @ _ => Err(format!("incompatible type for [{}]: {}", sym, e.1).into())
             })
         })
     }
@@ -87,29 +90,28 @@ impl Atom {
     fn add<I>(iter: I) -> Result<Atom>
         where I: Iterator<Item = Atom>
     {
-        Atom::fold_int(iter, 0.into(), Symbol::Add, |a, b| a + b)
+        Atom::fold(iter, 0.into(), Symbol::Add, |a, b| a + b)
     }
 
     fn sub<I>(mut iter: I) -> Result<Atom>
         where I: Iterator<Item = Atom>
     {
         let first = iter.next().unwrap();
-        Atom::fold_int(iter, first, Symbol::Sub, |a, b| a - b)
+        Atom::fold(iter, first, Symbol::Sub, |a, b| a - b)
     }
 
     fn mul<I>(iter: I) -> Result<Atom>
         where I: Iterator<Item = Atom>
     {
-        Atom::fold_int(iter, 1.into(), Symbol::Mul, |a, b| a * b)
+        Atom::fold(iter, 1.into(), Symbol::Mul, |a, b| a * b)
     }
 
     fn div<I>(mut iter: I) -> Result<Atom>
         where I: Iterator<Item = Atom>
     {
-        iter.by_ref()
-            .next()
-            .ok_or("need >= 2 args for [/]".into())
-            .and_then(|f| Atom::fold_int(iter, f, Symbol::Div, |a, b| a / b))
+        let first = iter.next().unwrap();
+        Atom::fold_flat(iter, first, Symbol::Div,
+                        |a, b| if b != 0 { Ok(a / b) } else { Err("division by zero".into()) })
     }
 
     /// Return the integer remainder when divided by a divisor `x`.
@@ -117,18 +119,13 @@ impl Atom {
         use self::Atom::*;
         match (*self, *x) {
             (Int(a), Int(b)) => {
-                if b == 0 {
-                    Err("modulus by zero".into())
-                } else {
+                if b != 0 {
                     Ok(Int(a % b))
+                } else {
+                    Err("modulus by zero".into())
                 }
-            }
-            _ => {
-                Err(format!("incompatible types for [%]: {}, {}",
-                            self.kind(),
-                            x.kind())
-                    .into())
-            }
+            },
+            _ => Err(format!("incompatible types for [%]: {}, {}", self, x).into()),
         }
     }
 }
@@ -158,123 +155,6 @@ impl From<i32> for Atom {
     }
 }
 
-/// The value of an expression, when evaluated.
-#[derive(Clone, Debug, PartialEq)]
-pub enum Value {
-    Atom(Atom),
-    List(List),
-}
-
-impl Value {
-    fn kind(&self) -> &str {
-        use self::Value::*;
-        match *self {
-            Atom(_) => "atom",
-            List(_) => "list",
-        }
-    }
-
-    pub fn lift<I, F, G>(iter: I, f: F, fn_args: G) -> Result<Value>
-        where I: Iterator<Item = Value>,
-              F: Fn(vec::IntoIter<Atom>) -> Result<Atom>,
-              G: Fn(&[Atom]) -> bool,
-    {
-        iter.map(|x| match x {
-                Value::Atom(y) => Ok(y),
-                _ => Err(format!("incompatible types for [+]: {}", x).into())
-            })
-            .collect::<Result<Vec<Atom>>>()
-            .and_then(|a| if fn_args(&a) { Ok(a) } else { Err("unexpected number of arguments".into()) })
-            .and_then(|a| f(a.into_iter()))
-            .map(Value::from)
-    }
-
-    pub fn neg<I>(iter: I) -> Result<Value>
-        where I: Iterator<Item = Value>
-    {
-        Value::lift(iter, Atom::neg, |v| v.len() == 1)
-    }
-
-    pub fn add<I>(iter: I) -> Result<Value>
-        where I: Iterator<Item = Value>
-    {
-        Value::lift(iter, Atom::add, |_| true)
-    }
-
-    pub fn sub<I>(iter: I) -> Result<Value>
-        where I: Iterator<Item = Value>
-    {
-        Value::lift(iter, Atom::sub, |v| v.len() >= 2)
-    }
-
-    pub fn mul<I>(iter: I) -> Result<Value>
-        where I: Iterator<Item = Value>
-    {
-        Value::lift(iter, Atom::mul, |_| true)
-    }
-
-    pub fn div<I>(iter: I) -> Result<Value>
-        where I: Iterator<Item = Value>
-    {
-        Value::lift(iter, Atom::div, |v| v.len() >= 2)
-    }
-
-    pub fn modulus<I>(iter: I) -> Result<Value>
-        where I: Iterator<Item = Value>
-    {
-        let args: Result<Vec<Atom>> = iter.map(|x| match x {
-            Value::Atom(y) => Ok(y),
-            _ => Err(format!("incompatible types for [%]: {}", x).into())
-        }).collect();
-
-        match args {
-            Ok(atoms) => Atom::modulus(&atoms[0], &atoms[1]).map(Value::from),
-            Err(e) => Err(e)
-        }
-    }
-
-    fn lift_list<F>(self, symbol: Symbol, f: F) -> Result<Value>
-        where F: Fn(List) -> Result<Value>
-    {
-        match self {
-            Value::List(v) => f(v).map(Value::from),
-            _ => Err(format!("incompatible types for {}: {}", symbol, self.kind()).into()),
-        }
-    }
-
-    pub fn head(self) -> Result<Value> {
-        self.lift_list(Symbol::Head, List::head)
-    }
-
-    pub fn tail(self) -> Result<Value> {
-        self.lift_list(Symbol::Tail, List::tail)
-    }
-}
-
-impl fmt::Display for Value {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        use self::Value::*;
-        match *self {
-            Atom(ref t) => write!(f, "{}", t),
-            List(ref t) => write!(f, "{}", t),
-        }
-    }
-}
-
-impl<T> From<T> for Value
-    where T: Into<Atom>
-{
-    fn from(x: T) -> Self {
-        Value::Atom(x.into())
-    }
-}
-
-impl From<List> for Value {
-    fn from(x: List) -> Self {
-        Value::List(x)
-    }
-}
-
 /// A (possibly recursive) collection of any value (Atom, Expr, or itself).
 #[derive(Clone, Default, Debug, PartialEq)]
 pub struct List {
@@ -287,17 +167,22 @@ impl List {
         List::default()
     }
 
-    /// Return the first element of the List.
-    pub fn head(self) -> Result<Value> {
-        self.inner
-            .first()
-            .ok_or("cannot get head of empty list".into())
-            .and_then(Node::eval)
+    pub fn is_empty(&self) -> bool {
+        self.inner.is_empty()
     }
 
-    /// Return all elements excepting the first.
-    pub fn tail(mut self) -> Result<Value> {
-        if !&self.inner.is_empty() {
+    /// Remove and return the first element.
+    pub fn head(mut self) -> Result<Node> {
+        if !self.is_empty() {
+            Ok(self.inner.remove(0))
+        } else {
+            Err("cannot get head of empty list".into())
+        }
+    }
+
+    /// Remove the first element and return the rest.
+    pub fn tail(mut self) -> Result<Node> {
+        if !self.is_empty() {
             self.inner.remove(0);
         }
         Ok(self.into())
@@ -375,7 +260,7 @@ impl Expr {
     /// * Any argument has the wrong type
     /// * Any argument evaluates to an `Error`
     /// * The function itself returns an error
-    pub fn eval(&self) -> Result<Value> {
+    pub fn eval(&self) -> Result<Node> {
         use self::Symbol::*;
 
         let sym = self.sym();
@@ -393,19 +278,19 @@ impl Expr {
             Err(e) => Err(e),
             Ok(mut v) => {
                 match sym {
-                    Add => Value::add(v.into_iter()),
+                    Add => Node::add(v.into_iter()),
                     Sub => {
                         if self.num_args() == 1 {
-                            Value::neg(v.into_iter())    
+                            Node::neg(v.into_iter())    
                         } else {
-                            Value::sub(v.into_iter())
+                            Node::sub(v.into_iter())
                         }
                     },
-                    Mul => Value::mul(v.into_iter()),
-                    Div => Value::div(v.into_iter()),
-                    Mod => Value::modulus(v.into_iter()),
-                    Head => Value::head(v.pop().unwrap()),
-                    Tail => Value::tail(v.pop().unwrap()),
+                    Mul => Node::mul(v.into_iter()),
+                    Div => Node::div(v.into_iter()),
+                    Mod => Node::modulus(v.into_iter()),
+                    Head => Node::head(v.pop().unwrap()),
+                    Tail => Node::tail(v.pop().unwrap()),
                 }
             }
         }
@@ -437,24 +322,102 @@ impl Node {
     /// If the node is an atom or list, it evaluates to itself.
     /// If the node is an expression, it returns the result of evaluating
     /// the expression.
-    pub fn eval(&self) -> Result<Value> {
-        use self::Node::*;
+    pub fn eval(&self) -> Result<Node> {
         match *self {
-            Atom(a) => Ok(Value::Atom(a)),
-            List(ref l) => Ok(Value::List(l.clone())),
-            Expr(ref e) => e.eval(),
+            Node::Expr(ref e) => e.eval(),
+            _ => Ok(self.clone())
         }
+    }
+
+    pub fn lift<I, F, G>(iter: I, f: F, fn_args: G) -> Result<Node>
+        where I: Iterator<Item = Node>,
+              F: Fn(vec::IntoIter<Atom>) -> Result<Atom>,
+              G: Fn(&[Atom]) -> bool,
+    {
+        iter.map(|x| match x {
+                Node::Atom(y) => Ok(y),
+                _ => Err(format!("incompatible types for [+]: {}", x).into())
+            })
+            .collect::<Result<Vec<Atom>>>()
+            .and_then(|a| if fn_args(&a) { Ok(a) } else { Err("unexpected number of arguments".into()) })
+            .and_then(|a| f(a.into_iter()))
+            .map(Node::from)
+    }
+
+    pub fn neg<I>(iter: I) -> Result<Node>
+        where I: Iterator<Item = Node>
+    {
+        Node::lift(iter, Atom::neg, |v| v.len() == 1)
+    }
+
+    pub fn add<I>(iter: I) -> Result<Node>
+        where I: Iterator<Item = Node>
+    {
+        Node::lift(iter, Atom::add, |_| true)
+    }
+
+    pub fn sub<I>(iter: I) -> Result<Node>
+        where I: Iterator<Item = Node>
+    {
+        Node::lift(iter, Atom::sub, |v| v.len() >= 2)
+    }
+
+    pub fn mul<I>(iter: I) -> Result<Node>
+        where I: Iterator<Item = Node>
+    {
+        Node::lift(iter, Atom::mul, |_| true)
+    }
+
+    pub fn div<I>(iter: I) -> Result<Node>
+        where I: Iterator<Item = Node>
+    {
+        Node::lift(iter, Atom::div, |v| v.len() >= 2)
+    }
+
+    pub fn modulus<I>(iter: I) -> Result<Node>
+        where I: Iterator<Item = Node>
+    {
+        let args: Result<Vec<Atom>> = iter.map(|x| match x {
+            Node::Atom(y) => Ok(y),
+            _ => Err(format!("incompatible types for [%]: {}", x).into())
+        }).collect();
+
+        match args {
+            Ok(atoms) => Atom::modulus(&atoms[0], &atoms[1]).map(Node::from),
+            Err(e) => Err(e)
+        }
+    }
+
+    fn lift_list<F>(self, symbol: Symbol, f: F) -> Result<Node>
+        where F: Fn(List) -> Result<Node>
+    {
+        match self {
+            Node::List(v) => f(v).map(Node::from),
+            _ => Err(format!("incompatible types for {}: {}", symbol, self).into()),
+        }
+    }
+
+    pub fn head(self) -> Result<Node> {
+        self.lift_list(Symbol::Head, List::head)
+    }
+
+    pub fn tail(self) -> Result<Node> {
+        self.lift_list(Symbol::Tail, List::tail)
     }
 }
 
 impl<T> From<T> for Node
-    where T: Into<Value>
+    where T: Into<Atom>
 {
     fn from(x: T) -> Self {
-        match x.into() {
-            Value::Atom(a) => Node::Atom(a),
-            Value::List(l) => Node::List(l),
-        }
+        Node::Atom(x.into())
+    }
+}
+
+impl From<List> for Node
+{
+    fn from(x: List) -> Self {
+        Node::List(x)
     }
 }
 
@@ -553,8 +516,6 @@ mod tests {
     }
 
     // List tests
-
-    // Value tests
 
     // Expr tests
 
