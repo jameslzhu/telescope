@@ -87,10 +87,10 @@ pub fn parse<'a, L>(line: L) -> Result<Node>
 
 #[cfg(test)]
 mod tests {
+    use super::parse;
     use atom::*;
     quickcheck!{
         fn parse_num(x: i32) -> bool {
-            use parser::parse;
             match parse(x.to_string()) {
                 Ok(node) => node == Node::from(x),
                 Err(_) => false,
@@ -98,9 +98,6 @@ mod tests {
         }
 
         fn parse_list(xs: Vec<i32>) -> bool  {
-            use parser::parse;
-            use atom::*;
-
             // Build parse string
             let mut strings: Vec<String> = xs.iter().map(ToString::to_string).collect();
             strings.insert(0, String::from("["));
@@ -118,9 +115,6 @@ mod tests {
         }
 
         fn parse_expr(xs: Vec<i32>) -> bool  {
-            use parser::parse;
-            use atom::*;
-
             // Build parse string
             let mut strings: Vec<String> = xs.iter().map(ToString::to_string).collect();
             strings.insert(0, String::from("("));

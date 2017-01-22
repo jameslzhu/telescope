@@ -5,9 +5,9 @@ extern crate telescope;
 /*
 #[test]
 fn parse_sym() -> bool {
-    use telescope::parser::parse;
+    use telescope::parse;
     match parse(x.to_string()) {
-        Ok(node) => node == telescope::atom::Node::from(x),
+        Ok(node) => node == telescope::Node::from(x),
         Err(_) => false,
     }
 }

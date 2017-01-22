@@ -11,3 +11,7 @@ extern crate combine;
 pub mod atom;
 pub mod error;
 pub mod parser;
+
+pub use atom::{Symbol, Atom, List, Expr, Node};
+pub use parser::parse;
+pub use error::*;
