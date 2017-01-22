@@ -422,6 +422,7 @@ mod tests {
     use super::*;
 
     // Printing tests
+    #[test]
     fn print_symbol() {
         assert_eq!(Symbol::Add.to_string(), "+");
         assert_eq!(Symbol::Sub.to_string(), "-");
@@ -443,7 +444,8 @@ mod tests {
     // Atom tests
     quickcheck!{
         fn atom_neg(x: i32) -> bool {
-            if let Ok(Atom::Int(i)) = Atom::from(x).neg() {
+            use std::iter::once;
+            if let Ok(Atom::Int(i)) = Atom::neg(once(Atom::from(x))) {
                 i == -x
             } else {
                 false
@@ -451,7 +453,8 @@ mod tests {
         }
 
         fn atom_neg_identity(x: i32) -> bool {
-            if let Ok(Atom::Int(i)) = Atom::from(x).neg().and_then(|x| x.neg()) {
+            use std::iter::once;
+            if let Ok(Atom::Int(i)) = Atom::neg(once(Atom::from(x))).and_then(|x| Atom::neg(once(x))) {
                 x == i
             } else {
                 false

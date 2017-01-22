@@ -6,7 +6,7 @@ use rustyline::Editor;
 use rustyline::error::ReadlineError as RLError;
 use combine::parser;
 use combine::{State, Parser};
-use telescope::parser::lang;
+use telescope::parser::parse;
 
 fn main() {
     // Prompt constants
@@ -18,18 +18,18 @@ fn main() {
     println!("{}", header);
 
     loop {
-        let readline = rl.readline(prompt);
-        match readline {
+        match rl.readline(prompt) {
             Ok(line) => {
                 rl.add_history_entry(&line);
                 if line == "exit" || line == "quit" {
                     break;
                 }
-                let _ = parser(lang).parse(State::new(line.as_str()))
+                match parse(line)
                     .map_err(|e| e.into())
-                    .and_then(|(node, _)| node.eval())
-                    .map(|v| println!("{}", v))
-                    .map_err(|e| println!("Error: {}", e));
+                    .and_then(|node| node.eval()) {
+                    Ok(v) => println!("{}", v),
+                    Err(e) => println!("Error: {}", e),
+                }
             }
             Err(RLError::Interrupted) |
             Err(RLError::Eof) => break,

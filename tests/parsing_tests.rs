@@ -1,36 +1,14 @@
+#[macro_use]
+extern crate quickcheck;
 extern crate telescope;
 
+/*
 #[test]
-fn parse_num() {
-
+fn parse_sym() -> bool {
+    use telescope::parser::parse;
+    match parse(x.to_string()) {
+        Ok(node) => node == telescope::atom::Node::from(x),
+        Err(_) => false,
+    }
 }
-
-#[test]
-fn parse_sym() {
-
-}
-
-#[test]
-fn parse_atom() {
-
-}
-
-#[test]
-fn parse_list() {
-
-}
-
-#[test]
-fn parse_expr() {
-
-}
-
-#[test]
-fn parse_node() {
-
-}
-
-#[test]
-fn parse_lang() {
-
-}
+*/
