@@ -24,6 +24,7 @@ branches:
 
 matrix:
   allow_failures:
+    - rust: beta
     - rust: nightly
 
 # Load travis-cargo

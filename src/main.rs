@@ -1,14 +1,14 @@
 extern crate rustyline;
-extern crate lrs;
+extern crate combine;
+extern crate telescope;
 
-
-use lrs::parse;
 use rustyline::Editor;
 use rustyline::error::ReadlineError as RLError;
+use telescope::parser::parse;
 
 fn main() {
     // Prompt constants
-    let header = format!("lrs v{}", env!("CARGO_PKG_VERSION"));
+    let header = format!(r"telescope v{}", env!("CARGO_PKG_VERSION"));
     let prompt = "> ";
 
     let mut rl = Editor::<()>::new();
@@ -16,39 +16,25 @@ fn main() {
     println!("{}", header);
 
     loop {
-        let readline = rl.readline(prompt);
-        match readline {
+        match rl.readline(prompt) {
             Ok(line) => {
                 rl.add_history_entry(&line);
-                match line.as_str() {
-                    "exit" | "quit" => break,
-                    _ => {
-                        let parsed = parse::parse_Lang(&line);
-
-                        match parsed {
-                            Ok(result) => {
-                                match result.eval() {
-                                    Ok(value) => println!("{}", value),
-                                    Err(e) => println!("{}", e),
-                                }
-                            }
-                            Err(e) => println!("Error: {:?}", e),
-                        }
-                    }
-                };
+                if line == "exit" || line == "quit" {
+                    break;
+                }
+                match parse(line)
+                    .map_err(|e| e.into())
+                    .and_then(|node| node.eval()) {
+                    Ok(v) => println!("{}", v),
+                    Err(e) => println!("Error: {}", e),
+                }
             }
-            Err(RLError::Interrupted) => {
-                println!("CTRL-C");
-                break;
-            }
-            Err(RLError::Eof) => {
-                println!("CTRL-D");
-                break;
-            }
+            Err(RLError::Interrupted) |
+            Err(RLError::Eof) => break,
             Err(err) => {
                 println!("Error: {:?}", err);
                 break;
             }
-        }
+        };
     }
 }
