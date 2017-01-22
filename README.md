@@ -4,7 +4,6 @@
 Status](https://travis-ci.org/jzhu98/telescope.svg?style=flat-square&branch=develop)](https://travis-ci.org/jzhu98/telescope)
 [![Appveyor Status](https://ci.appveyor.com/api/projects/status/rlhd2gyjcmdkdxc7/branch/develop?svg=true)](https://ci.appveyor.com/project/jzhu98/telescope/branch/develop)
 [![Coverage Status](https://coveralls.io/repos/github/jzhu98/telescope/badge.svg?style=flat-square&branch=develop)](https://coveralls.io/github/jzhu98/telescope?branch=develop)
-[![Clippy Linting Result](https://clippy.bashy.io/github/jzhu98/telescope/develop/badge.svg?style=flat-square)](https://clippy.bashy.io/github/jzhu98/telescope/develop/log)
 
 **Telescope** is a Lisp interpreter, based on [Build Your Own Lisp](buildyourownlisp.com).
 It attempts to be minimal, well-defined, performant, and extensible.
