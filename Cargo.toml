@@ -2,13 +2,8 @@
 name = "telescope"
 version = "0.2.0"
 authors = ["James Zhu <james.zhu.engineer@gmail.com>"]
-build = "build.rs"
-
-[build-dependencies]
-lalrpop = "0.12.0"
 
 [dependencies]
-lalrpop-util = "0.12.0"
 rustyline = "1.0.0"
 error-chain = "0.8.0"
 quickcheck = "0.4.0"
