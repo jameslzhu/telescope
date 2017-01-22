@@ -1,6 +1,6 @@
 [root]
 name = "telescope"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "combine 2.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "error-chain 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",

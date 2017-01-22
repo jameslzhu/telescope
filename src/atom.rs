@@ -266,7 +266,7 @@ impl Expr {
                 Err(format!("undefined symbol {}", symbol).into())
             }
         } else {
-            Err("cannot evaluate empty list".into())
+            Err("cannot evaluate empty expr".into())
         }
     }
 }

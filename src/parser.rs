@@ -81,8 +81,8 @@ pub fn parse<'a, L>(line: L) -> Result<Node>
 {
     parser(lang)
         .parse(State::new(line.into().as_str()))
+        .map(|(node, _)| node)
         .map_err(|e| e.into())
-        .and_then(|(node, _)| node.eval())
 }
 
 #[cfg(test)]
