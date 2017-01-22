@@ -2,8 +2,6 @@ use error::*;
 
 use std::vec;
 use std::fmt;
-use std::slice;
-
 
 /// Represents an object, notably functions and variables.
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
@@ -195,6 +193,12 @@ impl<'a> From<&'a [Node]> for List {
     }
 }
 
+impl From<Expr> for List {
+    fn from(e: Expr) -> Self {
+        List { inner: e.nodes }
+    }
+}
+
 impl fmt::Display for List {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let elements = self.inner
@@ -210,44 +214,18 @@ impl fmt::Display for List {
 /// other elements `args`.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Expr {
-    sym: Symbol,
-    args: Vec<Node>,
+    nodes: Vec<Node>,
 }
 
 impl Expr {
-    /// Constructs an `Expr`, with function `sym` and a `Vec` of arguments.
-    pub fn new(sym: Symbol, args: Vec<Node>) -> Self {
-        Expr {
-            sym: sym,
-            args: args,
-        }
+    /// Constructs an `Expr`, with a `Vec` of `Nodes`.
+    pub fn new(nodes: Vec<Node>) -> Self {
+        Expr { nodes: nodes }
     }
 
-    /// Return the function itself.
-    pub fn sym(&self) -> Symbol {
-        self.sym
-    }
-
-    /// Return an iterator over the arguments.
-    pub fn args(&self) -> slice::Iter<Node> {
-        self.args.iter()
-    }
-
-    /// Return the number of arguments.
     pub fn num_args(&self) -> usize {
-        self.args.len()
-    }
-
-    /// Enforces the correct number of arguments (arity) is used for the
-    /// indicated operation.
-    fn check_num_args(&self) -> bool {
-        use self::Symbol::*;
-        let num_args = self.num_args();
-        match self.sym() {
-            Mod => num_args == 2,
-            Head | Tail => num_args == 1,
-            _ => true
-        }
+        use std::cmp;
+        cmp::max(0, self.nodes.len() - 1)
     }
 
     /// Evaluate the expression recursively, first evaluating its arguments
@@ -263,48 +241,50 @@ impl Expr {
     pub fn eval(&self) -> Result<Node> {
         use self::Symbol::*;
 
-        let sym = self.sym();
-
-        // Check if number of arguments match expected number
-        if !self.check_num_args() {
-            return Err(format!("error: \'{}\' symbol did not expect {} args",
-                               sym, self.num_args()).into());
-        }
-
-        let evaled_args = self.args().map(Node::eval).collect::<Result<Vec<_>>>();
-
-        match evaled_args {
-            // Return the first expr that cannot eval correctly
-            Err(e) => Err(e),
-            Ok(mut v) => {
-                match sym {
-                    Add => Node::add(v.into_iter()),
-                    Sub => {
-                        if self.num_args() == 1 {
-                            Node::neg(v.into_iter())    
-                        } else {
-                            Node::sub(v.into_iter())
-                        }
-                    },
-                    Mul => Node::mul(v.into_iter()),
-                    Div => Node::div(v.into_iter()),
-                    Mod => Node::modulus(v.into_iter()),
-                    Head => Node::head(v.pop().unwrap()),
-                    Tail => Node::tail(v.pop().unwrap()),
-                }
+        // Get symbol
+        if let Some((symbol, args)) = self.nodes.split_first() {
+            if let &Node::Atom(Atom::Sym(sym)) = symbol {
+                args.iter()
+                    .map(Node::eval)
+                    .collect::<Result<Vec<_>>>()
+                    .and_then(|mut v| match sym {
+                        Add => Node::add(v.into_iter()),
+                        Sub => {
+                            if self.num_args() == 1 {
+                                Node::neg(v.into_iter())    
+                            } else {
+                                Node::sub(v.into_iter())
+                            }
+                        },
+                        Mul => Node::mul(v.into_iter()),
+                        Div => Node::div(v.into_iter()),
+                        Mod => Node::modulus(v.into_iter()),
+                        Head => Node::head(v.pop().unwrap()),
+                        Tail => Node::tail(v.pop().unwrap()),
+                    })
+            } else {
+                Err(format!("undefined symbol {}", symbol).into())
             }
+        } else {
+            Err("cannot evaluate empty list".into())
         }
+    }
+}
+
+impl From<List> for Expr {
+    fn from(l: List) -> Self {
+        Expr::new(l.inner)
     }
 }
 
 impl fmt::Display for Expr {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let elements = self.args
+        let elements = self.nodes
             .iter()
             .map(ToString::to_string)
             .collect::<Vec<_>>()
             .join(" ");
-        write!(f, "( {} {} )", self.sym, elements)
+        write!(f, "( {} )", elements)
     }
 }
 
@@ -377,15 +357,14 @@ impl Node {
     pub fn modulus<I>(iter: I) -> Result<Node>
         where I: Iterator<Item = Node>
     {
-        let args: Result<Vec<Atom>> = iter.map(|x| match x {
-            Node::Atom(y) => Ok(y),
-            _ => Err(format!("incompatible types for [%]: {}", x).into())
-        }).collect();
-
-        match args {
-            Ok(atoms) => Atom::modulus(&atoms[0], &atoms[1]).map(Node::from),
-            Err(e) => Err(e)
-        }
+        iter.map(|x| match x {
+                Node::Atom(y) => Ok(y),
+                _ => Err(format!("incompatible types for [%]: {}", x).into())
+            })
+            .collect::<Result<Vec<Atom>>>()
+            .and_then(|a| if a.len() == 2 { Ok(a) } else { Err("unexpected number of arguments".into()) })
+            .and_then(|a| Atom::modulus(&a[0], &a[1]))
+            .map(Node::from)
     }
 
     fn lift_list<F>(self, symbol: Symbol, f: F) -> Result<Node>

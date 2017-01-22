@@ -6,8 +6,11 @@ extern crate error_chain;
 #[macro_use]
 extern crate quickcheck;
 
+extern crate combine;
+
 extern crate lalrpop_util;
 
 pub mod atom;
 pub mod error;
-pub mod parse;
+//pub mod parse;
+pub mod parser;

@@ -1,10 +1,12 @@
 extern crate rustyline;
+extern crate combine;
 extern crate telescope;
 
 use rustyline::Editor;
 use rustyline::error::ReadlineError as RLError;
-use telescope::parse;
-
+use combine::parser;
+use combine::{State, Parser};
+use telescope::parser::lang;
 
 fn main() {
     // Prompt constants
@@ -23,9 +25,9 @@ fn main() {
                 if line == "exit" || line == "quit" {
                     break;
                 }
-                let _ = parse::parse_Lang(&line)
+                let _ = parser(lang).parse(State::new(line.as_str()))
                     .map_err(|e| e.into())
-                    .and_then(|x| x.eval())
+                    .and_then(|(node, _)| node.eval())
                     .map(|v| println!("{}", v))
                     .map_err(|e| println!("Error: {}", e));
             }

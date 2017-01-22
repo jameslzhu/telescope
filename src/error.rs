@@ -1,17 +1,30 @@
-use lalrpop_util::ParseError;
-use std::fmt;
+//use std::fmt;
+use combine::{StreamOnce, ParseError};
+use combine::primitives::SourcePosition;
 
 error_chain! {
+    types {
+        Error, ErrorKind, ResultExt, Result;
+    }
     links {}
     foreign_links {}
     errors {
-        Parse(t: String) {
+        Parse(position: i32, t: String) {
             description("parsing error")
-            display("parsing error: {}", t)
+            display("parsing error at {}: {}", position, t)
         }
     }
 }
 
+impl<S: StreamOnce> From<ParseError<S>> for Error
+    where S: StreamOnce<Position = SourcePosition>
+{
+    fn from(e: ParseError<S>) -> Self {
+        Error::from_kind(ErrorKind::Parse(e.position.column, String::new()))
+    }
+}
+
+/*
 impl<L, T> From<ParseError<L, T, Error>> for Error
     where L: Into<usize>,
           T: fmt::Debug
@@ -38,3 +51,4 @@ impl<L, T> From<ParseError<L, T, Error>> for Error
         }
     }
 }
+*/
