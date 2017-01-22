@@ -4,8 +4,6 @@ extern crate telescope;
 
 use rustyline::Editor;
 use rustyline::error::ReadlineError as RLError;
-use combine::parser;
-use combine::{State, Parser};
 use telescope::parser::parse;
 
 fn main() {

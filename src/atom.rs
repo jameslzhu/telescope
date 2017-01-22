@@ -206,7 +206,7 @@ impl fmt::Display for List {
             .map(ToString::to_string)
             .collect::<Vec<_>>()
             .join(" ");
-        write!(f, "[ {} ]", elements)
+        write!(f, "[{}]", elements)
     }
 }
 
@@ -284,7 +284,7 @@ impl fmt::Display for Expr {
             .map(ToString::to_string)
             .collect::<Vec<_>>()
             .join(" ");
-        write!(f, "( {} )", elements)
+        write!(f, "({})", elements)
     }
 }
 
