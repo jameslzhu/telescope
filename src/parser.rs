@@ -17,7 +17,7 @@ fn atom<I>(input: I) -> ParseResult<Atom, I>
         })
         .map(Atom::from);
 
-    let sym = satisfy(|c| "+-*/%".chars().any(|x| x == c)) 
+    let sym = satisfy(|c| r"+-*/%".chars().any(|x| x == c)) 
         .map(|sym| match sym {
             '+' => Symbol::Add,
             '-' => Symbol::Sub,
@@ -34,7 +34,7 @@ fn atom<I>(input: I) -> ParseResult<Atom, I>
             }))
         .map(Atom::from);
 
-    num.or(sym).parse_stream(input)
+    sym.or(num).parse_stream(input)
 }
 
 fn list<I>(input: I) -> ParseResult<List, I>
