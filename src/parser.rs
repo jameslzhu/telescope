@@ -76,7 +76,7 @@ fn lang<I>(input: I) -> ParseResult<Node, I>
         .parse_stream(input)
 }
 
-pub fn parse<'a, L>(line: L) -> Result<Node>
+pub fn parse<L>(line: L) -> Result<Node>
     where L: Into<String>,
 {
     parser(lang)

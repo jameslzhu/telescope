@@ -305,6 +305,36 @@ pub enum Node {
 }
 
 impl Node {
+    pub fn map_atom<F, T>(self, f: F) -> Node
+        where F: FnOnce(Atom) -> T,
+              T: Into<Node>
+    {
+        match self {
+            Node::Atom(a) => f(a).into(),
+            _ => self,
+        }
+    }
+
+    pub fn map_list<F, T>(self, f: F) -> Node
+        where F: FnOnce(List) -> T,
+              T: Into<Node>
+    {
+        match self {
+            Node::List(l) => f(l).into(),
+            _ => self,
+        }
+    }
+
+    pub fn map_expr<F, T>(self, f: F) -> Node
+        where F: FnOnce(Expr) -> T,
+              T: Into<Node>
+    {
+        match self {
+            Node::Expr(l) => f(l).into(),
+            _ => self,
+        }
+    }
+
     /// Evaluate the inner value.
     ///
     /// If the node is an atom or list, it evaluates to itself.
