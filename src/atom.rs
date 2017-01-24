@@ -20,6 +20,10 @@ pub enum Symbol {
     Head,
     /// Tail symbol (see `List::tail`)
     Tail,
+    /// List symbol
+    List,
+    /// Eval symbol
+    Eval,
 }
 
 #[cfg_attr(rustfmt, rustfmt_skip)]
@@ -34,6 +38,8 @@ impl fmt::Display for Symbol {
             Mod => "%",
             Head => "head",
             Tail => "tail",
+	    List => "list",
+	    Eval => "eval",
         })
     }
 }
@@ -261,6 +267,8 @@ impl Expr {
                         Mod => Node::modulus(v.into_iter()),
                         Head => Node::head(v.pop().unwrap()),
                         Tail => Node::tail(v.pop().unwrap()),
+			List => (),
+			Eval => (),
                     })
             } else {
                 Err(format!("undefined symbol {}", symbol).into())
@@ -382,6 +390,22 @@ impl Node {
 
     pub fn tail(self) -> Result<Node> {
         self.lift_list(Symbol::Tail, List::tail)
+    }
+
+    pub fn list(self) -> Result<Node> {
+	match self {
+            Node::Expr(e) => {
+		List::from(e).map(Node::into)
+	    }
+            _ => Err(format!("incompatible types for {}: {}", Symbol::List, self).into()),
+	}
+    }
+
+    pub fn eval(self) -> Result<Node> {
+	match self {
+            Node::List(e) => Expr::from(e).eval().map(Node::from),
+            _ => Err(format!("incompatible types for {}: {}", Symbol::List, self).into()),
+	}
     }
 }
 
