@@ -26,13 +26,20 @@ fn atom<I>(input: I) -> ParseResult<Atom, I>
             '%' => Symbol::Mod,
             _ => unreachable!(),
         })
-        .or(choice([string("head"), string("tail")])
-            .map(|sym| match sym {
-                "head" => Symbol::Head,
-                "tail" => Symbol::Tail,
-                _ => unreachable!(),
-            }))
-        .map(Atom::from);
+        .or(choice([
+            string("head"),
+            string("tail"),
+            string("list"),
+            string("eval"),
+        ]).flat_map(|s| match s {
+            "head" => Ok(Symbol::Head),
+            "tail" => Ok(Symbol::Tail),
+            "list" => Ok(Symbol::List),
+            "eval" => Ok(Symbol::Eval),
+            _ => unreachable!(),
+        }))
+        .map(Atom::from)
+        .message("undefined symbol");
 
     sym.or(num).parse_stream(input)
 }
@@ -44,7 +51,7 @@ fn list<I>(input: I) -> ParseResult<List, I>
     let space_list = sep_by(parser(node), spaces());
 
     between(lex_char('['), lex_char(']'), space_list)
-        .map(|list: Vec<Node>| List::from(list.as_slice()))
+        .map(|list: Vec<Node>| List::from(list.iter()))
         .parse_stream(input)
 }
 

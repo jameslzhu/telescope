@@ -38,8 +38,8 @@ impl fmt::Display for Symbol {
             Mod => "%",
             Head => "head",
             Tail => "tail",
-	    List => "list",
-	    Eval => "eval",
+            List => "list",
+            Eval => "eval",
         })
     }
 }
@@ -193,11 +193,20 @@ impl List {
     }
 }
 
+impl<I: Iterator<Item=Node>> From<I> for List
+{
+    fn from(i: I) -> Self {
+        List { inner: i.collect() }
+    }
+}
+
+/*
 impl<'a> From<&'a [Node]> for List {
     fn from(v: &'a [Node]) -> Self {
         List { inner: Vec::from(v) }
     }
 }
+*/
 
 impl From<Expr> for List {
     fn from(e: Expr) -> Self {
@@ -230,8 +239,7 @@ impl Expr {
     }
 
     pub fn num_args(&self) -> usize {
-        use std::cmp;
-        cmp::max(0, self.nodes.len() - 1)
+        ::std::cmp::max(0, self.nodes.len() - 1)
     }
 
     /// Evaluate the expression recursively, first evaluating its arguments
@@ -267,8 +275,14 @@ impl Expr {
                         Mod => Node::modulus(v.into_iter()),
                         Head => Node::head(v.pop().unwrap()),
                         Tail => Node::tail(v.pop().unwrap()),
-			List => (),
-			Eval => (),
+                        List => Node::list(v.into_iter()),
+                        Eval => {
+                            if let Some(Node::List(l)) = v.pop() {
+                                Expr::from(l).eval()
+                            } else {
+                                Err("expected list".into())
+                            }
+                        },
                     })
             } else {
                 Err(format!("undefined symbol {}", symbol).into())
@@ -422,20 +436,10 @@ impl Node {
         self.lift_list(Symbol::Tail, List::tail)
     }
 
-    pub fn list(self) -> Result<Node> {
-	match self {
-            Node::Expr(e) => {
-		List::from(e).map(Node::into)
-	    }
-            _ => Err(format!("incompatible types for {}: {}", Symbol::List, self).into()),
-	}
-    }
-
-    pub fn eval(self) -> Result<Node> {
-	match self {
-            Node::List(e) => Expr::from(e).eval().map(Node::from),
-            _ => Err(format!("incompatible types for {}: {}", Symbol::List, self).into()),
-	}
+    pub fn list<I>(iter: I) -> Result<Node>
+        where I: Iterator<Item = Node>
+    {
+        Node::lift(iter, List::from, |_| true)
     }
 }
 
