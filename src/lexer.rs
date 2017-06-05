@@ -139,10 +139,8 @@ mod test {
     }
 
     #[test]
-    #[should_panic]
     fn parse_empty() {
-        let x = parser(token_stream).parse("");
-        println!("{:#?}", x.unwrap().0);
+        assert_eq!(Ok((Vec::new(), "")), parser(token_stream).parse(""));
     }
 
     quickcheck!{
