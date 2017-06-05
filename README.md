@@ -1,13 +1,19 @@
 # Telescope
 
-[![Build
-Status](https://travis-ci.org/jzhu98/telescope.svg?style=flat-square&branch=develop)](https://travis-ci.org/jzhu98/telescope)
-[![Appveyor Status](https://ci.appveyor.com/api/projects/status/rlhd2gyjcmdkdxc7/branch/develop?svg=true)](https://ci.appveyor.com/project/jzhu98/telescope/branch/develop)
-[![Coverage Status](https://coveralls.io/repos/github/jzhu98/telescope/badge.svg?style=flat-square&branch=develop)](https://coveralls.io/github/jzhu98/telescope?branch=develop)
+[![Build Status][travis-badge]][travis-link]
+[![Appveyor Status][appveyor-badge]][appveyor-link]
+[![Coverage Status][coveralls-badge]][coveralls-link]
 
-![XKCD](https://imgs.xkcd.com/comics/lisp_cycles.png)
+[![XKCD][xkcd-img]][xkcd-link]
 
-A minimal, extensible language.
+[travis-badge]: https://img.shields.io/travis/jzhu98/telescope.svg?style=flat-square
+[travis-link]: https://travis-ci.org/jzhu98/telescope
+[appveyor-badge]:https://img.shields.io/appveyor/ci/jzhu98/lrs.svg?style=flat-square
+[appveyor-link]: https://ci.appveyor.com/project/jzhu98/lrs
+[coveralls-badge]: https://img.shields.io/coveralls/jzhu98/telescope.svg?style=flat-square
+[coveralls-link]: https://coveralls.io/github/jzhu98/telescope?branch=develop
+[xkcd-img]: https://imgs.xkcd.com/comics/lisp_cycles.png
+[xkcd-link]: https://xkcd.com/297/
 
 Inspired by [Build Your Own Lisp](https://buildyourownlisp.com) and
 [Crafting Interpreters](https://craftinginterpreters.com), Telescope is a Lisp-family
@@ -18,24 +24,24 @@ programming languages.
 
 ### Interpreter
 
-1. Source
+#### Source
   - Read from stdin (assumed UTF-8)
 
-2. Lexical analysis
+#### Lexical analysis
   - Divide source into token sequence
   - Replace special tokens with other tokens
 
-3. Syntax analysis
+#### Syntax analysis
   - Parse token sequence into syntax tree
 
-4. Semantic analysis
+#### Semantic analysis
   - Traverse syntax trees
   - Declare variables
   - Load symbol tables
   - Assign types
   - Determine program meaning
 
-5. Code execution
+#### Code execution
   - Code is evaluated (as everything is an expression) and outputted to stdout
 
 ### Syntax
