@@ -1,0 +1,152 @@
+use std::fmt;
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum Literal {
+    Bool(bool),
+    Int(i64),
+    Flt(f64),
+    Str(String),
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum Token {
+    // Single character tokens
+    LParen,
+    RParen,
+    LBracket,
+    RBracket,
+
+    // Mathematical tokens
+    Plus,
+    Minus,
+    Star,
+    Slash,
+
+    // Comparison tokens
+    Equal,
+    Less,
+    LessEqual,
+    Greater,
+    GreaterEqual,
+
+    // Keywords
+    Nil,
+    True,
+    False,
+    Not,
+    Or,
+    And,
+    If,
+    Case,
+    Fn,
+    Print,
+
+    // Other
+    EOF,
+
+    // Literal
+    Literal(Literal),
+    Symbol(String),
+}
+
+impl fmt::Display for Literal {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Literal::Bool(ref b) => write!(f, "{}", b),
+            Literal::Int(ref i) => write!(f, "{}", i),
+            Literal::Flt(ref x) => write!(f, "{}", x),
+            Literal::Str(ref s) => write!(f, "{}", s),
+        }
+    }
+}
+
+impl fmt::Display for Token {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Token::Literal(ref lit) => write!(f, "{}", lit),
+            Token::Symbol(ref s) => write!(f, "{}", s),
+            _ => write!(f, "{:#?}", self),
+        }
+    }
+}
+
+impl From<i32> for Literal {
+    fn from(x: i32) -> Self {
+        Literal::Int(x.into())
+    }
+}
+
+impl From<i64> for Literal {
+    fn from(x: i64) -> Self {
+        Literal::Int(x)
+    }
+}
+
+impl From<f32> for Literal {
+    fn from(x: f32) -> Self {
+        Literal::Flt(x.into())
+    }
+}
+
+impl From<f64> for Literal {
+    fn from(x: f64) -> Self {
+        Literal::Flt(x)
+    }
+}
+
+impl From<bool> for Literal {
+    fn from(x: bool) -> Self {
+        Literal::Bool(x)
+    }
+}
+
+impl<'a> From<&'a str> for Literal {
+    fn from(x: &'a str) -> Self {
+        Literal::Str(x.to_owned())
+    }
+}
+
+impl From<String> for Literal {
+    fn from(x: String) -> Self {
+        Literal::Str(x)
+    }
+}
+
+impl<T> From<T> for Token where T: Into<Literal> {
+    fn from(x: T) -> Self {
+        Token::Literal(x.into())
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn format_literal() {
+        let int = Literal::from(32i64);
+        let flt = Literal::from(3.14f64);
+        let boolean = Literal::from(true);
+        let string = Literal::from("jkl;");
+
+        assert_eq!("32", int.to_string());
+        assert_eq!("3.14", flt.to_string());
+        assert_eq!("true", boolean.to_string());
+        assert_eq!("jkl;", string.to_string());
+    }
+
+    #[test]
+    fn format_token() {
+        let lparen = Token::LParen;
+
+        // Mathematical tokens
+        let plus = Token::Plus;
+
+        // Literal
+        let literal = Token::from(1);
+
+        assert_eq!("LParen", lparen.to_string());
+        assert_eq!("Plus", plus.to_string());
+        assert_eq!("1", literal.to_string());
+    }
+}

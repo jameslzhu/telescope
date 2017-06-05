@@ -1,10 +1,10 @@
 extern crate rustyline;
-extern crate combine;
 extern crate telescope;
+
+use telescope::{lexer, parser, token};
 
 use rustyline::Editor;
 use rustyline::error::ReadlineError as RLError;
-use telescope::parse;
 
 fn main() {
     // Prompt constants
@@ -22,10 +22,13 @@ fn main() {
                 if line == "exit" || line == "quit" {
                     break;
                 }
-                match parse(line)
-                    .map_err(|e| e.into())
-                    .and_then(|node| node.eval()) {
-                    Ok(v) => println!("{}", v),
+                match lexer::lex(line.trim_right()) {
+                        //   .and_then(|node| node.eval()) {
+                    Ok((tokens, _)) => println!("{}",
+                        tokens.iter()
+                            .map(ToString::to_string)
+                            .collect::<Vec<_>>()
+                            .join(" ")),
                     Err(e) => println!("Error: {}", e),
                 }
             }
