@@ -11,6 +11,7 @@ extern crate error_chain;
 
 extern crate combine;
 
+pub mod ast;
 pub mod token;
 pub mod lexer;
 pub mod parser;
