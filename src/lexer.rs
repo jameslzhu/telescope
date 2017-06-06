@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use combine::{between, choice, many, many1, optional, parser, satisfy, satisfy_map, sep_by, try};
 use combine::{Parser, Stream, ParseError, ParseResult};
 use combine::char::{alpha_num, digit, char, letter, spaces, string};
