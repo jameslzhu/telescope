@@ -29,16 +29,16 @@ pub struct Quote(Vec<Expr>);
 pub struct Symbol(String);
 
 #[derive(Clone)]
-pub struct Function{
+pub struct Function {
     name: Option<String>,
-    func: Rc<Fn(&[Expr]) -> Expr>,
+    func: Rc<Box<Fn(&[Expr]) -> Expr>>,
 }
 
 impl Function {
-    fn new<S>(name: Option<S>, func: Rc<Fn(&[Expr]) -> Expr>) -> Self
+    fn new<S>(name: Option<S>, func: Box<Fn(&[Expr]) -> Expr>) -> Self
         where S: Into<String>,
     {
-        Function { name: name.map(Into::into), func: func }
+        Function { name: name.map(Into::into), func: Rc::new(func) }
     }
 
     fn call<'a>(&self, args: &'a [Expr]) -> Expr {
@@ -85,9 +85,9 @@ impl From<Symbol> for Atom {
     }
 }
 
-fn lift(func: Rc<Fn(&[Atom]) -> Atom>) -> Rc<Fn(&[Expr]) -> Expr>
+fn lift(func: Box<Fn(&[Atom]) -> Atom>) -> Box<Fn(&[Expr]) -> Expr>
 {
-    Rc::new(move |args| Expr::Atom(
+    Box::new(move |args| Expr::Atom(
         func(args.iter()
             .map(|arg| { if let &Expr::Atom(ref atom) = arg { atom.clone() } else { panic!() } })
             .collect::<Vec<_>>()
@@ -110,7 +110,7 @@ mod test {
     */
     #[test]
     fn print_debug() {
-        let func = Rc::new(move |atoms: &[Atom]|
+        let func = Box::new(move |atoms: &[Atom]|
             Atom::Int(atoms.iter().map(|x| if let &Atom::Int(y) = x {y} else { panic!() }).sum()));
         let add = Function::new(Some("add"), lift(func));
         add.call(vec![Expr::Atom(Atom::Int(1)), Expr::Atom(Atom::Int(2))].as_slice());
