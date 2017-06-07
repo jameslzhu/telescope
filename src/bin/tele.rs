@@ -1,7 +1,8 @@
 extern crate rustyline;
+extern crate combine;
 extern crate telescope;
 
-use telescope::{lexer, parser, token};
+use telescope::{lexer, parser};
 
 use rustyline::Editor;
 use rustyline::error::ReadlineError as RLError;
@@ -23,14 +24,17 @@ fn main() {
                     break;
                 }
                 match lexer::lex(line.trim_right()) {
-                        //   .and_then(|node| node.eval()) {
-                    Ok((tokens, _)) => println!("{}",
-                        tokens.iter()
-                            .map(ToString::to_string)
-                            .collect::<Vec<_>>()
-                            .join(" ")),
-                    Err(e) => println!("Error: {}", e),
-                }
+                    Ok((tokens, _)) => {
+                        match parser::parse_tokens(tokens.as_slice()) {
+                            Ok((exprs, _)) => println!("{}", exprs.iter()
+                                .map(|x| format!("{:?}", x))
+                                .collect::<Vec<_>>()
+                                .join(" ")),
+                            Err(e) => println!("Error: {:?}", e),
+                        }
+                    },
+                    Err(e) => println!("Error: {:?}", e),
+                };
             }
             Err(RLError::Interrupted) |
             Err(RLError::Eof) => break,

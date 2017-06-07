@@ -1,6 +1,7 @@
 use std::fmt;
 use std::rc::Rc;
 use token::Literal;
+use error::*;
 
 #[derive(Clone, Debug)]
 pub enum Expr {
@@ -16,7 +17,7 @@ pub enum Atom {
     Int(i64),
     Flt(f64),
     Str(String),
-    Symbol(Symbol),
+    Sym(Symbol),
 }
 
 #[derive(Clone, Debug)]
@@ -26,7 +27,7 @@ pub struct List(Vec<Expr>);
 pub struct Quote(Vec<Expr>);
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub struct Symbol(String);
+pub struct Symbol(pub String);
 
 #[derive(Clone)]
 pub struct Function {
@@ -34,16 +35,16 @@ pub struct Function {
     func: Rc<Lambda>,
 }
 
-type Lambda = Box<Fn(&[Expr]) -> Expr>;
+pub type Lambda = Box<Fn(&[Expr]) -> Result<Expr>>;
 
 impl Function {
-    fn new<S>(name: Option<S>, func: Lambda) -> Self
+    pub fn new<S>(name: Option<S>, func: Lambda) -> Self
         where S: Into<String>,
     {
         Function { name: name.map(Into::into), func: Rc::new(func) }
     }
 
-    fn call<'a>(&self, args: &'a [Expr]) -> Expr {
+    pub fn call<'a>(&self, args: &'a [Expr]) -> Result<Expr> {
         (self.func)(args)
     }
 }
@@ -58,6 +59,19 @@ impl fmt::Debug for Function {
     }
 }
 
+impl<T> From<T> for Expr where T: Into<Atom>
+{
+    fn from(x: T) -> Expr {
+        Expr::Atom(x.into())
+    }
+}
+
+impl From<Function> for Expr {
+    fn from(x: Function) -> Expr {
+        Expr::Func(x)
+    }
+}
+
 impl From<Literal> for Atom {
     fn from(x: Literal) -> Self {
         match x {
@@ -66,6 +80,12 @@ impl From<Literal> for Atom {
             Literal::Flt(y) => Atom::Flt(y),
             Literal::Str(y) => Atom::Str(y),
         }
+    }
+}
+
+impl From<Symbol> for Atom {
+    fn from(x: Symbol) -> Self {
+        Atom::Sym(x)
     }
 }
 
@@ -81,19 +101,12 @@ impl From<List> for Quote {
     }
 }
 
-impl From<Symbol> for Atom {
-    fn from(x: Symbol) -> Self {
-        Atom::Symbol(x)
-    }
-}
-
-fn lift(func: Box<Fn(&[Atom]) -> Atom>) -> Lambda {
-    Box::new(move |args| Expr::Atom(
-        func(args.iter()
+fn lift(func: Box<Fn(&[Atom]) -> Result<Atom>>) -> Lambda {
+    Box::new(move |args| func(args.iter()
             .map(|arg| { if let &Expr::Atom(ref atom) = arg { atom.clone() } else { panic!() } })
             .collect::<Vec<_>>()
-            .as_slice())
-    ))
+            .as_slice()).map(Expr::Atom)
+    )
 }
 
 #[cfg(test)]
@@ -103,7 +116,7 @@ mod test {
     #[test]
     fn print_debug() {
         let func = Box::new(move |atoms: &[Atom]|
-            Atom::Int(atoms.iter().map(|x| if let &Atom::Int(y) = x {y} else { panic!() }).sum()));
+            Ok(Atom::Int(atoms.iter().map(|x| if let &Atom::Int(y) = x {y} else { panic!() }).sum())));
         let add = Function::new(Some("add"), lift(func));
         add.call(vec![Expr::Atom(Atom::Int(1)), Expr::Atom(Atom::Int(2))].as_slice());
     }

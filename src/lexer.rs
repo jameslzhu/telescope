@@ -86,8 +86,8 @@ fn punctuation<I>(input: I) -> ParseResult<Token, I>
         string("<="),
         string(">="),
     ]).map(|s| match s {
-        "<=" => Token::LessEqual,
-        ">=" => Token::GreaterEqual,
+        "<=" => Token::LessEq,
+        ">=" => Token::GreaterEq,
         _ => unreachable!(),
     });
 

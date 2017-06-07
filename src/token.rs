@@ -25,14 +25,11 @@ pub enum Token {
     // Comparison tokens
     Equal,
     Less,
-    LessEqual,
+    LessEq,
     Greater,
-    GreaterEqual,
+    GreaterEq,
 
     // Keywords
-    Nil,
-    True,
-    False,
     Not,
     Or,
     And,
