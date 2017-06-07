@@ -1,6 +1,6 @@
 use ops;
 use token::Token;
-use ast::{Expr, Function, Symbol};
+use ast::{Expr, Function, List, Quote, Symbol};
 use combine::{between, many, parser, satisfy_map, token};
 use combine::{Stream, Parser, ParseError, ParseResult};
 
@@ -62,14 +62,18 @@ fn builtin<I>(input: I) -> ParseResult<Expr, I>
 fn list<I>(input: I) -> ParseResult<Expr, I>
     where I: Stream<Item=Token>
 {
-    between(token(Token::LParen), token(Token::RParen), parser(expr))
+    between(token(Token::LParen),
+            token(Token::RParen),
+            many(parser(expr)).map(List).map(Expr::List))
         .parse_stream(input)
 }
 
 fn quote<I>(input: I) -> ParseResult<Expr, I>
     where I: Stream<Item=Token>
 {
-    between(token(Token::LBracket), token(Token::RBracket), parser(expr))
+    between(token(Token::LBracket),
+            token(Token::RBracket),
+            many(parser(expr)).map(Quote).map(Expr::Quote))
         .parse_stream(input)
 }
 

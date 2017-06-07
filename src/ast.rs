@@ -21,10 +21,10 @@ pub enum Atom {
 }
 
 #[derive(Clone, Debug)]
-pub struct List(Vec<Expr>);
+pub struct List(pub Vec<Expr>);
 
 #[derive(Clone, Debug)]
-pub struct Quote(Vec<Expr>);
+pub struct Quote(pub Vec<Expr>);
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Symbol(pub String);
@@ -56,6 +56,67 @@ impl fmt::Debug for Function {
         } else {
             write!(f, "#\u{03BB}")
         }
+    }
+}
+
+impl fmt::Display for Expr {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Expr::Func(ref func) => write!(f, "{}", func),
+            Expr::Atom(ref atom) => write!(f, "{}", atom),
+            Expr::List(ref list) => write!(f, "{}", list),
+            Expr::Quote(ref quote) => write!(f, "{}", quote),
+        }
+    }
+}
+
+impl fmt::Display for Atom {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Atom::Bool(boolean) => write!(f, "#{}", if boolean { "t" } else { "f" }),
+            Atom::Int(int) => write!(f, "{}", int),
+            Atom::Flt(flt) => write!(f, "{}", flt),
+            Atom::Str(ref string) => write!(f, "\"{}\"", string),
+            Atom::Sym(ref sym) => write!(f, "#{}", sym.0),
+        }
+    }
+}
+
+impl fmt::Display for List {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "(");
+        let mut first = true;
+        for expr in &self.0 {
+            if first {
+                first = false;
+            } else {
+                write!(f, " ");
+            }
+            write!(f, "{}", expr);
+        }
+        write!(f, ")")
+    }
+}
+
+impl fmt::Display for Quote {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "[");
+        let mut first = true;
+        for expr in &self.0 {
+            if first {
+                first = false;
+            } else {
+                write!(f, " ");
+            }
+            write!(f, "{}", expr);
+        }
+        write!(f, "]")
+    }
+}
+
+impl fmt::Display for Function {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Debug::fmt(self, f)
     }
 }
 

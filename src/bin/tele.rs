@@ -26,10 +26,12 @@ fn main() {
                 match lexer::lex(line.trim_right()) {
                     Ok((tokens, _)) => {
                         match parser::parse_tokens(tokens.as_slice()) {
-                            Ok((exprs, _)) => println!("{}", exprs.iter()
-                                .map(|x| format!("{:?}", x))
-                                .collect::<Vec<_>>()
-                                .join(" ")),
+                            Ok((exprs, _)) => {
+                                for expr in exprs {
+                                    print!("{} ", expr);
+                                }
+                                println!();
+                            }
                             Err(e) => println!("Error: {:?}", e),
                         }
                     },
