@@ -85,14 +85,10 @@ impl fmt::Display for Atom {
 impl fmt::Display for List {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "(");
-        let mut first = true;
-        for expr in &self.0 {
-            if first {
-                first = false;
-            } else {
-                write!(f, " ");
-            }
-            write!(f, "{}", expr);
+        let mut iter = self.0.iter();
+        iter.next().map(|x| write!(f, "{}", x));
+        for expr in iter {
+            write!(f, " {}", expr);
         }
         write!(f, ")")
     }
@@ -101,14 +97,10 @@ impl fmt::Display for List {
 impl fmt::Display for Quote {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "[");
-        let mut first = true;
-        for expr in &self.0 {
-            if first {
-                first = false;
-            } else {
-                write!(f, " ");
-            }
-            write!(f, "{}", expr);
+        let mut iter = self.0.iter();
+        iter.next().map(|x| write!(f, "{}", x));
+        for expr in iter {
+            write!(f, " {}", expr);
         }
         write!(f, "]")
     }
