@@ -2,10 +2,10 @@ extern crate rustyline;
 extern crate combine;
 extern crate telescope;
 
-use telescope::{lexer, parser};
 
 use rustyline::Editor;
 use rustyline::error::ReadlineError as RLError;
+use telescope::{lexer, parser};
 
 fn main() {
     // Prompt constants
@@ -40,7 +40,7 @@ fn main() {
                         if !unlexed.is_empty() {
                             println!("Unlexed: {}", unlexed)
                         }
-                    },
+                    }
                     Err(e) => println!("Error: {}", e),
                 };
             }

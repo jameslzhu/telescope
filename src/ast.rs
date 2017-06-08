@@ -1,7 +1,7 @@
+use error::*;
 use std::fmt;
 use std::rc::Rc;
 use token::Literal;
-use error::*;
 
 #[derive(Clone, Debug)]
 pub enum Expr {
@@ -39,9 +39,12 @@ pub type Lambda = Box<Fn(&[Expr]) -> Result<Expr>>;
 
 impl Function {
     pub fn new<S>(name: Option<S>, func: Lambda) -> Self
-        where S: Into<String>,
+        where S: Into<String>
     {
-        Function { name: name.map(Into::into), func: Rc::new(func) }
+        Function {
+            name: name.map(Into::into),
+            func: Rc::new(func),
+        }
     }
 
     pub fn call<'a>(&self, args: &'a [Expr]) -> Result<Expr> {
@@ -112,7 +115,8 @@ impl fmt::Display for Function {
     }
 }
 
-impl<T> From<T> for Expr where T: Into<Atom>
+impl<T> From<T> for Expr
+    where T: Into<Atom>
 {
     fn from(x: T) -> Expr {
         Expr::Atom(x.into())
@@ -155,11 +159,19 @@ impl From<List> for Quote {
 }
 
 fn lift(func: Box<Fn(&[Atom]) -> Result<Atom>>) -> Lambda {
-    Box::new(move |args| func(args.iter()
-            .map(|arg| { if let &Expr::Atom(ref atom) = arg { atom.clone() } else { panic!() } })
-            .collect::<Vec<_>>()
-            .as_slice()).map(Expr::Atom)
-    )
+    Box::new(move |args| {
+        func(args.iter()
+                .map(|arg| {
+                    if let &Expr::Atom(ref atom) = arg {
+                        atom.clone()
+                    } else {
+                        panic!()
+                    }
+                })
+                .collect::<Vec<_>>()
+                .as_slice())
+            .map(Expr::Atom)
+    })
 }
 
 #[cfg(test)]
@@ -168,8 +180,11 @@ mod test {
 
     #[test]
     fn call_fn() {
-        let func = Box::new(move |atoms: &[Atom]|
-            Ok(Atom::Int(atoms.iter().map(|x| if let &Atom::Int(y) = x {y} else { panic!() }).sum())));
+        let func = Box::new(move |atoms: &[Atom]| {
+            Ok(Atom::Int(atoms.iter()
+                .map(|x| if let &Atom::Int(y) = x { y } else { panic!() })
+                .sum()))
+        });
         let add = Function::new(Some("add"), lift(func));
         add.call(vec![Expr::Atom(Atom::Int(1)), Expr::Atom(Atom::Int(2))].as_slice());
     }
