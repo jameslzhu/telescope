@@ -37,6 +37,71 @@ pub struct Function {
 
 pub type Lambda = Box<Fn(&[Expr]) -> Result<Expr>>;
 
+impl Expr {
+    pub fn eval(&self) -> Result<Expr> {
+        if let &Expr::List(ref lst) = self {
+            if let Some((first, rest)) = lst.0.split_first() {
+                if let &Expr::Func(ref func) = first {
+                    return func.call(rest)
+                } else {
+                    return Err("expected function call".into())
+                }
+            }
+        }
+        Ok(self.clone())
+    }
+
+    pub fn atom(&self) -> Option<&Atom> {
+        if let &Expr::Atom(ref x) = self { Some(x) } else { None }
+    }
+
+    pub fn list(&self) -> Option<&List> {
+        if let &Expr::List(ref x) = self { Some(x) } else { None }
+    }
+
+    pub fn quote(&self) -> Option<&Quote> {
+        if let &Expr::Quote(ref x) = self { Some(x) } else { None }
+    }
+
+    pub fn func(&self) -> Option<&Function> {
+        if let &Expr::Func(ref x) = self { Some(x) } else { None }
+    }
+}
+
+impl Atom {
+    pub fn is_boolean(&self) -> bool {
+        self.boolean().is_some()
+    }
+
+    pub fn is_int(&self) -> bool {
+        self.int().is_some()
+    }
+
+    pub fn is_flt(&self) -> bool {
+        self.flt().is_some()
+    }
+
+    pub fn is_str(&self) -> bool {
+        self.str().is_some()
+    }
+
+    pub fn boolean(&self) -> Option<bool> {
+        if let &Atom::Bool(x) = self { Some(x) } else { None }
+    }
+
+    pub fn int(&self) -> Option<i64> {
+        if let &Atom::Int(x) = self { Some(x) } else { None }
+    }
+
+    pub fn flt(&self) -> Option<f64> {
+        if let &Atom::Flt(x) = self { Some(x) } else { None }
+    }
+
+    pub fn str(&self) -> Option<&str> {
+        if let &Atom::Str(ref x) = self { Some(x) } else { None }
+    }
+}
+
 impl Function {
     pub fn new<S>(name: Option<S>, func: Lambda) -> Self
         where S: Into<String>
@@ -129,9 +194,11 @@ impl From<Function> for Expr {
     }
 }
 
-impl From<Literal> for Atom {
-    fn from(x: Literal) -> Self {
-        match x {
+impl<T> From<T> for Atom
+    where T: Into<Literal>
+{
+    fn from(x: T) -> Self {
+        match x.into() {
             Literal::Bool(y) => Atom::Bool(y),
             Literal::Int(y) => Atom::Int(y),
             Literal::Flt(y) => Atom::Flt(y),
