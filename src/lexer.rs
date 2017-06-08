@@ -1,32 +1,41 @@
-use combine::{between, choice, many, many1, optional, parser, satisfy, satisfy_map, sep_by, try};
 use combine::{Parser, Stream, ParseError, ParseResult};
+use combine::{between, choice, many, many1, optional, parser, satisfy, satisfy_map, sep_by, try};
 use combine::char::{alpha_num, digit, char, letter, spaces, string};
 
 use token::{Literal, Token};
 
 pub fn lex<'a>(line: &'a str) -> Result<(Vec<Token>, &'a str), ParseError<&'a str>> {
-    spaces().with(parser(token_stream))
+    spaces()
+        .with(parser(token_stream))
         .parse(line)
 }
 
 fn literal<I>(input: I) -> ParseResult<Literal, I>
-    where I: Stream<Item=char>
+    where I: Stream<Item = char>
 {
     let digits = many1::<String, _>(digit());
     let integer = optional(char('-'))
         .and(digits.clone())
         .map(|(sign, s)| {
             let magnitude = s.parse::<i64>().unwrap();
-            if sign.is_some() { -magnitude } else { magnitude }
+            if sign.is_some() {
+                -magnitude
+            } else {
+                magnitude
+            }
         })
         .map(Literal::from);
-    
+
     let float = optional(char('-'))
         .and((digits.clone(), char('.'), digits.clone())
             .map(|(prefix, _, suffix)| format!("{}.{}", prefix, suffix)))
         .map(|(sign, s)| {
             let magnitude = s.parse::<f64>().unwrap();
-            if sign.is_some() { -magnitude } else { magnitude }
+            if sign.is_some() {
+                -magnitude
+            } else {
+                magnitude
+            }
         })
         .map(Literal::from);
 
@@ -41,29 +50,44 @@ fn literal<I>(input: I) -> ParseResult<Literal, I>
             }
         }))
         .map(Literal::from);
-    
-    let non_quote = satisfy(|c| c != '"');
-    
-    let string = between(char('"'), char('"'), many::<String, _>(non_quote))
-        .map(Literal::from);
-    
-    boolean.or(string).or(num)
+
+    let escaped = char('\\')
+        .with(satisfy_map(|c| {
+            match c {
+                '\"' => Some('\"'),
+                '\\' => Some('\\'),
+                'n' => Some('\n'),
+                'r' => Some('\r'),
+                't' => Some('\t'),
+                _ => None,
+            }
+        }));
+
+    let non_quote = try(escaped).or(satisfy(|c| c != '"'));
+
+    let string = between(char('"'), char('"'), many::<String, _>(non_quote)).map(Literal::from);
+
+    boolean.or(string)
+        .or(num)
         .parse_stream(input)
 }
 
 fn symbol<I>(input: I) -> ParseResult<Token, I>
-    where I: Stream<Item=char>
+    where I: Stream<Item = char>
 {
     let first = letter().or(char('_'));
     let rest = many::<String, _>(alpha_num().or(char('_')));
     first.and(rest)
-        .map(|(f, mut r)| { r.insert(0, f); r })
+        .map(|(f, mut r)| {
+            r.insert(0, f);
+            r
+        })
         .map(Token::Symbol)
         .parse_stream(input)
 }
 
 fn punctuation<I>(input: I) -> ParseResult<Token, I>
-    where I: Stream<Item=char>
+    where I: Stream<Item = char>
 {
     let single_char_tokens = satisfy_map(|c| {
         match c {
@@ -78,14 +102,11 @@ fn punctuation<I>(input: I) -> ParseResult<Token, I>
             '=' => Some(Token::Equal),
             '<' => Some(Token::Less),
             '>' => Some(Token::Greater),
-            _ => None
+            _ => None,
         }
     });
 
-    let two_char_tokens = choice([
-        string("<="),
-        string(">="),
-    ]).map(|s| match s {
+    let two_char_tokens = choice([string("<="), string(">=")]).map(|s| match s {
         "<=" => Token::LessEq,
         ">=" => Token::GreaterEq,
         _ => unreachable!(),
@@ -96,7 +117,7 @@ fn punctuation<I>(input: I) -> ParseResult<Token, I>
 }
 
 fn token<I>(input: I) -> ParseResult<Token, I>
-    where I: Stream<Item=char>
+    where I: Stream<Item = char>
 {
     parser(symbol)
         .or(parser(literal).map(Token::Literal))
@@ -106,16 +127,16 @@ fn token<I>(input: I) -> ParseResult<Token, I>
 }
 
 fn token_stream<I>(input: I) -> ParseResult<Vec<Token>, I>
-    where I: Stream<Item=char>
+    where I: Stream<Item = char>
 {
     sep_by(parser(token), spaces()).parse_stream(input)
 }
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use float_cmp::ApproxEqUlps;
     use quickcheck::TestResult;
+    use super::*;
 
     #[test]
     fn parse_bool_literal() {
