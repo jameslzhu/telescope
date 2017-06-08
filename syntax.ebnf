@@ -1,2 +1,8 @@
-boolean = 'true' | 'false'
-
+; Syntax
+expr = atom | list | quote
+atom = NUMBER | STRING | bool | symbol
+bool = "#t" | "#f"
+symbol = identifier | "+" | "-" | "*" | "/" | "=" | "!=" | "<" | "<=" | ">" | ">="
+identifier = "[a-zA-Z_][a-zA-Z_0-9]*"
+list = "(" expr* ")"
+quote = "[" expr* "]"
