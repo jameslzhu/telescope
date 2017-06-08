@@ -14,18 +14,20 @@ addons:
     sources:
       - kalakris-cmake
 
+# Test the trains
 rust:
   - stable
   - beta
   - nightly
 
-# whitelist
+# build whitelist
 branches:
   only:
     - master
     - develop
     - /^release/.*$/
 
+# Allowed failures on non-stable trains
 matrix:
   allow_failures:
     - rust: beta
@@ -33,16 +35,13 @@ matrix:
 
 # Load travis-cargo
 before_script:
-  - |
-      cargo install cargo-travis --force &&
-      export PATH=$HOME/.cargo/bin:$PATH
+  - cargo install cargo-travis; export PATH=$HOME/.cargo/bin:$PATH
 
-jobs:
-  include:
-    - stage: doc
-      script: cargo doc
-      rust: stable
-
-# Measure code coverage, upload to coveralls.io
+# Document, measure code coverage, upload to coveralls.io
 after_success:
+  - cargo doc
   - cargo coveralls
+
+# Disable build notifications
+notifications:
+  email: false
