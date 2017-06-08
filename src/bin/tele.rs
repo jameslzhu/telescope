@@ -24,18 +24,24 @@ fn main() {
                     break;
                 }
                 match lexer::lex(line.trim_right()) {
-                    Ok((tokens, _)) => {
-                        match parser::parse_tokens(tokens.as_slice()) {
-                            Ok((exprs, _)) => {
+                    Ok((tokens, unlexed)) => {
+                        match parser::parse(tokens.as_slice()) {
+                            Ok((exprs, unparsed)) => {
                                 for expr in exprs {
                                     print!("{} ", expr);
                                 }
                                 println!();
+                                if !unparsed.is_empty() {
+                                    println!("Unparsed: {:?}", unparsed);
+                                }
                             }
                             Err(e) => println!("Error: {:?}", e),
+                        };
+                        if !unlexed.is_empty() {
+                            println!("Unlexed: {}", unlexed)
                         }
                     },
-                    Err(e) => println!("Error: {:?}", e),
+                    Err(e) => println!("Error: {}", e),
                 };
             }
             Err(RLError::Interrupted) |

@@ -4,7 +4,7 @@ use ast::{Expr, Function, List, Quote, Symbol};
 use combine::{between, many, parser, satisfy_map, token};
 use combine::{Stream, Parser, ParseError, ParseResult};
 
-pub fn parse_tokens<I>(input: I) -> Result<(Vec<Expr>, I), ParseError<I>>
+pub fn parse<I>(input: I) -> Result<(Vec<Expr>, I), ParseError<I>>
     where I: Stream<Item=Token>
 {
     many(parser(expr)).parse(input)

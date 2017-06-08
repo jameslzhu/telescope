@@ -175,7 +175,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn print_debug() {
+    fn call_fn() {
         let func = Box::new(move |atoms: &[Atom]|
             Ok(Atom::Int(atoms.iter().map(|x| if let &Atom::Int(y) = x {y} else { panic!() }).sum())));
         let add = Function::new(Some("add"), lift(func));
