@@ -158,6 +158,15 @@ mod test {
     }
 
     #[test]
+    fn parse_escape_chars() {
+        assert_eq!(Ok((Literal::Str("\"".into()), "")), parser(literal).parse(r#""\"""#));
+        assert_eq!(Ok((Literal::Str("\\".into()), "")), parser(literal).parse(r#""\\""#));
+        assert_eq!(Ok((Literal::Str("\n".into()), "")), parser(literal).parse(r#""\n""#));
+        assert_eq!(Ok((Literal::Str("\r".into()), "")), parser(literal).parse(r#""\r""#));
+        assert_eq!(Ok((Literal::Str("\t".into()), "")), parser(literal).parse(r#""\t""#));
+    }
+
+    #[test]
     fn parse_empty() {
         assert_eq!(Ok((Vec::new(), "")), parser(token_stream).parse(""));
     }
@@ -183,14 +192,20 @@ mod test {
             }
         }
 
-        fn parse_str_literal(x: String) -> TestResult {
-            let string = format!("\"{}\"", x);
-            if x.contains('\"') {
-                return TestResult::discard()
-            }
+        fn parse_str_literal(x: String) -> () {
+            let has_escape_chars = x.contains('\\') || x.contains('\"');
+            let string = if has_escape_chars {
+                x.chars()
+                    .map(char::escape_default)
+                    .map(|x| x.to_string())
+                    .inspect(|x| println!("{}", x))
+                    .collect()
+            } else {
+                format!("\"{}\"", x)
+            };
             match parser(literal).parse(&*string) {
-                Ok((Literal::Str(result), _)) => TestResult::from_bool(result == x),
-                _ => TestResult::failed(),
+                Ok((Literal::Str(result), _)) => assert_eq!(result, x),
+                _ => (),
             }
         }
 
