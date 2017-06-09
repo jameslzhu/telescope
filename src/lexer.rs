@@ -4,38 +4,32 @@ use combine::char::{alpha_num, digit, char, letter, spaces, string};
 
 use token::{Literal, Token};
 
-pub fn lex<'a>(line: &'a str) -> Result<(Vec<Token>, &'a str), ParseError<&'a str>> {
-    spaces()
-        .with(parser(token_stream))
-        .parse(line)
-}
-
-fn literal<I>(input: I) -> ParseResult<Literal, I>
+pub fn lex<I>(input: I) -> Result<(Vec<Token>, I), ParseError<I>>
     where I: Stream<Item = char>
 {
+    spaces().with(sep_by(parser(token), spaces()))
+        .parse(input)
+}
+
+fn literal<I>(input: I) -> ParseResult<Token, I>
+    where I: Stream<Item = char>
+{
+    let sign = optional(char('-'));
     let digits = many1::<String, _>(digit());
-    let integer = optional(char('-'))
-        .and(digits.clone())
-        .map(|(sign, s)| {
-            let magnitude = s.parse::<i64>().unwrap();
-            if sign.is_some() {
-                -magnitude
-            } else {
-                magnitude
-            }
+    let integer = sign.clone()
+        .and(digits.clone()
+                .and_then(|s| s.parse::<i64>()))
+        .map(|(sign, num)| {
+            if sign.is_some() { -num } else { num }
         })
         .map(Literal::from);
 
-    let float = optional(char('-'))
+    let float = sign.clone()
         .and((digits.clone(), char('.'), digits.clone())
-            .map(|(prefix, _, suffix)| format!("{}.{}", prefix, suffix)))
-        .map(|(sign, s)| {
-            let magnitude = s.parse::<f64>().unwrap();
-            if sign.is_some() {
-                -magnitude
-            } else {
-                magnitude
-            }
+            .map(|(prefix, _, suffix)| format!("{}.{}", prefix, suffix))
+            .and_then(|num| num.parse::<f64>()))
+        .map(|(sign, num)| {
+            if sign.is_some() { -num } else { num }
         })
         .map(Literal::from);
 
@@ -67,8 +61,8 @@ fn literal<I>(input: I) -> ParseResult<Literal, I>
 
     let string = between(char('"'), char('"'), many::<String, _>(non_quote)).map(Literal::from);
 
-    boolean.or(string)
-        .or(num)
+    choice!(boolean, string, num)
+        .map(Token::from)
         .parse_stream(input)
 }
 
@@ -119,17 +113,12 @@ fn punctuation<I>(input: I) -> ParseResult<Token, I>
 fn token<I>(input: I) -> ParseResult<Token, I>
     where I: Stream<Item = char>
 {
-    parser(symbol)
-        .or(parser(literal).map(Token::Literal))
-        .or(parser(symbol))
-        .or(parser(punctuation))
-        .parse_stream(input)
-}
-
-fn token_stream<I>(input: I) -> ParseResult<Vec<Token>, I>
-    where I: Stream<Item = char>
-{
-    sep_by(parser(token), spaces()).parse_stream(input)
+    choice!(
+        parser(symbol),
+        parser(literal),
+        parser(symbol),
+        parser(punctuation)
+    ).parse_stream(input)
 }
 
 #[cfg(test)]
@@ -140,18 +129,18 @@ mod test {
 
     #[test]
     fn parse_bool_literal() {
-        assert_eq!(Ok((Literal::Bool(true), "")), parser(literal).parse("#t"));
-        assert_eq!(Ok((Literal::Bool(false), "")), parser(literal).parse("#f"));
+        assert_eq!(Ok((Token::from(true), "")), parser(literal).parse("#t"));
+        assert_eq!(Ok((Token::from(false), "")), parser(literal).parse("#f"));
     }
 
     #[test]
     fn parse_zero_literal() {
         // Integer case
-        assert_eq!(Ok((Literal::Int(0i64), "")), parser(literal).parse("0"));
+        assert_eq!(Ok((Token::from(0i64), "")), parser(literal).parse("0"));
 
         // Float case
         match parser(literal).parse("0.0") {
-            Ok((Literal::Flt(flt), _)) => assert!(flt.approx_eq_ulps(&0.0f64, 4)),
+            Ok((Token::Literal(Literal::Flt(flt)), _)) => assert!(flt.approx_eq_ulps(&0.0f64, 4)),
             Ok(x) => assert!(false, format!("0.0 parsed as {}", x.0)),
             Err(e) => assert!(false, format!("0.0 parsed as {}", e)),
         };
@@ -159,24 +148,21 @@ mod test {
 
     #[test]
     fn parse_escape_chars() {
-        assert_eq!(Ok((Literal::Str("\"".into()), "")), parser(literal).parse(r#""\"""#));
-        assert_eq!(Ok((Literal::Str("\\".into()), "")), parser(literal).parse(r#""\\""#));
-        assert_eq!(Ok((Literal::Str("\n".into()), "")), parser(literal).parse(r#""\n""#));
-        assert_eq!(Ok((Literal::Str("\r".into()), "")), parser(literal).parse(r#""\r""#));
-        assert_eq!(Ok((Literal::Str("\t".into()), "")), parser(literal).parse(r#""\t""#));
+        assert_eq!(Ok((Token::from("\""), "")), parser(literal).parse(r#""\"""#));
+        assert_eq!(Ok((Token::from("\\"), "")), parser(literal).parse(r#""\\""#));
+        assert_eq!(Ok((Token::from("\n"), "")), parser(literal).parse(r#""\n""#));
+        assert_eq!(Ok((Token::from("\r"), "")), parser(literal).parse(r#""\r""#));
+        assert_eq!(Ok((Token::from("\t"), "")), parser(literal).parse(r#""\t""#));
     }
 
     #[test]
     fn parse_empty() {
-        assert_eq!(Ok((Vec::new(), "")), parser(token_stream).parse(""));
+        assert_eq!(Ok((Vec::new(), "")), lex(""));
     }
 
     quickcheck!{
-        fn parse_int_literal(x: i64) -> bool {
-            match parser(literal).parse(&*x.to_string()) {
-                Ok((Literal::Int(y), _)) => x == y,
-                _ => false,
-            }
+        fn parse_int_literal(x: i64) -> () {
+            assert_eq!(Ok((Token::from(x), "")), parser(literal).parse(&*x.to_string()));
         }
 
         fn parse_float_literal(x: f64) -> bool {
@@ -185,28 +171,24 @@ mod test {
                 string.push_str(".0");
             }
 
-            if let Ok((Literal::Flt(y), _)) = parser(literal).parse(&*string) {
+            if let Ok((Token::Literal(Literal::Flt(y)), _)) = parser(literal).parse(&*string) {
                 x.approx_eq_ulps(&y, 4)
             } else {
                 false
             }
         }
 
-        fn parse_str_literal(x: String) -> () {
+        fn parse_str_literal(x: String) -> bool {
             let has_escape_chars = x.contains('\\') || x.contains('\"');
             let string = if has_escape_chars {
                 x.chars()
                     .map(char::escape_default)
-                    .map(|x| x.to_string())
-                    .inspect(|x| println!("{}", x))
+                    .map(|y| y.to_string())
                     .collect()
             } else {
                 format!("\"{}\"", x)
             };
-            match parser(literal).parse(&*string) {
-                Ok((Literal::Str(result), _)) => assert_eq!(result, x),
-                _ => (),
-            }
+            Ok((Token::from(x.clone()), "")) == parser(literal).parse(&*string)
         }
 
         fn parse_symbol(x: String) -> TestResult {
