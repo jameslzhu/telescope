@@ -124,7 +124,6 @@ fn token<I>(input: I) -> ParseResult<Token, I>
 #[cfg(test)]
 mod test {
     use float_cmp::ApproxEqUlps;
-    use quickcheck::TestResult;
     use super::*;
 
     #[test]
@@ -161,8 +160,8 @@ mod test {
     }
 
     quickcheck!{
-        fn parse_int_literal(x: i64) -> () {
-            assert_eq!(Ok((Token::from(x), "")), parser(literal).parse(&*x.to_string()));
+        fn parse_int_literal(x: i64) -> bool {
+            Ok((Token::from(x), "")) == parser(literal).parse(&*x.to_string())
         }
 
         fn parse_float_literal(x: f64) -> bool {
@@ -179,37 +178,30 @@ mod test {
         }
 
         fn parse_str_literal(x: String) -> bool {
-            let has_escape_chars = x.contains('\\') || x.contains('\"');
-            let string = if has_escape_chars {
-                x.chars()
-                    .map(char::escape_default)
-                    .map(|y| y.to_string())
-                    .collect()
-            } else {
-                format!("\"{}\"", x)
-            };
+            let string = format!("\"{}\"", x
+                .replace("\\", r"\\")
+                .replace("\n", r"\n")
+                .replace("\r", r"\r")
+                .replace("\t", r"\t")
+                .replace("\"", r#"\""#));
             Ok((Token::from(x.clone()), "")) == parser(literal).parse(&*string)
         }
 
-        fn parse_symbol(x: String) -> TestResult {
-            if x.is_empty() {
-                return TestResult::discard()
-            }
-
-            if !x.chars().next().unwrap().is_alphabetic() {
-                return TestResult::discard()
-            }
-
-            // Test only valid symbols
-            for c in x.chars() {
-                if !(c.is_alphanumeric() || c == '_') {
-                    return TestResult::discard()
-                }
-            }
-
+        fn parse_symbol(x: String) -> bool {
             match parser(symbol).parse(&*x) {
-                Ok((Token::Symbol(result), _)) => TestResult::from_bool(result == x),
-                _ => TestResult::failed(),
+                Ok((Token::Symbol(result), _)) => result.chars().all(|c| c.is_alphanumeric() || c == '_'),
+                Err(_) => {
+                    if x.is_empty() {
+                        true
+                    } else if !x.chars().next().unwrap().is_alphabetic() {
+                        true
+                    } else if !x.chars().all(|c| c.is_alphanumeric() || c == '_') {
+                        true
+                    } else {
+                        false
+                    }
+                }
+                _ => false
             }
         }
     }
