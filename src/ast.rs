@@ -152,25 +152,28 @@ impl fmt::Display for Atom {
 
 impl fmt::Display for List {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "(");
-        let mut iter = self.0.iter();
-        iter.next().map(|x| write!(f, "{}", x));
-        for expr in iter {
-            write!(f, " {}", expr);
-        }
-        write!(f, ")")
+        write!(f, "({})", self.0.split_first()
+            .map(|(first, rest)| {
+                rest.iter().fold(first.to_string(), |mut acc, x| {
+                    acc.push_str(&x.to_string());
+                    acc
+                })
+            }).unwrap_or(String::new())
+        )
     }
 }
 
 impl fmt::Display for Quote {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "[");
-        let mut iter = self.0.iter();
-        iter.next().map(|x| write!(f, "{}", x));
-        for expr in iter {
-            write!(f, " {}", expr);
-        }
-        write!(f, "]")
+        write!(f, "[{}]", self.0.split_first()
+            .map(|(first, rest)| {
+                rest.iter().fold(first.to_string(), |mut acc, x| {
+                    acc.push(' ');
+                    acc.push_str(&x.to_string());
+                    acc
+                })
+            }).unwrap_or(String::new())
+        )
     }
 }
 
@@ -225,25 +228,26 @@ impl From<List> for Quote {
     }
 }
 
-fn lift(func: Box<Fn(&[Atom]) -> Result<Atom>>) -> Lambda {
-    Box::new(move |args| {
-        func(args.iter()
-                .map(|arg| {
-                    if let &Expr::Atom(ref atom) = arg {
-                        atom.clone()
-                    } else {
-                        panic!()
-                    }
-                })
-                .collect::<Vec<_>>()
-                .as_slice())
-            .map(Expr::Atom)
-    })
-}
 
 #[cfg(test)]
 mod test {
     use super::*;
+
+    fn lift(func: Box<Fn(&[Atom]) -> Result<Atom>>) -> Lambda {
+        Box::new(move |args| {
+            func(args.iter()
+                    .map(|arg| {
+                        if let &Expr::Atom(ref atom) = arg {
+                            atom.clone()
+                        } else {
+                            panic!()
+                        }
+                    })
+                    .collect::<Vec<_>>()
+                    .as_slice())
+                .map(Expr::Atom)
+        })
+    }
 
     #[test]
     fn call_fn() {
