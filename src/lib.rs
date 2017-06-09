@@ -9,11 +9,13 @@ extern crate quickcheck;
 #[macro_use]
 extern crate error_chain;
 
+#[macro_use]
 extern crate combine;
 
-pub mod ast;
-pub mod token;
+mod ast;
+mod token;
+mod ops;
+
 pub mod lexer;
 pub mod parser;
 pub mod error;
-pub mod ops;
