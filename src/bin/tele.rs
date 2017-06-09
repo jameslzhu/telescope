@@ -2,10 +2,10 @@ extern crate rustyline;
 extern crate combine;
 extern crate telescope;
 
-
 use rustyline::Editor;
 use rustyline::error::ReadlineError as RLError;
 use telescope::{lexer, parser};
+// use telescope::error::*;
 
 fn main() {
     // Prompt constants
@@ -23,26 +23,22 @@ fn main() {
                 if line == "exit" || line == "quit" {
                     break;
                 }
-                match lexer::lex(line.trim_right()) {
-                    Ok((tokens, unlexed)) => {
-                        match parser::parse(tokens.as_slice()) {
-                            Ok((exprs, unparsed)) => {
+
+                let _ = lexer::lex(line.trim_right())
+                    .map(|(tokens, _unlexed)| {
+                        parser::parse(&*tokens)
+                            .map(|(exprs, _unparsed)| {
                                 for expr in exprs {
-                                    print!("{} ", expr);
+                                    match expr.eval() {
+                                        Ok(value) => print!("{} ", value),
+                                        Err(err) => { println!("Error: {}", err); continue }
+                                    }
                                 }
                                 println!();
-                                if !unparsed.is_empty() {
-                                    println!("Unparsed: {:?}", unparsed);
-                                }
-                            }
-                            Err(e) => println!("Error: {:?}", e),
-                        };
-                        if !unlexed.is_empty() {
-                            println!("Unlexed: {}", unlexed)
-                        }
-                    }
-                    Err(e) => println!("Error: {}", e),
-                };
+                            })
+                            .map_err(|err| println!("Unparsed: {:?}", err))
+                    })
+                    .map_err(|err| println!("Error: {}", err));
             }
             Err(RLError::Interrupted) |
             Err(RLError::Eof) => break,
