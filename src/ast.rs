@@ -51,20 +51,20 @@ impl Expr {
         Ok(self.clone())
     }
 
-    pub fn atom(&self) -> Option<&Atom> {
-        if let &Expr::Atom(ref x) = self { Some(x) } else { None }
+    pub fn atom(self) -> Option<Atom> {
+        if let Expr::Atom(x) = self { Some(x) } else { None }
     }
 
-    pub fn list(&self) -> Option<&List> {
-        if let &Expr::List(ref x) = self { Some(x) } else { None }
+    pub fn list(self) -> Option<List> {
+        if let Expr::List(x) = self { Some(x) } else { None }
     }
 
-    pub fn quote(&self) -> Option<&Quote> {
-        if let &Expr::Quote(ref x) = self { Some(x) } else { None }
+    pub fn quote(self) -> Option<Quote> {
+        if let Expr::Quote(x) = self { Some(x) } else { None }
     }
 
-    pub fn func(&self) -> Option<&Function> {
-        if let &Expr::Func(ref x) = self { Some(x) } else { None }
+    pub fn func(self) -> Option<Function> {
+        if let Expr::Func(x) = self { Some(x) } else { None }
     }
 }
 
@@ -85,6 +85,13 @@ impl Atom {
         self.str().is_some()
     }
 
+    pub fn is_num(&self) -> bool {
+        match self {
+            &Atom::Flt(_) | &Atom::Int(_) => true,
+            _ => false,
+        }
+    }
+
     pub fn boolean(&self) -> Option<bool> {
         if let &Atom::Bool(x) = self { Some(x) } else { None }
     }
@@ -99,6 +106,24 @@ impl Atom {
 
     pub fn str(&self) -> Option<&str> {
         if let &Atom::Str(ref x) = self { Some(x) } else { None }
+    }
+
+    pub fn map_int<F>(self, f: F) -> Atom
+        where F: FnOnce(i64) -> Atom
+    {
+        match self {
+            Atom::Int(int) => f(int),
+            _ => self,
+        }
+    }
+
+    pub fn map_flt<F>(self, f: F) -> Atom
+        where F: FnOnce(f64) -> Atom
+    {
+        match self {
+            Atom::Flt(flt) => f(flt),
+            _ => self,
+        }
     }
 }
 
@@ -258,6 +283,6 @@ mod test {
         });
         let add = Function::new(Some("add"), lift(func));
         let result = add.call(vec![Expr::Atom(Atom::Int(1)), Expr::Atom(Atom::Int(2))].as_slice());
-        assert_eq!(Some(&Atom::from(3)), result.unwrap().atom());
+        assert_eq!(Some(Atom::from(3)), result.unwrap().atom());
     }
 }
