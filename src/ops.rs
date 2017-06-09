@@ -1,3 +1,5 @@
+#![allow(unused_variables)]
+
 use ast::{Atom, Expr};
 use error::*;
 
