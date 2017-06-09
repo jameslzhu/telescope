@@ -13,12 +13,13 @@ pub fn parse<I>(input: I) -> Result<(Vec<Expr>, I), ParseError<I>>
 fn expr<I>(input: I) -> ParseResult<Expr, I>
     where I: Stream<Item = Token>
 {
-    parser(atom)
-        .or(parser(builtin))
-        .or(parser(symbol))
-        .or(parser(list))
-        .or(parser(quote))
-        .parse_stream(input)
+    choice!(
+        parser(atom),
+        parser(builtin),
+        parser(symbol),
+        parser(list),
+        parser(quote)
+    ).parse_stream(input)
 }
 
 fn atom<I>(input: I) -> ParseResult<Expr, I>
@@ -51,6 +52,7 @@ fn builtin<I>(input: I) -> ParseResult<Expr, I>
                 Token::Less    => Some(Function::new(Some("<"), Box::new(ops::less)).into()),
                 Token::LessEq  => Some(Function::new(Some("<="), Box::new(ops::less_eq)).into()),
                 Token::Greater => Some(Function::new(Some(">"), Box::new(ops::greater)).into()),
+                Token::GreaterEq => Some(Function::new(Some(">"), Box::new(ops::greater_eq)).into()),
 
                 // Keywords
                 Token::Not     => Some(Function::new(Some("not"), Box::new(ops::not)).into()),
