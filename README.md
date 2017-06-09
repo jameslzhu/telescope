@@ -1,32 +1,73 @@
-lrs
--------
-[![Build
-Status](https://travis-ci.org/jzhu98/lrs.svg?style=flat-square&branch=develop)](https://travis-ci.org/jzhu98/lrs)
-[![Appveyor Status](https://ci.appveyor.com/api/projects/status/rlhd2gyjcmdkdxc7/branch/develop?svg=true)](https://ci.appveyor.com/project/jzhu98/lrs/branch/develop)
-[![Coverage Status](https://coveralls.io/repos/github/jzhu98/lrs/badge.svg?style=flat-square&branch=develop)](https://coveralls.io/github/jzhu98/lrs?branch=develop)
-[![Clippy Linting Result](https://clippy.bashy.io/github/jzhu98/lrs/develop/badge.svg?style=flat-square)](https://clippy.bashy.io/github/jzhu98/lrs/develop/log)
+# Telescope
 
-Lisp interpreter, built with Rust and based on [Build Your Own Lisp](buildyourownlisp.com).
+[![Build Status][travis-badge]][travis-link]
+[![Appveyor Status][appveyor-badge]][appveyor-link]
+[![Coverage Status][coveralls-badge]][coveralls-link]
 
-## Design
+[![XKCD][xkcd-img]][xkcd-link]
 
-### Expressions
-As a functional language, everything is an expression that
-evaluates to either a value, which is either  are referred to as an *atom*, or a *list*.
+[travis-badge]: https://img.shields.io/travis/jzhu98/telescope.svg?style=flat-square
+[travis-link]: https://travis-ci.org/jzhu98/telescope
+[appveyor-badge]:https://img.shields.io/appveyor/ci/jzhu98/lrs.svg?style=flat-square
+[appveyor-link]: https://ci.appveyor.com/project/jzhu98/lrs
+[coveralls-badge]: https://img.shields.io/coveralls/jzhu98/telescope.svg?style=flat-square
+[coveralls-link]: https://coveralls.io/github/jzhu98/telescope?branch=develop
+[xkcd-img]: https://imgs.xkcd.com/comics/lisp_cycles.png
+[xkcd-link]: https://xkcd.com/297/
 
-- ()    (unit)
-- int   (i64)
-- flt   (f64)
+Inspired by [Build Your Own Lisp](https://buildyourownlisp.com) and
+[Crafting Interpreters](https://craftinginterpreters.com), Telescope is a Lisp-family
+language, which I built to better understand the world of
+programming languages.
+
+## Specification
+
+### Interpreter
+
+#### Source
+  - Read from stdin (assumed UTF-8)
+
+#### Lexical analysis
+  - Divide source into token sequence
+  - Replace special tokens with other tokens
+
+#### Syntax analysis
+  - Parse token sequence into syntax tree
+
+#### Semantic analysis
+  - Traverse syntax trees
+  - Declare variables
+  - Load symbol tables
+  - Assign types
+  - Determine program meaning
+
+#### Code execution
+  - Code is evaluated (as everything is an expression) and outputted to stdout
+
+### Syntax
+
+#### Expressions
+
+As a functional language, everything is an expression, which may be an *atom*, *sexpr*, or *qexpr*.
+
+#### Data Types
+
+- ()    (nil)
+- int   (i32)
+- flt   (f32)
 - bool  (boolean)
 - str   (string)
 - fn    (function)
 
 An expression appears as follows:
-```
+
+```lisp
 (operator operands ...)
 ```
 
-A list literal is denoted by a '(), as in Scheme:
-'(elements ...)
+A list literal is denoted by `[]`:
 
-### Data layout
+```scheme
+> [1 2 3]
+(1 2 3)
+```

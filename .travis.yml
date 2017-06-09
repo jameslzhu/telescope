@@ -2,49 +2,46 @@ language: rust
 sudo: false
 cache: cargo
 
+# kcov dependencies (coverage)
 addons:
   apt:
     packages:
       - libcurl4-openssl-dev
       - libelf-dev
       - libdw-dev
-      - binutils-dev # optional: only required for the --verify flag of coveralls
+      - binutils-dev
+      - cmake
+    sources:
+      - kalakris-cmake
 
+# Test the trains
 rust:
   - stable
   - beta
   - nightly
 
-# whitelist
+# build whitelist
 branches:
   only:
     - master
     - develop
     - /^release/.*$/
 
+# Allowed failures on non-stable trains
 matrix:
   allow_failures:
+    - rust: beta
     - rust: nightly
 
 # Load travis-cargo
 before_script:
-  - |
-    pip install 'travis-cargo<0.2' --user &&
-    export PATH=$HOME/.local/bin:$PATH
+  - cargo install cargo-travis; export PATH=$HOME/.cargo/bin:$PATH
 
-# Main build
-script:
-  - |
-    travis-cargo build &&
-    travis-cargo test &&
-    travis-cargo bench &&
-    travis-cargo --only stable doc
-
-# Measure code coverage, upload to coveralls.io
+# Document, measure code coverage, upload to coveralls.io
 after_success:
-  - travis-cargo coveralls --no-sudo --verify
+  - cargo doc
+  - cargo coveralls
 
-env:
-  global:
-    # override the default `--features unstable` used for the nightly branch (optional)
-    - TRAVIS_CARGO_NIGHTLY_FEATURE=""
+# Disable build notifications
+notifications:
+  email: false
