@@ -13,7 +13,7 @@ fn unwrap_atoms<I>(args: I) -> Result<Vec<Atom>>
 
 pub fn add(args: &[Expr]) -> Result<Expr> {
     // Unwrap to atoms
-    let atoms = unwrap_atoms(evaled_args.into_iter())?;
+    let atoms = unwrap_atoms(args.iter().cloned())?;
     
     // Check all arguments are numeric
     if atoms.iter().all(Atom::is_num) {
@@ -36,7 +36,7 @@ pub fn add(args: &[Expr]) -> Result<Expr> {
 
 pub fn sub(args: &[Expr]) -> Result<Expr> {
     // Unwrap to atoms
-    let atoms = unwrap_atoms(evaled_args.into_iter())?;
+    let atoms = unwrap_atoms(args.iter().cloned())?;
 
     // Check all arguments are numeric
     if atoms.iter().all(Atom::is_num) {
@@ -78,7 +78,7 @@ pub fn sub(args: &[Expr]) -> Result<Expr> {
 
 pub fn mul(args: &[Expr]) -> Result<Expr> {
     // Unwrap to atoms
-    let atoms = unwrap_atoms(evaled_args.into_iter())?;
+    let atoms = unwrap_atoms(args.iter().cloned())?;
     
     // Check all arguments are numeric
     if atoms.iter().all(Atom::is_num) {
@@ -101,7 +101,7 @@ pub fn mul(args: &[Expr]) -> Result<Expr> {
 
 pub fn div(args: &[Expr]) -> Result<Expr> {
     // Unwrap to atoms
-    let atoms = unwrap_atoms(evaled_args.into_iter())?;
+    let atoms = unwrap_atoms(args.iter().cloned())?;
 
     // Check all arguments are numeric
     if atoms.iter().all(Atom::is_num) {

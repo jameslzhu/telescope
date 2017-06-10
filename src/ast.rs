@@ -289,7 +289,7 @@ mod test {
                 .sum()))
         });
         let add = Function::new(Some("add"), lift(func));
-        let result = add.call(vec![Expr::Atom(Atom::Int(1)), Expr::Atom(Atom::Int(2))].as_slice());
+        let result = add.apply(vec![Expr::Atom(Atom::Int(1)), Expr::Atom(Atom::Int(2))].as_slice());
         assert_eq!(Some(Atom::from(3)), result.unwrap().atom());
     }
 }
