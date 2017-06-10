@@ -3,13 +3,6 @@
 use ast::{Atom, Expr};
 use error::*;
 
-fn eval_args(args: &[Expr]) -> Result<Vec<Expr>> {
-    args.iter()
-        .map(Expr::eval)
-        .collect::<Result<_>>()
-        .chain_err(|| "argument eval failed")
-}
-
 fn unwrap_atoms<I>(args: I) -> Result<Vec<Atom>>
     where I: Iterator<Item = Expr>
 {
@@ -19,9 +12,6 @@ fn unwrap_atoms<I>(args: I) -> Result<Vec<Atom>>
 }
 
 pub fn add(args: &[Expr]) -> Result<Expr> {
-    // Evaluate all arguments
-    let evaled_args = eval_args(args)?;
-    
     // Unwrap to atoms
     let atoms = unwrap_atoms(evaled_args.into_iter())?;
     
@@ -45,9 +35,6 @@ pub fn add(args: &[Expr]) -> Result<Expr> {
 }
 
 pub fn sub(args: &[Expr]) -> Result<Expr> {
-    // Evaluate all arguments
-    let evaled_args = eval_args(args)?;
-    
     // Unwrap to atoms
     let atoms = unwrap_atoms(evaled_args.into_iter())?;
 
@@ -90,9 +77,6 @@ pub fn sub(args: &[Expr]) -> Result<Expr> {
 }
 
 pub fn mul(args: &[Expr]) -> Result<Expr> {
-    // Evaluate all arguments
-    let evaled_args = eval_args(args)?;
-    
     // Unwrap to atoms
     let atoms = unwrap_atoms(evaled_args.into_iter())?;
     
@@ -116,9 +100,6 @@ pub fn mul(args: &[Expr]) -> Result<Expr> {
 }
 
 pub fn div(args: &[Expr]) -> Result<Expr> {
-    // Evaluate all arguments
-    let evaled_args = eval_args(args)?;
-    
     // Unwrap to atoms
     let atoms = unwrap_atoms(evaled_args.into_iter())?;
 

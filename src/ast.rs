@@ -42,7 +42,7 @@ impl Expr {
         if let &Expr::List(ref lst) = self {
             if let Some((first, rest)) = lst.0.split_first() {
                 if let &Expr::Func(ref func) = first {
-                    return func.call(rest)
+                    return func.apply(rest)
                 } else {
                     return Err("expected function call".into())
                 }
@@ -137,8 +137,15 @@ impl Function {
         }
     }
 
-    pub fn call<'a>(&self, args: &'a [Expr]) -> Result<Expr> {
-        (self.func)(args)
+    pub fn apply<'a>(&self, args: &'a [Expr]) -> Result<Expr> {
+        // Eval all arguments, returning if any errors
+        let evaled_args = args.iter()
+            .map(Expr::eval)
+            .collect::<Result<Vec<_>>>()
+            .chain_err(|| "argument eval failed")?;
+
+        // Call function on args
+        (self.func)(&evaled_args)
     }
 }
 
