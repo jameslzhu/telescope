@@ -14,13 +14,13 @@ fn unwrap_atoms<I>(args: I) -> Result<Vec<Atom>>
 pub fn add(args: &[Expr]) -> Result<Expr> {
     // Unwrap to atoms
     let atoms = unwrap_atoms(args.iter().cloned())?;
-    
+
     // Check all arguments are numeric
     if atoms.iter().all(Atom::is_num) {
         if atoms.iter().any(Atom::is_flt) {
             // If any are float, promote to float and perform float addition
             Ok(Expr::from(atoms.into_iter()
-                .map(|a: Atom| a.map_int(|x: i64| Atom::Flt(x as f64)))
+                .map(|a| a.map_int(|x: i64| x as f64))
                 .map(|x| x.flt().unwrap())
                 .sum::<f64>()))
         } else {
@@ -45,10 +45,10 @@ pub fn sub(args: &[Expr]) -> Result<Expr> {
             // If one argument, negate and return
             if atoms.len() == 1 {
                 let mut atoms = atoms;
-                return Ok(Expr::from(atoms.remove(0).map_flt(|x| Atom::from(-x))))
+                return Ok(Expr::from(atoms.remove(0).map_flt(|x| -x)))
             }
             let mut nums = atoms.into_iter()
-                .map(|a: Atom| a.map_int(|x: i64| Atom::Flt(x as f64)))
+                .map(|a| a.map_int(|x: i64| x as f64))
                 .map(|x| x.flt().unwrap());
                 
             nums.next()
@@ -61,7 +61,7 @@ pub fn sub(args: &[Expr]) -> Result<Expr> {
             // If one argument, negate and return
             if atoms.len() == 1 {
                 let mut atoms = atoms;
-                return Ok(Expr::from(atoms.remove(0).map_int(|x| Atom::from(-x))))
+                return Ok(Expr::from(atoms.remove(0).map_int(|x| -x)))
             }
             let mut nums = atoms.iter()
                 .map(|x| x.int().unwrap());
@@ -85,7 +85,7 @@ pub fn mul(args: &[Expr]) -> Result<Expr> {
         if atoms.iter().any(Atom::is_flt) {
             // If any are float, promote to float and perform float addition
             Ok(Expr::from(atoms.into_iter()
-                .map(|a: Atom| a.map_int(|x: i64| Atom::Flt(x as f64)))
+                .map(|a| a.map_int(|x: i64| x as f64))
                 .map(|x| x.flt().unwrap())
                 .product::<f64>()))
         } else {
@@ -108,7 +108,7 @@ pub fn div(args: &[Expr]) -> Result<Expr> {
         // If any are float, promote all to float and perform float addition
         if atoms.iter().any(Atom::is_flt) {
             let mut nums = atoms.into_iter()
-                .map(|a: Atom| a.map_int(|x: i64| Atom::Flt(x as f64)))
+                .map(|a| a.map_int(|x: i64| x as f64))
                 .map(|x| x.flt().unwrap());
                 
             nums.next()

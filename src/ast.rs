@@ -108,20 +108,22 @@ impl Atom {
         if let &Atom::Str(ref x) = self { Some(x) } else { None }
     }
 
-    pub fn map_int<F>(self, f: F) -> Atom
-        where F: FnOnce(i64) -> Atom
+    pub fn map_int<A, F>(self, f: F) -> Atom
+        where F: FnOnce(i64) -> A,
+              A: Into<Atom>
     {
         match self {
-            Atom::Int(int) => f(int),
+            Atom::Int(int) => f(int).into(),
             _ => self,
         }
     }
 
-    pub fn map_flt<F>(self, f: F) -> Atom
-        where F: FnOnce(f64) -> Atom
+    pub fn map_flt<A, F>(self, f: F) -> Atom
+        where F: FnOnce(f64) -> A,
+              A: Into<Atom>
     {
         match self {
-            Atom::Flt(flt) => f(flt),
+            Atom::Flt(flt) => f(flt).into(),
             _ => self,
         }
     }
