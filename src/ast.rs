@@ -11,8 +11,9 @@ pub enum Expr {
     Quote(Quote),
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub enum Atom {
+    Nil,
     Bool(bool),
     Int(i64),
     Flt(f64),
@@ -26,7 +27,7 @@ pub struct List(pub Vec<Expr>);
 #[derive(Clone, Debug)]
 pub struct Quote(pub Vec<Expr>);
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Symbol(pub String);
 
 #[derive(Clone)]
@@ -69,6 +70,13 @@ impl Expr {
 }
 
 impl Atom {
+    pub fn is_nil(&self) -> bool {
+        match self {
+            &Atom::Nil => true,
+            _ => false
+        }
+    }
+
     pub fn is_boolean(&self) -> bool {
         self.boolean().is_some()
     }
@@ -175,6 +183,7 @@ impl fmt::Display for Expr {
 impl fmt::Display for Atom {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
+            Atom::Nil => write!(f, "()"),
             Atom::Bool(boolean) => write!(f, "#{}", if boolean { "t" } else { "f" }),
             Atom::Int(int) => write!(f, "{}", int),
             Atom::Flt(flt) => write!(f, "{}", flt),
@@ -262,6 +271,32 @@ impl From<List> for Quote {
     }
 }
 
+impl PartialEq for List {
+    fn eq(&self, other: &Self) -> bool {
+        self.0.iter().zip(other.0.iter())
+            .all(|(a, b)| a == b)
+    }
+}
+
+impl PartialEq for Quote {
+    fn eq(&self, other: &Self) -> bool {
+        self.0.iter().zip(other.0.iter())
+            .all(|(a, b)| a == b)
+    }
+}
+
+impl PartialEq for Expr {
+    fn eq(&self, other: &Self) -> bool {
+        use self::Expr::*;
+        match (self, other) {
+            (&Func(ref f), &Func(ref g)) => false,
+            (&Atom(ref a), &Atom(ref b)) => a == b,
+            (&List(ref a), &List(ref b)) => a == b,
+            (&Quote(ref a), &Quote(ref b)) => a == b,
+            _ => false
+        }
+    }
+}
 
 #[cfg(test)]
 mod test {

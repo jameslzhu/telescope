@@ -1,6 +1,6 @@
-use ast::{Expr, Function, List, Quote, Symbol};
+use ast::{Atom, Expr, Function, List, Quote, Symbol};
 use combine::{Stream, Parser, ParseError, ParseResult};
-use combine::{between, many, parser, satisfy_map, token};
+use combine::{between, many, many1, parser, satisfy_map, token, try};
 use ops;
 use token::Token;
 
@@ -68,9 +68,12 @@ fn builtin<I>(input: I) -> ParseResult<Expr, I>
 fn list<I>(input: I) -> ParseResult<Expr, I>
     where I: Stream<Item = Token>
 {
-    between(token(Token::LParen),
+    let nil = token(Token::LParen).and(token(Token::RParen))
+        .map(|_| Expr::from(Atom::Nil));
+    try(between(token(Token::LParen),
             token(Token::RParen),
-            many(parser(expr)).map(List).map(Expr::List))
+            many1(parser(expr)).map(List).map(Expr::List)))
+        .or(nil)
         .parse_stream(input)
 }
 
