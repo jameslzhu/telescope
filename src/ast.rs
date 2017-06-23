@@ -33,10 +33,10 @@ pub struct Symbol(pub String);
 #[derive(Clone)]
 pub struct Function {
     name: Option<String>,
-    func: Rc<Lambda>,
+    func: Rc<Box<Lambda>>,
 }
 
-pub type Lambda = Box<Fn(&[Expr]) -> Result<Expr>>;
+pub type Lambda = Fn(&[Expr]) -> Result<Expr>;
 
 impl Expr {
     pub fn eval(&self) -> Result<Expr> {
@@ -138,7 +138,7 @@ impl Atom {
 }
 
 impl Function {
-    pub fn new<S>(name: Option<S>, func: Lambda) -> Self
+    pub fn new<S>(name: Option<S>, func: Box<Lambda>) -> Self
         where S: Into<String>
     {
         Function {
@@ -289,7 +289,7 @@ impl PartialEq for Expr {
     fn eq(&self, other: &Self) -> bool {
         use self::Expr::*;
         match (self, other) {
-            (&Func(ref f), &Func(ref g)) => false,
+            (&Func(_), &Func(_)) => false,
             (&Atom(ref a), &Atom(ref b)) => a == b,
             (&List(ref a), &List(ref b)) => a == b,
             (&Quote(ref a), &Quote(ref b)) => a == b,
@@ -302,7 +302,7 @@ impl PartialEq for Expr {
 mod test {
     use super::*;
 
-    fn lift(func: Box<Fn(&[Atom]) -> Result<Atom>>) -> Lambda {
+    fn lift(func: Box<Fn(&[Atom]) -> Result<Atom>>) -> Box<Lambda> {
         Box::new(move |args| {
             func(args.iter()
                     .map(|arg| {

@@ -36,7 +36,7 @@ pub fn add(args: &[Expr]) -> Result<Expr> {
                 .sum::<i64>()))
         }
     } else {
-        Err("could not add non-numeric atom".into())
+        Err("#[+] expected numeric".into())
     }
 }
 
@@ -45,40 +45,40 @@ pub fn sub(args: &[Expr]) -> Result<Expr> {
     let atoms = unwrap_atoms(args.iter().cloned())?;
 
     // Check all arguments are numeric
-    if atoms.iter().all(Atom::is_num) {
-        // If any are float, promote all to float and perform float addition
-        if atoms.iter().any(Atom::is_flt) {
-            // If one argument, negate and return
-            if atoms.len() == 1 {
-                let mut atoms = atoms;
-                return Ok(Expr::from(atoms.remove(0).map_flt(|x| -x)))
-            }
-            let mut nums = atoms.into_iter()
-                .map(|a| a.map_int(|x: i64| x as f64))
-                .map(|x| x.flt().unwrap());
-                
-            nums.next()
-                .map(|first| {
-                    Expr::from(nums.fold(first, |acc, x| acc - x))
-                }).ok_or("Expected 1 (negation) or 2+ (subtraction) arguments".into())
+    if !atoms.iter().all(Atom::is_num) {
+        return Err("#[-] expected numeric".into());
+    }
+
+    // If any are float, promote all to float and perform float addition
+    if atoms.iter().any(Atom::is_flt) {
+        // If one argument, negate and return
+        if atoms.len() == 1 {
+            let mut atoms = atoms;
+            return Ok(Expr::from(atoms.remove(0).map_flt(|x| -x)))
         }
-        // Otherwise, perform integer addition
-        else {
-            // If one argument, negate and return
-            if atoms.len() == 1 {
-                let mut atoms = atoms;
-                return Ok(Expr::from(atoms.remove(0).map_int(|x| -x)))
-            }
-            let mut nums = atoms.iter()
-                .map(|x| x.int().unwrap());
+        let mut nums = atoms.into_iter()
+            .map(|a| a.map_int(|x: i64| x as f64))
+            .map(|x| x.flt().unwrap());
             
-            nums.next()
-                .map(|first| {
-                    Expr::from(nums.fold(first, |acc, x| acc - x))
-                }).ok_or("Expected 1 (negation) or 2+ (subtraction) arguments".into())
+        nums.next()
+            .map(|first| {
+                Expr::from(nums.fold(first, |acc, x| acc - x))
+            }).ok_or("#[-] expected 1 (negate) or 2+ (subtract) arguments".into())
+    }
+    // Otherwise, perform integer addition
+    else {
+        // If one argument, negate and return
+        if atoms.len() == 1 {
+            let mut atoms = atoms;
+            return Ok(Expr::from(atoms.remove(0).map_int(|x| -x)))
         }
-    } else {
-        Err("could not subtract non-numeric atom".into())
+        let mut nums = atoms.iter()
+            .map(|x| x.int().unwrap());
+        
+        nums.next()
+            .map(|first| {
+                Expr::from(nums.fold(first, |acc, x| acc - x))
+            }).ok_or("Expected 1 (negation) or 2+ (subtraction) arguments".into())
     }
 }
 
@@ -101,7 +101,7 @@ pub fn mul(args: &[Expr]) -> Result<Expr> {
                 .product::<i64>()))
         }
     } else {
-        Err("could not multiply non-numeric atom".into())
+        Err("#[*] expected numeric".into())
     }
 }
 
@@ -111,7 +111,7 @@ pub fn div(args: &[Expr]) -> Result<Expr> {
 
     // Check all arguments are numeric
     if !atoms.iter().all(Atom::is_num) {
-        return Err("could not subtract non-numeric atom".into());
+        return Err("#[-] expected numeric".into());
     }
 
     // If any are float, promote all to float and perform float addition
@@ -123,7 +123,7 @@ pub fn div(args: &[Expr]) -> Result<Expr> {
         nums.next()
             .map(|first| {
                 Expr::from(nums.fold(first, |acc, x| acc / x))
-            }).ok_or("division expected at least 2 args".into())
+            }).ok_or("#[/] expected at least 2 args".into())
     }
     // Otherwise, perform integer addition
     else {
@@ -131,7 +131,7 @@ pub fn div(args: &[Expr]) -> Result<Expr> {
             .map(|x| x.int().unwrap());
         
         nums.next()
-            .ok_or("division expected at least 2 args".into())
+            .ok_or("#[/] expected at least 2 args".into())
             .and_then(|mut first| {
                 for num in nums {
                     if num == 0 {
