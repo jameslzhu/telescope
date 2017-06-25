@@ -29,17 +29,10 @@ pub enum Token {
     Greater,
     GreaterEq,
 
-    // Keywords
-    Not,
-    Or,
-    And,
+    // Special forms
     If,
     Case,
     Fn,
-    Print,
-
-    // Other
-    EOF,
 
     // Literal
     Literal(Literal),

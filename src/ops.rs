@@ -1,5 +1,18 @@
-use ast::{Atom, Expr};
+use std::collections::HashMap;
+
+use ast::{Atom, Expr, Env, Function};
 use error::*;
+
+pub fn env<'a>() -> Env<'a> {
+    let mut builtins = HashMap::new();
+
+    builtins.insert(String::from("not"), Function::new(Some("not"), Box::new(not)).into());
+    builtins.insert(String::from("or"), Function::new(Some("or"), Box::new(or)).into());
+    builtins.insert(String::from("and"), Function::new(Some("and"), Box::new(and)).into());
+    builtins.insert(String::from("print"), Function::new(Some("print"), Box::new(print)).into());
+
+    Env::new(builtins, None)
+}
 
 fn unwrap_atoms<I>(args: I) -> Result<Vec<Atom>>
     where I: Iterator<Item = Expr>
@@ -17,7 +30,7 @@ fn check_args(f: &str, args: &[Expr], arity: usize) -> Result<()> {
     }
 }
 
-pub fn add(args: &[Expr]) -> Result<Expr> {
+pub fn add(args: &[Expr], _env: &Env) -> Result<Expr> {
     // Unwrap to atoms
     let atoms = unwrap_atoms(args.iter().cloned())?;
 
@@ -40,7 +53,7 @@ pub fn add(args: &[Expr]) -> Result<Expr> {
     }
 }
 
-pub fn sub(args: &[Expr]) -> Result<Expr> {
+pub fn sub(args: &[Expr], _env: &Env) -> Result<Expr> {
     // Unwrap to atoms
     let atoms = unwrap_atoms(args.iter().cloned())?;
 
@@ -82,7 +95,7 @@ pub fn sub(args: &[Expr]) -> Result<Expr> {
     }
 }
 
-pub fn mul(args: &[Expr]) -> Result<Expr> {
+pub fn mul(args: &[Expr], _env: &Env) -> Result<Expr> {
     // Unwrap to atoms
     let atoms = unwrap_atoms(args.iter().cloned())?;
     
@@ -105,7 +118,7 @@ pub fn mul(args: &[Expr]) -> Result<Expr> {
     }
 }
 
-pub fn div(args: &[Expr]) -> Result<Expr> {
+pub fn div(args: &[Expr], _env: &Env) -> Result<Expr> {
     // Unwrap to atoms
     let atoms = unwrap_atoms(args.iter().cloned())?;
 
@@ -144,12 +157,12 @@ pub fn div(args: &[Expr]) -> Result<Expr> {
     }
 }
 
-pub fn equal(args: &[Expr]) -> Result<Expr> {
+pub fn equal(args: &[Expr], _env: &Env) -> Result<Expr> {
     check_args("#[=]", args, 2)?;
     Ok(Expr::from(args[0] == args[1]))
 }
 
-pub fn less(args: &[Expr]) -> Result<Expr> {
+pub fn less(args: &[Expr], _env: &Env) -> Result<Expr> {
     check_args("#[<]", args, 2)?;
     match (&args[0], &args[1]) {
         (&Expr::Atom(ref a), &Expr::Atom(ref b)) => Ok(Expr::from(a < b)),
@@ -157,7 +170,7 @@ pub fn less(args: &[Expr]) -> Result<Expr> {
     }
 }
 
-pub fn less_eq(args: &[Expr]) -> Result<Expr> {
+pub fn less_eq(args: &[Expr], _env: &Env) -> Result<Expr> {
     check_args("#[<=]", args, 2)?;
     match (&args[0], &args[1]) {
         (&Expr::Atom(ref a), &Expr::Atom(ref b)) => Ok(Expr::from(a <= b)),
@@ -165,7 +178,7 @@ pub fn less_eq(args: &[Expr]) -> Result<Expr> {
     }
 }
 
-pub fn greater(args: &[Expr]) -> Result<Expr> {
+pub fn greater(args: &[Expr], _env: &Env) -> Result<Expr> {
     check_args("#[>]", args, 2)?;
     match (&args[0], &args[1]) {
         (&Expr::Atom(ref a), &Expr::Atom(ref b)) => Ok(Expr::from(a > b)),
@@ -173,7 +186,7 @@ pub fn greater(args: &[Expr]) -> Result<Expr> {
     }
 }
 
-pub fn greater_eq(args: &[Expr]) -> Result<Expr> {
+pub fn greater_eq(args: &[Expr], _env: &Env) -> Result<Expr> {
     check_args("#[>=]", args, 2)?;
     match (&args[0], &args[1]) {
         (&Expr::Atom(ref a), &Expr::Atom(ref b)) => Ok(Expr::from(a >= b)),
@@ -181,7 +194,7 @@ pub fn greater_eq(args: &[Expr]) -> Result<Expr> {
     }
 }
 
-pub fn not(args: &[Expr]) -> Result<Expr> {
+pub fn not(args: &[Expr], _env: &Env) -> Result<Expr> {
     check_args("#[not]", args, 1)?;
     match &args[0] {
         &Expr::Atom(Atom::Bool(b)) => Ok(Expr::from(!b)),
@@ -189,7 +202,7 @@ pub fn not(args: &[Expr]) -> Result<Expr> {
     }
 }
 
-pub fn and(args: &[Expr]) -> Result<Expr> {
+pub fn and(args: &[Expr], _env: &Env) -> Result<Expr> {
     // Unwrap to atoms
     let atoms = unwrap_atoms(args.iter().cloned())?;
 
@@ -203,7 +216,7 @@ pub fn and(args: &[Expr]) -> Result<Expr> {
         .map(Expr::from)
 }
 
-pub fn or(args: &[Expr]) -> Result<Expr> {
+pub fn or(args: &[Expr], _env: &Env) -> Result<Expr> {
     // Unwrap to atoms
     let atoms = unwrap_atoms(args.iter().cloned())?;
 
@@ -217,8 +230,8 @@ pub fn or(args: &[Expr]) -> Result<Expr> {
         .map(Expr::from)
 }
 
-pub fn print(args: &[Expr]) -> Result<Expr> {
+pub fn print(args: &[Expr], _env: &Env) -> Result<Expr> {
     check_args("#[print]", args, 1)?;
     println!("{}", args[0]);
-    Ok(Atom::Nil.into())
+    Ok(Expr::Nil)
 }

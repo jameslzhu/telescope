@@ -1,10 +1,12 @@
 use error::*;
 use std::fmt;
 use std::rc::Rc;
+use std::collections::HashMap;
 use token::Literal;
 
 #[derive(Clone, Debug)]
 pub enum Expr {
+    Nil,
     Func(Function),
     Atom(Atom),
     List(List),
@@ -13,7 +15,6 @@ pub enum Expr {
 
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub enum Atom {
-    Nil,
     Bool(bool),
     Int(i64),
     Flt(f64),
@@ -36,20 +37,34 @@ pub struct Function {
     func: Rc<Box<Lambda>>,
 }
 
-pub type Lambda = Fn(&[Expr]) -> Result<Expr>;
+pub struct Env<'a> {
+    symbols: HashMap<String, Expr>,
+    parent: Option<&'a Env<'a>>,
+}
+
+pub type Lambda = Fn(&[Expr], &Env) -> Result<Expr>;
 
 impl Expr {
-    pub fn eval(&self) -> Result<Expr> {
-        if let &Expr::List(ref lst) = self {
-            if let Some((first, rest)) = lst.0.split_first() {
-                if let &Expr::Func(ref func) = first {
-                    return func.apply(rest)
+    pub fn eval(&self, env: &Env) -> Result<Expr> {
+        match self {
+            &Expr::List(ref lst) => {
+                if let Some((first, rest)) = lst.0.split_first() {
+                    if let Ok(Expr::Func(ref func)) = first.eval(env) {
+                        func.apply(rest, env)
+                    } else {
+                        Err("expected function call".into())
+                    }
                 } else {
-                    return Err("expected function call".into())
+                    Ok(self.clone())
                 }
-            }
+            },
+            &Expr::Atom(Atom::Sym(ref symbol)) => {
+                env.lookup(&symbol.0)
+                    .map(Clone::clone)
+                    .ok_or(format!("undefined symbol: {}", symbol.0).into())
+            },
+            _ => Ok(self.clone()),
         }
-        Ok(self.clone())
     }
 
     pub fn atom(self) -> Option<Atom> {
@@ -70,13 +85,6 @@ impl Expr {
 }
 
 impl Atom {
-    pub fn is_nil(&self) -> bool {
-        match self {
-            &Atom::Nil => true,
-            _ => false
-        }
-    }
-
     pub fn is_boolean(&self) -> bool {
         self.boolean().is_some()
     }
@@ -147,15 +155,28 @@ impl Function {
         }
     }
 
-    pub fn apply<'a>(&self, args: &'a [Expr]) -> Result<Expr> {
+    pub fn apply<'a>(&self, args: &'a [Expr], env: &Env) -> Result<Expr> {
         // Eval all arguments, returning if any errors
         let evaled_args = args.iter()
-            .map(Expr::eval)
+            .map(|a| a.eval(env))
             .collect::<Result<Vec<_>>>()
             .chain_err(|| "argument eval failed")?;
 
         // Call function on args
-        (self.func)(&evaled_args)
+        (self.func)(&evaled_args, env)
+    }
+}
+
+impl<'a> Env<'a> {
+    pub fn new(symbols: HashMap<String, Expr>, parent: Option<&'a Env<'a>>) -> Self {
+        Env { symbols, parent }
+    }
+
+    pub fn lookup(&self, symbol: &str) -> Option<&Expr> {
+        self.symbols.get(symbol)
+            .or_else(|| {
+                self.parent.and_then(|p| p.lookup(symbol))
+            })
     }
 }
 
@@ -172,6 +193,7 @@ impl fmt::Debug for Function {
 impl fmt::Display for Expr {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
+            Expr::Nil => write!(f, "()"),
             Expr::Func(ref func) => write!(f, "{}", func),
             Expr::Atom(ref atom) => write!(f, "{}", atom),
             Expr::List(ref list) => write!(f, "{}", list),
@@ -183,7 +205,6 @@ impl fmt::Display for Expr {
 impl fmt::Display for Atom {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            Atom::Nil => write!(f, "()"),
             Atom::Bool(boolean) => write!(f, "#{}", if boolean { "t" } else { "f" }),
             Atom::Int(int) => write!(f, "{}", int),
             Atom::Flt(flt) => write!(f, "{}", flt),
@@ -289,6 +310,7 @@ impl PartialEq for Expr {
     fn eq(&self, other: &Self) -> bool {
         use self::Expr::*;
         match (self, other) {
+            (&Nil, &Nil) => true,
             (&Func(_), &Func(_)) => false,
             (&Atom(ref a), &Atom(ref b)) => a == b,
             (&List(ref a), &List(ref b)) => a == b,

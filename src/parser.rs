@@ -1,4 +1,4 @@
-use ast::{Atom, Expr, Function, List, Quote, Symbol};
+use ast::{Expr, Function, List, Quote, Symbol};
 use combine::{Stream, Parser, ParseError, ParseResult};
 use combine::{between, many, many1, parser, satisfy_map, token, try};
 use ops;
@@ -53,12 +53,6 @@ fn builtin<I>(input: I) -> ParseResult<Expr, I>
                 Token::LessEq  => Some(Function::new(Some("<="), Box::new(ops::less_eq)).into()),
                 Token::Greater => Some(Function::new(Some(">"), Box::new(ops::greater)).into()),
                 Token::GreaterEq => Some(Function::new(Some(">"), Box::new(ops::greater_eq)).into()),
-
-                // Keywords
-                Token::Not     => Some(Function::new(Some("not"), Box::new(ops::not)).into()),
-                Token::Or      => Some(Function::new(Some("or"), Box::new(ops::or)).into()),
-                Token::And     => Some(Function::new(Some("and"), Box::new(ops::and)).into()),
-                Token::Print   => Some(Function::new(Some("print"), Box::new(ops::print)).into()),
                 _ => None,
             }
         })
@@ -69,7 +63,7 @@ fn list<I>(input: I) -> ParseResult<Expr, I>
     where I: Stream<Item = Token>
 {
     let nil = token(Token::LParen).and(token(Token::RParen))
-        .map(|_| Expr::from(Atom::Nil));
+        .map(|_| Expr::Nil);
     try(between(token(Token::LParen),
             token(Token::RParen),
             many1(parser(expr)).map(List).map(Expr::List)))

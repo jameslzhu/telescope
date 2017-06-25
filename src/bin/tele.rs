@@ -4,7 +4,7 @@ extern crate telescope;
 
 use rustyline::Editor;
 use rustyline::error::ReadlineError as RLError;
-use telescope::{lexer, parser};
+use telescope::{lexer, parser, ast};
 // use telescope::error::*;
 
 fn main() {
@@ -16,6 +16,8 @@ fn main() {
 
     println!("{}", header);
 
+    let env = telescope::env();
+
     loop {
         match rl.readline(prompt) {
             Ok(line) => {
@@ -26,15 +28,19 @@ fn main() {
 
                 let _ = lexer::lex(line.trim_right())
                     .map(|(tokens, _unlexed)| {
+                        // println!("{:?}", tokens);
                         parser::parse(&*tokens)
                             .map(|(exprs, _unparsed)| {
                                 for expr in exprs {
-                                    match expr.eval() {
-                                        Ok(value) => print!("{} ", value),
+                                    match expr.eval(&env) {
+                                        Ok(value) => {
+                                            if value != ast::Expr::Nil {
+                                                println!("{} ", value);
+                                            }
+                                        },
                                         Err(err) => { println!("Error: {}", err); continue }
                                     }
                                 }
-                                println!();
                             })
                             .map_err(|err| println!("Unparsed: {:?}", err))
                     })

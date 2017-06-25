@@ -12,10 +12,12 @@ extern crate error_chain;
 #[macro_use]
 extern crate combine;
 
-mod ast;
 mod token;
 mod ops;
 
+pub mod ast;
 pub mod lexer;
 pub mod parser;
 pub mod error;
+
+pub use ops::env;
