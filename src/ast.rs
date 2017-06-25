@@ -323,9 +323,10 @@ impl PartialEq for Expr {
 #[cfg(test)]
 mod test {
     use super::*;
+    use ops;
 
-    fn lift(func: Box<Fn(&[Atom]) -> Result<Atom>>) -> Box<Lambda> {
-        Box::new(move |args| {
+    fn lift(func: Box<Fn(&[Atom], &Env) -> Result<Atom>>) -> Box<Lambda> {
+        Box::new(move |args, env| {
             func(args.iter()
                     .map(|arg| {
                         if let &Expr::Atom(ref atom) = arg {
@@ -335,20 +336,23 @@ mod test {
                         }
                     })
                     .collect::<Vec<_>>()
-                    .as_slice())
+                    .as_slice(), env)
                 .map(Expr::Atom)
         })
     }
 
     #[test]
     fn call_fn() {
-        let func = Box::new(move |atoms: &[Atom]| {
+        let env = ops::env();
+        let func = Box::new(move |atoms: &[Atom], _env: &Env| {
             Ok(Atom::Int(atoms.iter()
                 .map(|x| if let &Atom::Int(y) = x { y } else { panic!() })
                 .sum()))
         });
         let add = Function::new(Some("add"), lift(func));
-        let result = add.apply(vec![Expr::Atom(Atom::Int(1)), Expr::Atom(Atom::Int(2))].as_slice());
+        
+        let nums: Vec<Expr> = vec![1i64, 2i64].into_iter().map(Expr::from).collect();
+        let result = add.apply(nums.as_slice(), &env);
         assert_eq!(Some(Atom::from(3)), result.unwrap().atom());
     }
 }
