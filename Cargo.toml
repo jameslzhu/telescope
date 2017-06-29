@@ -1,13 +1,12 @@
 [package]
+authors = ["James Zhu <jameszhu@berkeley.edu>"]
 name = "telescope"
 version = "0.4.0"
-authors = ["James Zhu <james.zhu.engineer@gmail.com>"]
 
 [dependencies]
 combine = "2.3.0"
-rustyline = "1.0.0"
 error-chain = "0.10.0"
-
-# [dev-dependencies]
 float-cmp = "0.2.3"
+itertools = "0.6.0"
 quickcheck = "0.4.1"
+rustyline = "1.0.0"

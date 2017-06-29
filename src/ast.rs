@@ -2,6 +2,7 @@ use error::*;
 use std::fmt;
 use std::rc::Rc;
 use std::collections::HashMap;
+use itertools::Itertools;
 use token::Literal;
 
 #[derive(Clone, Debug)]
@@ -168,8 +169,10 @@ impl Function {
 }
 
 impl<'a> Env<'a> {
-    pub fn new(symbols: HashMap<String, Expr>, parent: Option<&'a Env<'a>>) -> Self {
-        Env { symbols, parent }
+    pub fn new<E>(symbols: HashMap<String, Expr>, parent: E) -> Self 
+        where E: Into<Option<&'a Env<'a>>>
+    {
+        Env { symbols: symbols, parent: parent.into() }
     }
 
     pub fn lookup(&self, symbol: &str) -> Option<&Expr> {
@@ -216,28 +219,13 @@ impl fmt::Display for Atom {
 
 impl fmt::Display for List {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "({})", self.0.split_first()
-            .map(|(first, rest)| {
-                rest.iter().fold(first.to_string(), |mut acc, x| {
-                    acc.push_str(&x.to_string());
-                    acc
-                })
-            }).unwrap_or(String::new())
-        )
+        write!(f, "({})", self.0.iter().join(" "))
     }
 }
 
 impl fmt::Display for Quote {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "[{}]", self.0.split_first()
-            .map(|(first, rest)| {
-                rest.iter().fold(first.to_string(), |mut acc, x| {
-                    acc.push(' ');
-                    acc.push_str(&x.to_string());
-                    acc
-                })
-            }).unwrap_or(String::new())
-        )
+        write!(f, "[{}]", self.0.iter().join(" "))
     }
 }
 
@@ -294,15 +282,19 @@ impl From<List> for Quote {
 
 impl PartialEq for List {
     fn eq(&self, other: &Self) -> bool {
-        self.0.iter().zip(other.0.iter())
-            .all(|(a, b)| a == b)
+        self.0.len() == other.0.len() &&
+            self.0.iter()
+                .zip(&other.0)
+                .all(|(a, b)| a == b)
     }
 }
 
 impl PartialEq for Quote {
     fn eq(&self, other: &Self) -> bool {
-        self.0.iter().zip(other.0.iter())
-            .all(|(a, b)| a == b)
+        self.0.len() == other.0.len() &&
+            self.0.iter()
+                .zip(&other.0)
+                .all(|(a, b)| a == b)
     }
 }
 
@@ -354,5 +346,12 @@ mod test {
         let nums: Vec<Expr> = vec![1i64, 2i64].into_iter().map(Expr::from).collect();
         let result = add.apply(nums.as_slice(), &env);
         assert_eq!(Some(Atom::from(3)), result.unwrap().atom());
+    }
+
+    #[test]
+    fn test_env() {
+        let global_scope = ops::env();
+        let new_scope = Env::new(HashMap::new(), &global_scope);
+        assert!(new_scope.lookup("hello").is_none());
     }
 }

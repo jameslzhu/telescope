@@ -1,6 +1,7 @@
 use std::collections::HashMap;
-
-use ast::{Atom, Expr, Env, Function};
+use std::ops::{Add, Sub, Mul, Div};
+use itertools::Itertools;
+use ast::{Atom, Expr, List, Env, Function};
 use error::*;
 
 pub fn env<'a>() -> Env<'a> {
@@ -62,7 +63,7 @@ pub fn sub(args: &[Expr], _env: &Env) -> Result<Expr> {
         return Err("#[-] expected numeric".into());
     }
 
-    // If any are float, promote all to float and perform float addition
+    // If any are float, promote all to float and perform float subtraction
     if atoms.iter().any(Atom::is_flt) {
         // If one argument, negate and return
         if atoms.len() == 1 {
@@ -74,9 +75,9 @@ pub fn sub(args: &[Expr], _env: &Env) -> Result<Expr> {
             .map(|x| x.flt().unwrap());
             
         nums.next()
-            .map(|first| {
-                Expr::from(nums.fold(first, |acc, x| acc - x))
-            }).ok_or("#[-] expected 1 (negate) or 2+ (subtract) arguments".into())
+            .map(|first| nums.fold(first, Sub::sub))
+            .map(Expr::from)
+            .ok_or("#[-] expected 1 (negate) or 2+ (subtract) arguments".into())
     }
     // Otherwise, perform integer addition
     else {
@@ -102,13 +103,13 @@ pub fn mul(args: &[Expr], _env: &Env) -> Result<Expr> {
     // Check all arguments are numeric
     if atoms.iter().all(Atom::is_num) {
         if atoms.iter().any(Atom::is_flt) {
-            // If any are float, promote to float and perform float addition
+            // If any are float, promote to float and perform float multiplication
             Ok(Expr::from(atoms.into_iter()
                 .map(|a| a.map_int(|x: i64| x as f64))
                 .map(|x| x.flt().unwrap())
                 .product::<f64>()))
         } else {
-            // Otherwise perform integer addition
+            // Otherwise perform integer multiplication
             Ok(Expr::from(atoms.into_iter()
                 .map(|x| x.int().unwrap())
                 .product::<i64>()))
@@ -127,7 +128,7 @@ pub fn div(args: &[Expr], _env: &Env) -> Result<Expr> {
         return Err("#[-] expected numeric".into());
     }
 
-    // If any are float, promote all to float and perform float addition
+    // If any are float, promote all to float and perform float division
     if atoms.iter().any(Atom::is_flt) {
         let mut nums = atoms.into_iter()
             .map(|a| a.map_int(|x: i64| x as f64))
@@ -135,25 +136,23 @@ pub fn div(args: &[Expr], _env: &Env) -> Result<Expr> {
             
         nums.next()
             .map(|first| {
-                Expr::from(nums.fold(first, |acc, x| acc / x))
-            }).ok_or("#[/] expected at least 2 args".into())
+                nums.fold(first, Div::div)
+            })
+            .map(Expr::from)
+            .ok_or("#[/] expected at least 2 args".into())
     }
-    // Otherwise, perform integer addition
+    // Otherwise, perform integer division
     else {
         let mut nums = atoms.iter()
             .map(|x| x.int().unwrap());
         
         nums.next()
             .ok_or("#[/] expected at least 2 args".into())
-            .and_then(|mut first| {
-                for num in nums {
-                    if num == 0 {
-                        return Err("division by zero".into());
-                    }
-                    first /= num;
-                }
-                Ok(Expr::from(first))
+            .and_then(|first| {
+                nums.map(|x| if x == 0 { Err("division by zero".into()) } else {Ok(x)})
+                    .fold_results(first, Div::div)
             })
+            .map(Expr::from)
     }
 }
 
@@ -235,3 +234,33 @@ pub fn print(args: &[Expr], _env: &Env) -> Result<Expr> {
     println!("{}", args[0]);
     Ok(Expr::Nil)
 }
+
+/*
+pub fn first(args: &[Expr]) -> Result<Expr> {
+    check_args("#[car]", args, 1)?;
+
+    match &args[0] {
+        &Expr::List(ref l) => Ok(l.0.first().cloned().unwrap_or(Expr::Nil)),
+        &Expr::Quote(ref q) => Ok(q.0.first().cloned().unwrap_or(Expr::Nil)),
+        _ => Err("#[car] expected list".into()),
+    }
+}
+
+pub fn rest(args: &[Expr]) -> Result<Expr> {
+    match &args[0] {
+        &Expr::List(ref l) => {
+            Ok(l.0.split_first()
+                .map(|(_, rest)| {
+                    Expr::List(List(rest.to_vec()))
+                }).unwrap_or(Expr::Nil))
+        },
+        &Expr::Quote(ref q) => {
+            Ok(q.0.split_first()
+                .map(|(_, rest)| {
+                    Expr::List(List(rest.to_vec()))
+                }).unwrap_or(Expr::Nil))
+        },
+        _ => Err("#[car] expected list".into()),
+    }
+}
+*/

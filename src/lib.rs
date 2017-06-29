@@ -12,6 +12,8 @@ extern crate error_chain;
 #[macro_use]
 extern crate combine;
 
+extern crate itertools;
+
 mod token;
 mod ops;
 
