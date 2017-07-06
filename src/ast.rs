@@ -33,9 +33,15 @@ pub struct Quote(pub Vec<Expr>);
 pub struct Symbol(pub String);
 
 #[derive(Clone)]
-pub struct Function {
-    name: Option<String>,
-    func: Rc<Box<Lambda>>,
+pub enum Function {
+    Builtin {
+        name: String,
+        func: Rc<Box<Lambda>>
+    },
+    User {
+        params: Vec<Symbol>,
+        body: Rc<Expr>
+    },
 }
 
 pub struct Env<'a> {
@@ -184,16 +190,17 @@ impl Atom {
 }
 
 impl Function {
-    pub fn new<S>(name: Option<S>, func: Box<Lambda>) -> Self
+    pub fn new<S>(name: S, func: Box<Lambda>) -> Self
     where
-        S: Into<String>,
+        S: Into<String>
     {
-        Function {
-            name: name.map(Into::into),
+        Function::Builtin {
+            name: name.into(),
             func: Rc::new(func),
         }
     }
 
+    #[allow(unused_variables)]
     pub fn apply<'a>(&self, args: &'a [Expr], env: &Env) -> Result<Expr> {
         // Eval all arguments, returning if any errors
         let evaled_args = args.iter()
@@ -202,7 +209,23 @@ impl Function {
             .chain_err(|| "argument eval failed")?;
 
         // Call function on args
-        (self.func)(&evaled_args, env)
+        match self {
+            &Function::Builtin { ref name, ref func } => (func)(&evaled_args, env),
+            &Function::User { ref params, ref body } => {
+                if args.len() != params.len() {
+                    Err(format!("fn expected {} args", params.len()).into())
+                } else {
+                    // Create new env with arguments, eval body with new env
+                    let bound_params = params.iter()
+                        .cloned()
+                        .map(|x| x.0)
+                        .zip(args.iter().cloned())
+                        .collect();
+                    body.eval(&Env::new(bound_params, env))
+                }
+            }
+        }
+        
     }
 }
 
@@ -225,11 +248,15 @@ impl<'a> Env<'a> {
 }
 
 impl fmt::Debug for Function {
+    #[allow(unused_variables)]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        if let Some(ref name) = self.name {
-            write!(f, "#[{}]", name)
-        } else {
-            write!(f, "#\u{03BB}")
+        match self {
+            &Function::Builtin { ref name, ref func } => {
+                write!(f, "#[{}]", name)
+            },
+            &Function::User { ref params, ref body } => {
+                write!(f, "(fn [{}] {})", params.iter().join(" "), body)
+            }
         }
     }
 }
@@ -273,6 +300,12 @@ impl fmt::Display for Quote {
 impl fmt::Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         fmt::Debug::fmt(self, f)
+    }
+}
+
+impl fmt::Display for Symbol {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        self.0.fmt(f)
     }
 }
 
@@ -381,7 +414,7 @@ mod test {
                     .sum(),
             ))
         });
-        let add = Function::new(Some("add"), lift(func));
+        let add = Function::new("+", lift(func));
 
         let nums: Vec<Expr> = vec![1i64, 2i64].into_iter().map(Expr::from).collect();
         let result = add.apply(nums.as_slice(), &env);
