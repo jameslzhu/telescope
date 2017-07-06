@@ -1,8 +1,8 @@
 use error::*;
+use itertools::Itertools;
+use std::collections::HashMap;
 use std::fmt;
 use std::rc::Rc;
-use std::collections::HashMap;
-use itertools::Itertools;
 use token::Literal;
 
 #[derive(Clone, Debug)]
@@ -58,30 +58,49 @@ impl Expr {
                 } else {
                     Ok(self.clone())
                 }
-            },
+            }
             &Expr::Atom(Atom::Sym(ref symbol)) => {
-                env.lookup(&symbol.0)
-                    .map(Clone::clone)
-                    .ok_or(format!("undefined symbol: {}", symbol.0).into())
-            },
+                env.lookup(&symbol.0).map(Clone::clone).ok_or(
+                    format!(
+                        "undefined symbol: {}",
+                        symbol.0
+                    ).into(),
+                )
+            }
             _ => Ok(self.clone()),
         }
     }
 
     pub fn atom(self) -> Option<Atom> {
-        if let Expr::Atom(x) = self { Some(x) } else { None }
+        if let Expr::Atom(x) = self {
+            Some(x)
+        } else {
+            None
+        }
     }
 
     pub fn list(self) -> Option<List> {
-        if let Expr::List(x) = self { Some(x) } else { None }
+        if let Expr::List(x) = self {
+            Some(x)
+        } else {
+            None
+        }
     }
 
     pub fn quote(self) -> Option<Quote> {
-        if let Expr::Quote(x) = self { Some(x) } else { None }
+        if let Expr::Quote(x) = self {
+            Some(x)
+        } else {
+            None
+        }
     }
 
     pub fn func(self) -> Option<Function> {
-        if let Expr::Func(x) = self { Some(x) } else { None }
+        if let Expr::Func(x) = self {
+            Some(x)
+        } else {
+            None
+        }
     }
 }
 
@@ -110,24 +129,41 @@ impl Atom {
     }
 
     pub fn boolean(&self) -> Option<bool> {
-        if let &Atom::Bool(x) = self { Some(x) } else { None }
+        if let &Atom::Bool(x) = self {
+            Some(x)
+        } else {
+            None
+        }
     }
 
     pub fn int(&self) -> Option<i64> {
-        if let &Atom::Int(x) = self { Some(x) } else { None }
+        if let &Atom::Int(x) = self {
+            Some(x)
+        } else {
+            None
+        }
     }
 
     pub fn flt(&self) -> Option<f64> {
-        if let &Atom::Flt(x) = self { Some(x) } else { None }
+        if let &Atom::Flt(x) = self {
+            Some(x)
+        } else {
+            None
+        }
     }
 
     pub fn str(&self) -> Option<&str> {
-        if let &Atom::Str(ref x) = self { Some(x) } else { None }
+        if let &Atom::Str(ref x) = self {
+            Some(x)
+        } else {
+            None
+        }
     }
 
     pub fn map_int<A, F>(self, f: F) -> Atom
-        where F: FnOnce(i64) -> A,
-              A: Into<Atom>
+    where
+        F: FnOnce(i64) -> A,
+        A: Into<Atom>,
     {
         match self {
             Atom::Int(int) => f(int).into(),
@@ -136,8 +172,9 @@ impl Atom {
     }
 
     pub fn map_flt<A, F>(self, f: F) -> Atom
-        where F: FnOnce(f64) -> A,
-              A: Into<Atom>
+    where
+        F: FnOnce(f64) -> A,
+        A: Into<Atom>,
     {
         match self {
             Atom::Flt(flt) => f(flt).into(),
@@ -148,7 +185,8 @@ impl Atom {
 
 impl Function {
     pub fn new<S>(name: Option<S>, func: Box<Lambda>) -> Self
-        where S: Into<String>
+    where
+        S: Into<String>,
     {
         Function {
             name: name.map(Into::into),
@@ -169,17 +207,20 @@ impl Function {
 }
 
 impl<'a> Env<'a> {
-    pub fn new<E>(symbols: HashMap<String, Expr>, parent: E) -> Self 
-        where E: Into<Option<&'a Env<'a>>>
+    pub fn new<E>(symbols: HashMap<String, Expr>, parent: E) -> Self
+    where
+        E: Into<Option<&'a Env<'a>>>,
     {
-        Env { symbols: symbols, parent: parent.into() }
+        Env {
+            symbols: symbols,
+            parent: parent.into(),
+        }
     }
 
     pub fn lookup(&self, symbol: &str) -> Option<&Expr> {
-        self.symbols.get(symbol)
-            .or_else(|| {
-                self.parent.and_then(|p| p.lookup(symbol))
-            })
+        self.symbols.get(symbol).or_else(|| {
+            self.parent.and_then(|p| p.lookup(symbol))
+        })
     }
 }
 
@@ -236,7 +277,8 @@ impl fmt::Display for Function {
 }
 
 impl<T> From<T> for Expr
-    where T: Into<Atom>
+where
+    T: Into<Atom>,
 {
     fn from(x: T) -> Expr {
         Expr::Atom(x.into())
@@ -250,7 +292,8 @@ impl From<Function> for Expr {
 }
 
 impl<T> From<T> for Atom
-    where T: Into<Literal>
+where
+    T: Into<Literal>,
 {
     fn from(x: T) -> Self {
         match x.into() {
@@ -282,19 +325,13 @@ impl From<List> for Quote {
 
 impl PartialEq for List {
     fn eq(&self, other: &Self) -> bool {
-        self.0.len() == other.0.len() &&
-            self.0.iter()
-                .zip(&other.0)
-                .all(|(a, b)| a == b)
+        self.0.len() == other.0.len() && self.0.iter().zip(&other.0).all(|(a, b)| a == b)
     }
 }
 
 impl PartialEq for Quote {
     fn eq(&self, other: &Self) -> bool {
-        self.0.len() == other.0.len() &&
-            self.0.iter()
-                .zip(&other.0)
-                .all(|(a, b)| a == b)
+        self.0.len() == other.0.len() && self.0.iter().zip(&other.0).all(|(a, b)| a == b)
     }
 }
 
@@ -307,7 +344,7 @@ impl PartialEq for Expr {
             (&Atom(ref a), &Atom(ref b)) => a == b,
             (&List(ref a), &List(ref b)) => a == b,
             (&Quote(ref a), &Quote(ref b)) => a == b,
-            _ => false
+            _ => false,
         }
     }
 }
@@ -319,17 +356,17 @@ mod test {
 
     fn lift(func: Box<Fn(&[Atom], &Env) -> Result<Atom>>) -> Box<Lambda> {
         Box::new(move |args, env| {
-            func(args.iter()
-                    .map(|arg| {
-                        if let &Expr::Atom(ref atom) = arg {
-                            atom.clone()
-                        } else {
-                            panic!()
-                        }
+            func(
+                args.iter()
+                    .map(|arg| if let &Expr::Atom(ref atom) = arg {
+                        atom.clone()
+                    } else {
+                        panic!()
                     })
                     .collect::<Vec<_>>()
-                    .as_slice(), env)
-                .map(Expr::Atom)
+                    .as_slice(),
+                env,
+            ).map(Expr::Atom)
         })
     }
 
@@ -337,12 +374,15 @@ mod test {
     fn call_fn() {
         let env = ops::env();
         let func = Box::new(move |atoms: &[Atom], _env: &Env| {
-            Ok(Atom::Int(atoms.iter()
-                .map(|x| if let &Atom::Int(y) = x { y } else { panic!() })
-                .sum()))
+            Ok(Atom::Int(
+                atoms
+                    .iter()
+                    .map(|x| if let &Atom::Int(y) = x { y } else { panic!() })
+                    .sum(),
+            ))
         });
         let add = Function::new(Some("add"), lift(func));
-        
+
         let nums: Vec<Expr> = vec![1i64, 2i64].into_iter().map(Expr::from).collect();
         let result = add.apply(nums.as_slice(), &env);
         assert_eq!(Some(Atom::from(3)), result.unwrap().atom());

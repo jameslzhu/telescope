@@ -91,7 +91,8 @@ impl From<String> for Literal {
 }
 
 impl<T> From<T> for Token
-    where T: Into<Literal>
+where
+    T: Into<Literal>,
 {
     fn from(x: T) -> Self {
         Token::Literal(x.into())

@@ -30,15 +30,16 @@ fn main() {
                     .map(|(tokens, _unlexed)| {
                         // println!("{:?}", tokens);
                         parser::parse(&*tokens)
-                            .map(|(exprs, _unparsed)| {
-                                for expr in exprs {
-                                    match expr.eval(&env) {
-                                        Ok(value) => {
-                                            if value != ast::Expr::Nil {
-                                                println!("{} ", value);
-                                            }
-                                        },
-                                        Err(err) => { println!("Error: {}", err); continue }
+                            .map(|(exprs, _unparsed)| for expr in exprs {
+                                match expr.eval(&env) {
+                                    Ok(value) => {
+                                        if value != ast::Expr::Nil {
+                                            println!("{} ", value);
+                                        }
+                                    }
+                                    Err(err) => {
+                                        println!("Error: {}", err);
+                                        continue;
                                     }
                                 }
                             })
