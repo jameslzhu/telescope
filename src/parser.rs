@@ -3,11 +3,12 @@ use combine::{Stream, Parser, ParseError, ParseResult};
 use combine::{between, many, many1, parser, satisfy_map, token, try};
 use token::Token;
 
-pub fn parse<I>(input: I) -> Result<(Vec<Expr>, I), ParseError<I>>
+pub fn parse<I>(input: I) -> Result<(Expr, I), ParseError<I>>
 where
     I: Stream<Item = Token>,
 {
-    many(parser(expr)).parse(input)
+    // many(parser(expr)).parse(input)
+    parser(expr).parse(input)
 }
 
 fn expr<I>(input: I) -> ParseResult<Expr, I>

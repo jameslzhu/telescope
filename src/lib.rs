@@ -12,15 +12,20 @@ extern crate error_chain;
 #[macro_use]
 extern crate combine;
 
+#[macro_use]
+extern crate lazy_static;
+
 extern crate itertools;
 extern crate unicode_xid;
 
+extern crate rustyline;
+
 mod token;
 mod ops;
+mod forms;
 
 pub mod ast;
 pub mod lexer;
 pub mod parser;
 pub mod error;
-
-pub use ops::env;
+pub mod repl;

@@ -16,12 +16,6 @@ pub enum Token {
     LBracket,
     RBracket,
 
-    // Special forms
-    If,
-    Case,
-    Def,
-    Fn,
-
     // Literal
     Literal(Literal),
     Symbol(String),
