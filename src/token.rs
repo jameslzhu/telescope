@@ -16,22 +16,10 @@ pub enum Token {
     LBracket,
     RBracket,
 
-    // Mathematical tokens
-    Plus,
-    Minus,
-    Star,
-    Slash,
-
-    // Comparison tokens
-    Equal,
-    Less,
-    LessEq,
-    Greater,
-    GreaterEq,
-
     // Special forms
     If,
     Case,
+    Def,
     Fn,
 
     // Literal
@@ -131,14 +119,10 @@ mod test {
     fn format_token() {
         let lparen = Token::LParen;
 
-        // Mathematical tokens
-        let plus = Token::Plus;
-
         // Literal
         let literal = Token::from(1);
 
         assert_eq!("LParen", lparen.to_string());
-        assert_eq!("Plus", plus.to_string());
         assert_eq!("1", literal.to_string());
     }
 }

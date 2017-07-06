@@ -1,7 +1,6 @@
-use ast::{Expr, Function, List, Quote, Symbol};
+use ast::{Expr, List, Quote, Symbol};
 use combine::{Stream, Parser, ParseError, ParseResult};
 use combine::{between, many, many1, parser, satisfy_map, token, try};
-use ops;
 use token::Token;
 
 pub fn parse<I>(input: I) -> Result<(Vec<Expr>, I), ParseError<I>>
@@ -15,7 +14,6 @@ fn expr<I>(input: I) -> ParseResult<Expr, I>
 {
     choice!(
         parser(atom),
-        parser(builtin),
         parser(symbol),
         parser(list),
         parser(quote)
@@ -30,30 +28,6 @@ fn atom<I>(input: I) -> ParseResult<Expr, I>
                 Some(Expr::from(lit))
             } else {
                 None
-            }
-        })
-        .parse_stream(input)
-}
-
-#[cfg_attr(rustfmt, rustfmt_skip)]
-fn builtin<I>(input: I) -> ParseResult<Expr, I>
-    where I: Stream<Item = Token>
-{
-    satisfy_map(|token| {
-            match token {
-                // Math tokens
-                Token::Plus    => Some(Function::new(Some("+"), Box::new(ops::add)).into()),
-                Token::Minus   => Some(Function::new(Some("-"), Box::new(ops::sub)).into()),
-                Token::Star    => Some(Function::new(Some("*"), Box::new(ops::mul)).into()),
-                Token::Slash   => Some(Function::new(Some("/"), Box::new(ops::div)).into()),
-
-                // Comparison tokens
-                Token::Equal   => Some(Function::new(Some("="), Box::new(ops::equal)).into()),
-                Token::Less    => Some(Function::new(Some("<"), Box::new(ops::less)).into()),
-                Token::LessEq  => Some(Function::new(Some("<="), Box::new(ops::less_eq)).into()),
-                Token::Greater => Some(Function::new(Some(">"), Box::new(ops::greater)).into()),
-                Token::GreaterEq => Some(Function::new(Some(">"), Box::new(ops::greater_eq)).into()),
-                _ => None,
             }
         })
         .parse_stream(input)

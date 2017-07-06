@@ -1,16 +1,35 @@
+
+use ast::{Atom, Expr, Env, Function};
+use error::*;
+use itertools::Itertools;
 use std::collections::HashMap;
 use std::ops::{Add, Sub, Mul, Div};
-use itertools::Itertools;
-use ast::{Atom, Expr, List, Env, Function};
-use error::*;
 
 pub fn env<'a>() -> Env<'a> {
     let mut builtins = HashMap::new();
 
-    builtins.insert(String::from("not"), Function::new(Some("not"), Box::new(not)).into());
-    builtins.insert(String::from("or"), Function::new(Some("or"), Box::new(or)).into());
-    builtins.insert(String::from("and"), Function::new(Some("and"), Box::new(and)).into());
-    builtins.insert(String::from("print"), Function::new(Some("print"), Box::new(print)).into());
+    let add_symbol = |builtins: &mut HashMap<String, Expr>, name, f| {
+        builtins.insert(String::from(name), Function::new(Some(name), f).into());
+    };
+
+    // TODO: change booleans from functions to special forms
+    add_symbol(&mut builtins, "not", Box::new(not));
+    add_symbol(&mut builtins, "or", Box::new(or));
+    add_symbol(&mut builtins, "and", Box::new(and));
+    add_symbol(&mut builtins, "print", Box::new(print));
+
+    // Mathematical tokens
+    add_symbol(&mut builtins, "+", Box::new(add));
+    add_symbol(&mut builtins, "-", Box::new(sub));
+    add_symbol(&mut builtins, "*", Box::new(mul));
+    add_symbol(&mut builtins, "/", Box::new(div));
+
+    // Comparison tokens
+    add_symbol(&mut builtins, "=", Box::new(equal));
+    add_symbol(&mut builtins, "<", Box::new(less));
+    add_symbol(&mut builtins, "<=", Box::new(less_eq));
+    add_symbol(&mut builtins, ">", Box::new(greater));
+    add_symbol(&mut builtins, ">=", Box::new(greater_eq));
 
     Env::new(builtins, None)
 }

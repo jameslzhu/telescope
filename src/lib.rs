@@ -13,6 +13,7 @@ extern crate error_chain;
 extern crate combine;
 
 extern crate itertools;
+extern crate unicode_xid;
 
 mod token;
 mod ops;
