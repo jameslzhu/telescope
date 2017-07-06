@@ -11,7 +11,7 @@ pub enum Expr {
     Func(Function),
     Atom(Atom),
     List(List),
-    Quote(Quote),
+    Vector(Vector),
 }
 
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
@@ -27,7 +27,7 @@ pub enum Atom {
 pub struct List(pub Vec<Expr>);
 
 #[derive(Clone, Debug)]
-pub struct Quote(pub Vec<Expr>);
+pub struct Vector(pub Vec<Expr>);
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Symbol(pub String);
@@ -93,8 +93,8 @@ impl Expr {
         }
     }
 
-    pub fn quote(self) -> Option<Quote> {
-        if let Expr::Quote(x) = self {
+    pub fn vector(self) -> Option<Vector> {
+        if let Expr::Vector(x) = self {
             Some(x)
         } else {
             None
@@ -268,7 +268,7 @@ impl fmt::Display for Expr {
             Expr::Func(ref func) => write!(f, "{}", func),
             Expr::Atom(ref atom) => write!(f, "{}", atom),
             Expr::List(ref list) => write!(f, "{}", list),
-            Expr::Quote(ref quote) => write!(f, "{}", quote),
+            Expr::Vector(ref vec) => write!(f, "{}", vec),
         }
     }
 }
@@ -291,7 +291,7 @@ impl fmt::Display for List {
     }
 }
 
-impl fmt::Display for Quote {
+impl fmt::Display for Vector {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "[{}]", self.0.iter().join(" "))
     }
@@ -344,15 +344,15 @@ impl From<Symbol> for Atom {
     }
 }
 
-impl From<Quote> for List {
-    fn from(x: Quote) -> Self {
+impl From<Vector> for List {
+    fn from(x: Vector) -> Self {
         List(x.0)
     }
 }
 
-impl From<List> for Quote {
+impl From<List> for Vector {
     fn from(x: List) -> Self {
-        Quote(x.0)
+        Vector(x.0)
     }
 }
 
@@ -362,7 +362,7 @@ impl PartialEq for List {
     }
 }
 
-impl PartialEq for Quote {
+impl PartialEq for Vector {
     fn eq(&self, other: &Self) -> bool {
         self.0.len() == other.0.len() && self.0.iter().zip(&other.0).all(|(a, b)| a == b)
     }
@@ -376,7 +376,7 @@ impl PartialEq for Expr {
             (&Func(_), &Func(_)) => false,
             (&Atom(ref a), &Atom(ref b)) => a == b,
             (&List(ref a), &List(ref b)) => a == b,
-            (&Quote(ref a), &Quote(ref b)) => a == b,
+            (&Vector(ref a), &Vector(ref b)) => a == b,
             _ => false,
         }
     }

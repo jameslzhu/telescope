@@ -1,4 +1,4 @@
-use ast::{Expr, List, Quote, Symbol};
+use ast::{Expr, List, Vector, Symbol};
 use combine::{Stream, Parser, ParseError, ParseResult};
 use combine::{between, many, many1, parser, satisfy_map, token, try};
 use token::Token;
@@ -14,7 +14,7 @@ fn expr<I>(input: I) -> ParseResult<Expr, I>
 where
     I: Stream<Item = Token>,
 {
-    choice!(parser(atom), parser(symbol), parser(list), parser(quote)).parse_stream(input)
+    choice!(parser(atom), parser(symbol), parser(list), parser(vector)).parse_stream(input)
 }
 
 fn atom<I>(input: I) -> ParseResult<Expr, I>
@@ -43,14 +43,14 @@ where
         .parse_stream(input)
 }
 
-fn quote<I>(input: I) -> ParseResult<Expr, I>
+fn vector<I>(input: I) -> ParseResult<Expr, I>
 where
     I: Stream<Item = Token>,
 {
     between(
         token(Token::LBracket),
         token(Token::RBracket),
-        many(parser(expr)).map(Quote).map(Expr::Quote),
+        many(parser(expr)).map(Vector).map(Expr::Vector),
     ).parse_stream(input)
 }
 
