@@ -1,11 +1,13 @@
+use std::collections::VecDeque;
+use std::io::prelude;
 use rustyline::Editor;
 use rustyline::error::ReadlineError as RLError;
-use combine::ParseError;
 use {lexer, parser, ast, ops};
+use combine;
 use error::*;
 use token::Token;
 
-pub fn repl() {
+pub fn repl() -> Result<()> {
     // Prompt constants
     let header = format!(r"telescope v{}", env!("CARGO_PKG_VERSION"));
     let prompt = "> ";
@@ -15,35 +17,44 @@ pub fn repl() {
     println!("{}", header);
 
     let mut env = ops::env();
+    let mut token_buf = Vec::<Token>::with_capacity(1024);
 
     loop {
         match rl.readline(prompt) {
-            Ok(line) => {
+            Ok(mut line) => {
                 rl.add_history_entry(&line);
-                if line == "exit" || line == "quit" {
-                    break;
-                }
-                exec(&line, &mut env);
+                exec(&line, &mut token_buf, &mut env)?;
             }
             Err(RLError::Interrupted) |
-            Err(RLError::Eof) => break,
+            Err(RLError::Eof) => bail!(ErrorKind::Eof),
             Err(err) => {
                 println!("Error: {:?}", err);
-                break;
+                bail!(ErrorKind::Eof);
             }
         };
     }
 }
 
-fn exec(line: &str, mut env: &mut ast::Env) {
-    let (tokens, _unlexed) = lexer::lex(line.trim_right()).unwrap();
-    match parser::parse(&*tokens) {
-        Ok((expr, _unparsed)) => print(eval(&expr, &mut env)),
-        Err(err) => println!("Parsing error: {:?}", err),
-    };
+fn exec(line: &str, token_buf: &mut Vec<Token>, mut env: &mut ast::Env) -> Result<()> {
+    let (mut tokens, _unlexed) = lexer::lex(line.trim_right()).unwrap();
+    let mut all_tokens = token_buf.drain(..).collect::<Vec<_>>();
+    all_tokens.append(&mut tokens);
+    match parser::parse(&*all_tokens) {
+        Ok((expr, unparsed)) => {
+            token_buf.extend_from_slice(unparsed);
+            match eval(&expr, &mut env) {
+                Ok(result) => Ok(print(result)),
+                Err(err) => match err.kind() {
+                    &ErrorKind::Exit(_) => Err(err),
+                    _ => Ok(println!("Error: {}", err)),
+                }
+            }
+        },
+        Err(err) => Ok(println!("Parsing error: {:?}", err)),
+    }
 }
 
-fn read(line: &str) -> ::std::result::Result<(ast::Expr, &[Token]), ParseError<&[Token]>> {
+fn read(line: &str) -> ::std::result::Result<(ast::Expr, &[Token]), combine::ParseError<&[Token]>> {
     unimplemented!()
 }
 
@@ -51,13 +62,8 @@ fn eval(expr: &ast::Expr, mut env: &mut ast::Env) -> Result<ast::Expr> {
     expr.eval(&mut env)
 }
 
-fn print(result: Result<ast::Expr>) {
-    match result {
-        Ok(value) => {
-            if value != ast::Expr::Nil {
-                println!("{}", value);
-            }
-        },
-        Err(err) => println!("Error: {}", err),
+fn print(value: ast::Expr) {
+    if value != ast::Expr::Nil {
+        println!("{}", value);
     }
 }

@@ -35,6 +35,9 @@ pub fn env<'a>() -> Env<'a> {
     add_symbol(&mut builtins, "rest", Box::new(rest));
     add_symbol(&mut builtins, "cons", Box::new(cons));
 
+    // REPL operations
+    add_symbol(&mut builtins, "exit", Box::new(exit));
+
     Env::new(builtins, None)
 }
 
@@ -316,4 +319,9 @@ pub fn cons(args: &[Expr], _env: &Env) -> Result<Expr> {
         },
         _ => Err("#[cons] expected list".into()),
     }
+}
+
+// (exit)
+pub fn exit(_args: &[Expr], _env: &Env) -> Result<Expr> {
+    Err(ErrorKind::Exit(0).into())
 }
