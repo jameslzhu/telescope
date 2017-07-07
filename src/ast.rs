@@ -36,7 +36,7 @@ pub struct Symbol(pub String);
 #[derive(Clone)]
 pub enum Function {
     Builtin { name: String, func: Rc<Box<Lambda>> },
-    User { params: Vec<Symbol>, body: Rc<Expr> },
+    User { params: Vec<Symbol>, body: Vec<Expr> },
 }
 
 pub struct Env<'a> {
@@ -78,32 +78,32 @@ impl Expr {
         }
     }
 
-    pub fn atom(self) -> Option<Atom> {
-        if let Expr::Atom(x) = self {
+    pub fn atom(&self) -> Option<&Atom> {
+        if let &Expr::Atom(ref x) = self {
             Some(x)
         } else {
             None
         }
     }
 
-    pub fn list(self) -> Option<List> {
-        if let Expr::List(x) = self {
+    pub fn list(&self) -> Option<&List> {
+        if let &Expr::List(ref x) = self {
             Some(x)
         } else {
             None
         }
     }
 
-    pub fn vector(self) -> Option<Vector> {
-        if let Expr::Vector(x) = self {
+    pub fn vector(&self) -> Option<&Vector> {
+        if let &Expr::Vector(ref x) = self {
             Some(x)
         } else {
             None
         }
     }
 
-    pub fn func(self) -> Option<Function> {
-        if let Expr::Func(x) = self {
+    pub fn func(&self) -> Option<&Function> {
+        if let &Expr::Func(ref x) = self {
             Some(x)
         } else {
             None
@@ -178,6 +178,14 @@ impl Atom {
         }
     }
 
+    pub fn sym(&self) -> Option<&Symbol> {
+        if let &Atom::Sym(ref x) = self {
+            Some(x)
+        } else {
+            None
+        }
+    }
+
     pub fn map_int<A, F>(self, f: F) -> Atom
     where
         F: FnOnce(i64) -> A,
@@ -202,7 +210,7 @@ impl Atom {
 }
 
 impl Function {
-    pub fn new<S>(name: S, func: Box<Lambda>) -> Self
+    pub fn builtin<S>(name: S, func: Box<Lambda>) -> Self
     where
         S: Into<String>,
     {
@@ -235,7 +243,16 @@ impl Function {
                         .zip(args.to_owned())
                         .collect();
                     let mut fn_env = Env::new(bound_params, &*env);
-                    body.eval(&mut fn_env)
+
+                    match body.split_last() {
+                        Some((last, rest)) => {
+                            for arg in rest {
+                                arg.eval(&mut fn_env)?;
+                            }
+                            last.eval(&mut fn_env)
+                        }
+                        None => Ok(Expr::Nil),
+                    }
                 }
             }
         }
@@ -272,7 +289,7 @@ impl fmt::Debug for Function {
             &Function::Builtin { ref name, ref func }
                 => write!(f, "#[{}]", name),
             &Function::User { ref params, ref body, }
-                => write!(f, "(fn [{}] {})", params.iter().join(" "), body),
+                => write!(f, "(fn [{}] {})", params.iter().join(" "), body.iter().join("\n")),
         }
     }
 }
@@ -403,34 +420,12 @@ mod test {
     use super::*;
     use ops;
 
-    fn lift(func: Box<Fn(&[Atom], &Env) -> Result<Atom>>) -> Box<Lambda> {
-        Box::new(move |args, env| {
-            func(
-                args.iter()
-                    .map(|arg| if let &Expr::Atom(ref atom) = arg {
-                        atom.clone()
-                    } else {
-                        panic!()
-                    })
-                    .collect::<Vec<_>>()
-                    .as_slice(),
-                env,
-            ).map(Expr::Atom)
-        })
-    }
-
     #[test]
     fn call_fn() {
         let mut env = ops::env();
-        let func = Box::new(move |atoms: &[Atom], _env: &Env| {
-            Ok(Atom::Int(
-                atoms
-                    .iter()
-                    .map(|x| if let &Atom::Int(y) = x { y } else { panic!() })
-                    .sum(),
-            ))
-        });
-        let add = Function::new("+", lift(func));
+        let add = env.lookup("+")
+            .and_then(|f| f.func().cloned())
+            .expect("Expected #[+] in builtins");
 
         let nums: Vec<Expr> = vec![1i64, 2i64].into_iter().map(Expr::from).collect();
         let result = add.apply(nums.as_slice(), &mut env);

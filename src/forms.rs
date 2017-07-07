@@ -1,7 +1,7 @@
 #![allow(unused_variables)]
 
 use std::collections::HashMap;
-use ast::{Atom, Expr, Env, Symbol};
+use ast::{Atom, Expr, Env, Function, Symbol};
 use itertools::Itertools;
 use error::*;
 
@@ -31,6 +31,7 @@ pub fn eval(form: &Symbol, args: &[Expr], env: &mut Env) -> Result<Expr> {
         .and_then(|f| (f)(args, env))
 }
 
+// (def symbol init)
 fn def_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
     if args.len() != 2 {
         return Err("#[def] expected 2 arguments".into());
@@ -44,6 +45,7 @@ fn def_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
     }
 }
 
+// (if cond then else?)
 fn if_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
     if args.len() == 2 {
         if args[0].eval(env)?.truthiness() {
@@ -62,10 +64,12 @@ fn if_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
     }
 }
 
+// (let [bindings*] exprs*)
 fn let_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
     unimplemented!()
 }
 
+// (do exprs*)
 fn do_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
     match args.split_last() {
         Some((last, rest)) => {
@@ -78,10 +82,29 @@ fn do_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
     }
 }
 
+// (quote form)
 fn quote_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
-    unimplemented!()
+    if args.len() == 1 {
+        Ok(args[0].clone())
+    } else {
+        Err("#[quote] expected 1 argument".into())
+    }
 }
 
+// (fn name? [params* ] exprs*)
 fn fn_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
-    unimplemented!()
+    if args.len() >= 3 {
+        let name = args[0].clone().atom().and_then(|a| a.sym().cloned()).ok_or("#[fn] expected symbol")?;
+        let params = args[1].clone().vector()
+            .ok_or("#[fn] expected arg vector")?
+            .0
+            .iter()
+            .map(|ref x| x.atom().and_then(|x2| x2.sym().cloned()))
+            .collect::<Option<Vec<_>>>()
+            .ok_or("#[fn] expected argument symbol")?;
+        let body = args[2..].to_vec();
+        Ok(Expr::Func(Function::User {params, body}))
+    } else {
+        Err("#[fn] expected 3 arguments (fn name [params] exprs*)".into())
+    }
 }

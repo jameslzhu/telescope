@@ -8,7 +8,7 @@ pub fn env<'a>() -> Env<'a> {
     let mut builtins = HashMap::new();
 
     let add_symbol = |builtins: &mut HashMap<String, Expr>, name, f| {
-        builtins.insert(String::from(name), Function::new(name, f).into());
+        builtins.insert(String::from(name), Function::builtin(name, f).into());
     };
 
     // TODO: change booleans from functions to special forms
@@ -37,10 +37,9 @@ fn unwrap_atoms<I>(args: I) -> Result<Vec<Atom>>
 where
     I: Iterator<Item = Expr>,
 {
-    args.map(Expr::atom).collect::<Option<Vec<_>>>().ok_or(
-        "expected atom"
-            .into(),
-    )
+    args.map(|e| e.atom().cloned())
+        .collect::<Option<Vec<_>>>()
+        .ok_or("expected atom".into())
 }
 
 fn check_args(f: &str, args: &[Expr], arity: usize) -> Result<()> {
