@@ -36,7 +36,7 @@ pub struct Symbol(pub String);
 #[derive(Clone)]
 pub enum Function {
     Builtin { name: String, func: Rc<Box<Lambda>> },
-    User { params: Vec<Symbol>, body: Vec<Expr> },
+    User { name: Option<String>, params: Vec<Symbol>, body: Vec<Expr> },
 }
 
 pub struct Env<'a> {
@@ -57,7 +57,7 @@ impl Expr {
                         } else if let Ok(Expr::Func(ref func)) = first.eval(env) {
                             func.apply(rest, env)
                         } else {
-                            Err("expected function call".into())
+                            Err(format!("could not find symbol {}", first).into())
                         }
                     } else {
                         Err("expected function call".into())
@@ -67,12 +67,8 @@ impl Expr {
                 }
             }
             &Expr::Atom(Atom::Sym(ref symbol)) => {
-                env.lookup(&symbol.0).map(Clone::clone).ok_or(
-                    format!(
-                        "undefined symbol: {}",
-                        symbol.0
-                    ).into(),
-                )
+                env.lookup(&symbol.0).cloned().ok_or(
+                    format!("undefined symbol: {}", symbol.0).into())
             }
             _ => Ok(self.clone()),
         }
@@ -232,7 +228,7 @@ impl Function {
         // Call function on args
         match self {
             &Function::Builtin { ref name, ref func } => (func)(&evaled_args, env),
-            &Function::User { ref params, ref body, } => {
+            &Function::User { ref name, ref params, ref body, } => {
                 if args.len() != params.len() {
                     Err(format!("fn expected {} args", params.len()).into())
                 } else {
@@ -288,7 +284,7 @@ impl fmt::Debug for Function {
         match self {
             &Function::Builtin { ref name, ref func }
                 => write!(f, "#[{}]", name),
-            &Function::User { ref params, ref body, }
+            &Function::User { ref name, ref params, ref body, }
                 => write!(f, "(fn [{}] {})", params.iter().join(" "), body.iter().join("\n")),
         }
     }

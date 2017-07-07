@@ -23,11 +23,7 @@ pub fn repl() {
                 if line == "exit" || line == "quit" {
                     break;
                 }
-                let (tokens, _unlexed) = lexer::lex(line.trim_right()).unwrap();
-                match parser::parse(&*tokens) {
-                    Ok((expr, _unparsed)) => print(eval(&expr, &mut env)),
-                    Err(err) => println!("Parsing error: {:?}", err),
-                };
+                exec(&line, &mut env);
             }
             Err(RLError::Interrupted) |
             Err(RLError::Eof) => break,
@@ -37,6 +33,14 @@ pub fn repl() {
             }
         };
     }
+}
+
+fn exec(line: &str, mut env: &mut ast::Env) {
+    let (tokens, _unlexed) = lexer::lex(line.trim_right()).unwrap();
+    match parser::parse(&*tokens) {
+        Ok((expr, _unparsed)) => print(eval(&expr, &mut env)),
+        Err(err) => println!("Parsing error: {:?}", err),
+    };
 }
 
 fn read(line: &str) -> ::std::result::Result<(ast::Expr, &[Token]), ParseError<&[Token]>> {

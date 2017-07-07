@@ -2,7 +2,6 @@
 
 use std::collections::HashMap;
 use ast::{Atom, Expr, Env, Function, Symbol};
-use itertools::Itertools;
 use error::*;
 
 type Form = Fn(&[Expr], &mut Env) -> Result<Expr> + Sync;
@@ -38,8 +37,9 @@ fn def_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
     }
 
     if let Expr::Atom(Atom::Sym(ref sym)) = args[0] {
-        env.define(&sym.0, args[1].clone());
-        Ok(Expr::Nil)
+        args[1].eval(env)
+            .map(|expr| env.define(&sym.0, expr))
+            .map(|_| args[0].clone())
     } else {
         Err("#[def] expected symbol".into())
     }
@@ -93,18 +93,38 @@ fn quote_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
 
 // (fn name? [params* ] exprs*)
 fn fn_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
-    if args.len() >= 3 {
-        let name = args[0].clone().atom().and_then(|a| a.sym().cloned()).ok_or("#[fn] expected symbol")?;
-        let params = args[1].clone().vector()
-            .ok_or("#[fn] expected arg vector")?
-            .0
-            .iter()
-            .map(|ref x| x.atom().and_then(|x2| x2.sym().cloned()))
-            .collect::<Option<Vec<_>>>()
-            .ok_or("#[fn] expected argument symbol")?;
-        let body = args[2..].to_vec();
-        Ok(Expr::Func(Function::User {params, body}))
+    if args.len() >= 2 {
+        let name = args[0].clone().atom().and_then(|a| a.sym().cloned());
+        if name.is_some() {
+            let params = args[1].clone().vector()
+                .ok_or("#[fn] expected arg vector")?
+                .0
+                .iter()
+                .map(|ref x| x.atom().and_then(|x2| x2.sym().cloned()))
+                .collect::<Option<Vec<_>>>()
+                .ok_or("#[fn] expected argument symbol")?;
+            let body = args[2..].to_vec();
+            Ok(Expr::Func(Function::User {
+                name: name.map(|n| n.0),
+                params: params,
+                body: body
+            }))
+        } else {
+            let params = args[0].clone().vector()
+                .ok_or("#[fn] expected arg vector")?
+                .0
+                .iter()
+                .map(|ref x| x.atom().and_then(|x2| x2.sym().cloned()))
+                .collect::<Option<Vec<_>>>()
+                .ok_or("#[fn] expected argument symbol")?;
+            let body = args[1..].to_vec();
+            Ok(Expr::Func(Function::User {
+                name: None,
+                params: params,
+                body: body
+            }))
+        }
     } else {
-        Err("#[fn] expected 3 arguments (fn name [params] exprs*)".into())
+        Err("#[fn] expected arguments (fn name? [params] exprs*)".into())
     }
 }

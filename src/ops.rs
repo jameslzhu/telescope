@@ -1,4 +1,4 @@
-use ast::{Atom, Expr, Env, Function};
+use ast::{Atom, Expr, List, Vector, Env, Function};
 use error::*;
 use itertools::Itertools;
 use std::collections::HashMap;
@@ -29,6 +29,11 @@ pub fn env<'a>() -> Env<'a> {
     add_symbol(&mut builtins, "<=", Box::new(less_eq));
     add_symbol(&mut builtins, ">", Box::new(greater));
     add_symbol(&mut builtins, ">=", Box::new(greater_eq));
+
+    // List operations
+    add_symbol(&mut builtins, "first", Box::new(first));
+    add_symbol(&mut builtins, "rest", Box::new(rest));
+    add_symbol(&mut builtins, "cons", Box::new(cons));
 
     Env::new(builtins, None)
 }
@@ -266,18 +271,17 @@ pub fn print(args: &[Expr], _env: &Env) -> Result<Expr> {
     Ok(Expr::Nil)
 }
 
-/*
-pub fn first(args: &[Expr]) -> Result<Expr> {
-    check_args("#[car]", args, 1)?;
+pub fn first(args: &[Expr], _env: &Env) -> Result<Expr> {
+    check_args("#[first]", args, 1)?;
 
     match &args[0] {
         &Expr::List(ref l) => Ok(l.0.first().cloned().unwrap_or(Expr::Nil)),
-        &Expr::Quote(ref q) => Ok(q.0.first().cloned().unwrap_or(Expr::Nil)),
-        _ => Err("#[car] expected list".into()),
+        &Expr::Vector(ref q) => Ok(q.0.first().cloned().unwrap_or(Expr::Nil)),
+        _ => Err("#[first] expected list".into()),
     }
 }
 
-pub fn rest(args: &[Expr]) -> Result<Expr> {
+pub fn rest(args: &[Expr], _env: &Env) -> Result<Expr> {
     match &args[0] {
         &Expr::List(ref l) => {
             Ok(l.0.split_first()
@@ -285,13 +289,31 @@ pub fn rest(args: &[Expr]) -> Result<Expr> {
                     Expr::List(List(rest.to_vec()))
                 }).unwrap_or(Expr::Nil))
         },
-        &Expr::Quote(ref q) => {
-            Ok(q.0.split_first()
+        &Expr::Vector(ref v) => {
+            Ok(v.0.split_first()
                 .map(|(_, rest)| {
-                    Expr::List(List(rest.to_vec()))
+                    Expr::Vector(Vector(rest.to_vec()))
                 }).unwrap_or(Expr::Nil))
         },
-        _ => Err("#[car] expected list".into()),
+        _ => Err("#[rest] expected list".into()),
     }
 }
-*/
+
+// (cons item seq)
+pub fn cons(args: &[Expr], _env: &Env) -> Result<Expr> {
+    check_args("#[cons]", args, 2)?;
+
+    match &args[2] {
+        &Expr::List(ref l) => {
+            let mut new = l.clone();
+            new.0.insert(0, args[1].clone());
+            Ok(Expr::List(new))
+        },
+        &Expr::Vector(ref v) => {
+            let mut new = v.clone();
+            new.0.push(args[1].clone());
+            Ok(Expr::Vector(new))
+        },
+        _ => Err("#[cons] expected list".into()),
+    }
+}
