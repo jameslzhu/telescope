@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use std::fmt;
 use std::rc::Rc;
 use token::Literal;
+use forms;
 
 #[derive(Clone, Debug)]
 pub enum Expr {
@@ -34,14 +35,8 @@ pub struct Symbol(pub String);
 
 #[derive(Clone)]
 pub enum Function {
-    Builtin {
-        name: String,
-        func: Rc<Box<Lambda>>
-    },
-    User {
-        params: Vec<Symbol>,
-        body: Rc<Expr>
-    },
+    Builtin { name: String, func: Rc<Box<Lambda>> },
+    User { params: Vec<Symbol>, body: Vec<Expr> },
 }
 
 pub struct Env<'a> {
@@ -52,12 +47,18 @@ pub struct Env<'a> {
 pub type Lambda = Fn(&[Expr], &Env) -> Result<Expr>;
 
 impl Expr {
-    pub fn eval(&self, env: &Env) -> Result<Expr> {
+    pub fn eval(&self, env: &mut Env) -> Result<Expr> {
         match self {
             &Expr::List(ref lst) => {
                 if let Some((first, rest)) = lst.0.split_first() {
-                    if let Ok(Expr::Func(ref func)) = first.eval(env) {
-                        func.apply(rest, env)
+                    if let &Expr::Atom(Atom::Sym(ref sym)) = first {
+                        if forms::is_special_form(sym) {
+                            forms::eval(sym, rest, env)
+                        } else if let Ok(Expr::Func(ref func)) = first.eval(env) {
+                            func.apply(rest, env)
+                        } else {
+                            Err("expected function call".into())
+                        }
                     } else {
                         Err("expected function call".into())
                     }
@@ -77,35 +78,46 @@ impl Expr {
         }
     }
 
-    pub fn atom(self) -> Option<Atom> {
-        if let Expr::Atom(x) = self {
+    pub fn atom(&self) -> Option<&Atom> {
+        if let &Expr::Atom(ref x) = self {
             Some(x)
         } else {
             None
         }
     }
 
-    pub fn list(self) -> Option<List> {
-        if let Expr::List(x) = self {
+    pub fn list(&self) -> Option<&List> {
+        if let &Expr::List(ref x) = self {
             Some(x)
         } else {
             None
         }
     }
 
-    pub fn vector(self) -> Option<Vector> {
-        if let Expr::Vector(x) = self {
+    pub fn vector(&self) -> Option<&Vector> {
+        if let &Expr::Vector(ref x) = self {
             Some(x)
         } else {
             None
         }
     }
 
-    pub fn func(self) -> Option<Function> {
-        if let Expr::Func(x) = self {
+    pub fn func(&self) -> Option<&Function> {
+        if let &Expr::Func(ref x) = self {
             Some(x)
         } else {
             None
+        }
+    }
+
+    pub fn truthiness(&self) -> bool {
+        match self {
+            &Expr::Nil => false,
+            &Expr::Atom(ref a) => match a {
+                &Atom::Bool(b) => b,
+                _ => true,
+            },
+            _ => true,
         }
     }
 }
@@ -166,6 +178,14 @@ impl Atom {
         }
     }
 
+    pub fn sym(&self) -> Option<&Symbol> {
+        if let &Atom::Sym(ref x) = self {
+            Some(x)
+        } else {
+            None
+        }
+    }
+
     pub fn map_int<A, F>(self, f: F) -> Atom
     where
         F: FnOnce(i64) -> A,
@@ -190,9 +210,9 @@ impl Atom {
 }
 
 impl Function {
-    pub fn new<S>(name: S, func: Box<Lambda>) -> Self
+    pub fn builtin<S>(name: S, func: Box<Lambda>) -> Self
     where
-        S: Into<String>
+        S: Into<String>,
     {
         Function::Builtin {
             name: name.into(),
@@ -200,8 +220,9 @@ impl Function {
         }
     }
 
+    #[cfg_attr(rustfmt, rustfmt_skip)]
     #[allow(unused_variables)]
-    pub fn apply<'a>(&self, args: &'a [Expr], env: &Env) -> Result<Expr> {
+    pub fn apply<'a>(&self, args: &'a [Expr], env: &mut Env) -> Result<Expr> {
         // Eval all arguments, returning if any errors
         let evaled_args = args.iter()
             .map(|a| a.eval(env))
@@ -211,21 +232,30 @@ impl Function {
         // Call function on args
         match self {
             &Function::Builtin { ref name, ref func } => (func)(&evaled_args, env),
-            &Function::User { ref params, ref body } => {
+            &Function::User { ref params, ref body, } => {
                 if args.len() != params.len() {
                     Err(format!("fn expected {} args", params.len()).into())
                 } else {
                     // Create new env with arguments, eval body with new env
-                    let bound_params = params.iter()
-                        .cloned()
-                        .map(|x| x.0)
-                        .zip(args.iter().cloned())
+                    let bound_params = params
+                        .iter()
+                        .map(|x| x.0.to_owned())
+                        .zip(args.to_owned())
                         .collect();
-                    body.eval(&Env::new(bound_params, env))
+                    let mut fn_env = Env::new(bound_params, &*env);
+
+                    match body.split_last() {
+                        Some((last, rest)) => {
+                            for arg in rest {
+                                arg.eval(&mut fn_env)?;
+                            }
+                            last.eval(&mut fn_env)
+                        }
+                        None => Ok(Expr::Nil),
+                    }
                 }
             }
         }
-        
     }
 }
 
@@ -245,18 +275,21 @@ impl<'a> Env<'a> {
             self.parent.and_then(|p| p.lookup(symbol))
         })
     }
+
+    pub fn define(&mut self, symbol: &str, value: Expr) {
+        self.symbols.insert(symbol.to_string(), value);
+    }
 }
 
 impl fmt::Debug for Function {
+    #[cfg_attr(rustfmt, rustfmt_skip)]
     #[allow(unused_variables)]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            &Function::Builtin { ref name, ref func } => {
-                write!(f, "#[{}]", name)
-            },
-            &Function::User { ref params, ref body } => {
-                write!(f, "(fn [{}] {})", params.iter().join(" "), body)
-            }
+            &Function::Builtin { ref name, ref func }
+                => write!(f, "#[{}]", name),
+            &Function::User { ref params, ref body, }
+                => write!(f, "(fn [{}] {})", params.iter().join(" "), body.iter().join("\n")),
         }
     }
 }
@@ -387,44 +420,22 @@ mod test {
     use super::*;
     use ops;
 
-    fn lift(func: Box<Fn(&[Atom], &Env) -> Result<Atom>>) -> Box<Lambda> {
-        Box::new(move |args, env| {
-            func(
-                args.iter()
-                    .map(|arg| if let &Expr::Atom(ref atom) = arg {
-                        atom.clone()
-                    } else {
-                        panic!()
-                    })
-                    .collect::<Vec<_>>()
-                    .as_slice(),
-                env,
-            ).map(Expr::Atom)
-        })
-    }
-
     #[test]
     fn call_fn() {
-        let env = ops::env();
-        let func = Box::new(move |atoms: &[Atom], _env: &Env| {
-            Ok(Atom::Int(
-                atoms
-                    .iter()
-                    .map(|x| if let &Atom::Int(y) = x { y } else { panic!() })
-                    .sum(),
-            ))
-        });
-        let add = Function::new("+", lift(func));
+        let mut env = ops::env();
+        let add = env.lookup("+")
+            .and_then(|f| f.func().cloned())
+            .expect("Expected #[+] in builtins");
 
         let nums: Vec<Expr> = vec![1i64, 2i64].into_iter().map(Expr::from).collect();
-        let result = add.apply(nums.as_slice(), &env);
-        assert_eq!(Some(Atom::from(3)), result.unwrap().atom());
+        let result = add.apply(nums.as_slice(), &mut env);
+        assert_eq!(Expr::from(3), result.unwrap());
     }
 
     #[test]
     fn test_env() {
-        let global_scope = ops::env();
-        let new_scope = Env::new(HashMap::new(), &global_scope);
+        let env = ops::env();
+        let new_scope = Env::new(HashMap::new(), &env);
         assert!(new_scope.lookup("hello").is_none());
     }
 }
