@@ -1,5 +1,3 @@
-use std::collections::VecDeque;
-use std::io::prelude;
 use rustyline::Editor;
 use rustyline::error::ReadlineError as RLError;
 use {lexer, parser, ast, ops};
@@ -21,7 +19,7 @@ pub fn repl() -> Result<()> {
 
     loop {
         match rl.readline(prompt) {
-            Ok(mut line) => {
+            Ok(line) => {
                 rl.add_history_entry(&line);
                 exec(&line, &mut token_buf, &mut env)?;
             }
