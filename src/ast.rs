@@ -435,8 +435,7 @@ mod test {
 
     #[test]
     fn test_env() {
-        let global_scope = ops::env();
-        let new_scope = Env::new(HashMap::new(), &global_scope);
+        let new_scope = Env::new(HashMap::new(), &ops::env());
         assert!(new_scope.lookup("hello").is_none());
     }
 }

@@ -23,9 +23,10 @@ extern crate rustyline;
 mod token;
 mod ops;
 mod forms;
+mod repl;
 
-pub mod ast;
-pub mod lexer;
-pub mod parser;
+mod ast;
+mod lexer;
+mod parser;
 pub mod error;
-pub mod repl;
+pub use repl::repl;

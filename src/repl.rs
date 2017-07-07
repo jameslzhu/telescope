@@ -5,7 +5,7 @@ use {lexer, parser, token, ast, ops};
 use error::*;
 use token::Token;
 
-fn repl() {
+pub fn repl() {
     // Prompt constants
     let header = format!(r"telescope v{}", env!("CARGO_PKG_VERSION"));
     let prompt = "> ";
@@ -25,7 +25,7 @@ fn repl() {
                 }
                 let (tokens, _unlexed) = lexer::lex(line.trim_right()).unwrap();
                 match parser::parse(&*tokens) {
-                    Ok((expr, unparsed)) => print(eval(&expr, &mut env)),
+                    Ok((expr, _unparsed)) => print(eval(&expr, &mut env)),
                     Err(err) => println!("Parsing error: {:?}", err),
                 };
             }
@@ -43,7 +43,7 @@ fn read(line: &str) -> ::std::result::Result<(ast::Expr, &[Token]), ParseError<&
     unimplemented!()
 }
 
-fn eval(expr: &ast::Expr, env: &mut ast::Env) -> Result<ast::Expr> {
+fn eval(expr: &ast::Expr, mut env: &mut ast::Env) -> Result<ast::Expr> {
     expr.eval(&mut env)
 }
 
