@@ -1,7 +1,7 @@
 [package]
 authors = ["James Zhu <jameszhu@berkeley.edu>"]
 name = "telescope"
-version = "0.4.0"
+version = "0.5.0"
 
 [dependencies]
 combine = "2.3.0"
