@@ -1,61 +1,55 @@
 use combine::{Parser, Stream, ParseError, ParseResult};
-use combine::{between, choice, many, many1, optional, parser, satisfy, satisfy_map, sep_by, try};
-use combine::char::{alpha_num, digit, char, letter, spaces, string};
+use combine::{between, many, many1, one_of, optional, parser, satisfy, satisfy_map, sep_by, try};
+use combine::char::{digit, char, spaces};
 
 use token::{Literal, Token};
+use unicode_xid::UnicodeXID;
 
 pub fn lex<I>(input: I) -> Result<(Vec<Token>, I), ParseError<I>>
-    where I: Stream<Item = char>
+where
+    I: Stream<Item = char>,
 {
-    spaces().with(sep_by(parser(token), spaces()))
-        .parse(input)
+    spaces().with(sep_by(parser(token), spaces())).parse(input)
 }
 
 fn literal<I>(input: I) -> ParseResult<Token, I>
-    where I: Stream<Item = char>
+where
+    I: Stream<Item = char>,
 {
     let sign = optional(char('-'));
     let digits = many1::<String, _>(digit());
     let integer = sign.clone()
-        .and(digits.clone()
-                .and_then(|s| s.parse::<i64>()))
-        .map(|(sign, num)| {
-            if sign.is_some() { -num } else { num }
-        })
+        .and(digits.clone().and_then(|s| s.parse::<i64>()))
+        .map(|(sign, num)| if sign.is_some() { -num } else { num })
         .map(Literal::from);
 
     let float = sign.clone()
-        .and((digits.clone(), char('.'), digits.clone())
-            .map(|(prefix, _, suffix)| format!("{}.{}", prefix, suffix))
-            .and_then(|num| num.parse::<f64>()))
-        .map(|(sign, num)| {
-            if sign.is_some() { -num } else { num }
-        })
+        .and(
+            (digits.clone(), char('.'), digits.clone())
+                .map(|(prefix, _, suffix)| format!("{}.{}", prefix, suffix))
+                .and_then(|num| num.parse::<f64>()),
+        )
+        .map(|(sign, num)| if sign.is_some() { -num } else { num })
         .map(Literal::from);
 
     let num = try(float).or(try(integer));
 
     let boolean = char('#')
-        .with(satisfy_map(|c| {
-            match c {
-                't' => Some(true),
-                'f' => Some(false),
-                _ => None,
-            }
+        .with(satisfy_map(|c| match c {
+            't' => Some(true),
+            'f' => Some(false),
+            _ => None,
         }))
         .map(Literal::from);
 
-    let escaped = char('\\')
-        .with(satisfy_map(|c| {
-            match c {
-                '\"' => Some('\"'),
-                '\\' => Some('\\'),
-                'n' => Some('\n'),
-                'r' => Some('\r'),
-                't' => Some('\t'),
-                _ => None,
-            }
-        }));
+    let escaped = char('\\').with(satisfy_map(|c| match c {
+        '\"' => Some('\"'),
+        '\\' => Some('\\'),
+        'n' => Some('\n'),
+        'r' => Some('\r'),
+        't' => Some('\t'),
+        _ => None,
+    }));
 
     let non_quote = try(escaped).or(satisfy(|c| c != '"'));
 
@@ -67,11 +61,15 @@ fn literal<I>(input: I) -> ParseResult<Token, I>
 }
 
 fn symbol<I>(input: I) -> ParseResult<Token, I>
-    where I: Stream<Item = char>
+where
+    I: Stream<Item = char>,
 {
-    let first = letter().or(char('_'));
-    let rest = many::<String, _>(alpha_num().or(char('_')));
-    first.and(rest)
+    let punctuation = one_of("_'+-*/=<>!".chars());
+    let start = satisfy(UnicodeXID::is_xid_start).or(punctuation.clone());
+    let body = satisfy(UnicodeXID::is_xid_continue).or(punctuation.clone());
+    let rest = many::<String, _>(body);
+    start
+        .and(rest)
         .map(|(f, mut r)| {
             r.insert(0, f);
             r
@@ -81,50 +79,29 @@ fn symbol<I>(input: I) -> ParseResult<Token, I>
 }
 
 fn punctuation<I>(input: I) -> ParseResult<Token, I>
-    where I: Stream<Item = char>
+where
+    I: Stream<Item = char>,
 {
-    let single_char_tokens = satisfy_map(|c| {
-        match c {
-            '(' => Some(Token::LParen),
-            ')' => Some(Token::RParen),
-            '[' => Some(Token::LBracket),
-            ']' => Some(Token::RBracket),
-            '+' => Some(Token::Plus),
-            '-' => Some(Token::Minus),
-            '*' => Some(Token::Star),
-            '/' => Some(Token::Slash),
-            '=' => Some(Token::Equal),
-            '<' => Some(Token::Less),
-            '>' => Some(Token::Greater),
-            _ => None,
-        }
-    });
-
-    let two_char_tokens = choice([string("<="), string(">=")]).map(|s| match s {
-        "<=" => Token::LessEq,
-        ">=" => Token::GreaterEq,
-        _ => unreachable!(),
-    });
-
-    // Maximal munch: attempt parsing two-char tokens before one-char tokens
-    two_char_tokens.or(single_char_tokens).parse_stream(input)
+    satisfy_map(|c| match c {
+        '(' => Some(Token::LParen),
+        ')' => Some(Token::RParen),
+        '[' => Some(Token::LBracket),
+        ']' => Some(Token::RBracket),
+        _ => None,
+    }).parse_stream(input)
 }
 
 fn token<I>(input: I) -> ParseResult<Token, I>
-    where I: Stream<Item = char>
+where
+    I: Stream<Item = char>,
 {
-    choice!(
-        parser(symbol),
-        parser(literal),
-        parser(symbol),
-        parser(punctuation)
-    ).parse_stream(input)
+    choice!(parser(symbol), parser(literal), parser(punctuation)).parse_stream(input)
 }
 
 #[cfg(test)]
 mod test {
-    use float_cmp::ApproxEqUlps;
     use super::*;
+    use float_cmp::ApproxEqUlps;
 
     #[test]
     fn parse_bool_literal() {
@@ -147,11 +124,26 @@ mod test {
 
     #[test]
     fn parse_escape_chars() {
-        assert_eq!(Ok((Token::from("\""), "")), parser(literal).parse(r#""\"""#));
-        assert_eq!(Ok((Token::from("\\"), "")), parser(literal).parse(r#""\\""#));
-        assert_eq!(Ok((Token::from("\n"), "")), parser(literal).parse(r#""\n""#));
-        assert_eq!(Ok((Token::from("\r"), "")), parser(literal).parse(r#""\r""#));
-        assert_eq!(Ok((Token::from("\t"), "")), parser(literal).parse(r#""\t""#));
+        assert_eq!(
+            Ok((Token::from("\""), "")),
+            parser(literal).parse(r#""\"""#)
+        );
+        assert_eq!(
+            Ok((Token::from("\\"), "")),
+            parser(literal).parse(r#""\\""#)
+        );
+        assert_eq!(
+            Ok((Token::from("\n"), "")),
+            parser(literal).parse(r#""\n""#)
+        );
+        assert_eq!(
+            Ok((Token::from("\r"), "")),
+            parser(literal).parse(r#""\r""#)
+        );
+        assert_eq!(
+            Ok((Token::from("\t"), "")),
+            parser(literal).parse(r#""\t""#)
+        );
     }
 
     #[test]
@@ -185,24 +177,6 @@ mod test {
                 .replace("\t", r"\t")
                 .replace("\"", r#"\""#));
             Ok((Token::from(x.clone()), "")) == parser(literal).parse(&*string)
-        }
-
-        fn parse_symbol(x: String) -> bool {
-            match parser(symbol).parse(&*x) {
-                Ok((Token::Symbol(result), _)) => result.chars().all(|c| c.is_alphanumeric() || c == '_'),
-                Err(_) => {
-                    if x.is_empty() {
-                        true
-                    } else if !x.chars().next().unwrap().is_alphabetic() {
-                        true
-                    } else if !x.chars().all(|c| c.is_alphanumeric() || c == '_') {
-                        true
-                    } else {
-                        false
-                    }
-                }
-                _ => false
-            }
         }
     }
 }
