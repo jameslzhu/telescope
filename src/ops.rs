@@ -1,42 +1,34 @@
-use ast::{Atom, Expr, List, Vector, Env, Function};
+use ast::{Atom, Expr, List, Vector, Env, Function, Lambda};
 use error::*;
 use itertools::Itertools;
 use std::collections::HashMap;
 use std::ops::{Sub, Div};
 
 pub fn env<'a>() -> Env<'a> {
-    let mut builtins = HashMap::new();
+    let table: Vec<(&str, Box<Lambda>)> = vec![
+        ("not",     Box::new(not)),
+        ("or",      Box::new(or)),
+        ("and",     Box::new(and)),
+        ("print",   Box::new(print)),
+        ("+",       Box::new(add)),
+        ("-",       Box::new(sub)),
+        ("*",       Box::new(mul)),
+        ("/",       Box::new(div)),
+        ("=",       Box::new(equal)),
+        ("<",       Box::new(less)),
+        ("<=",      Box::new(less_eq)),
+        (">",       Box::new(greater)),
+        (">=",      Box::new(greater_eq)),
+        ("first",   Box::new(first)),
+        ("rest",    Box::new(rest)),
+        ("cons",    Box::new(cons)),
+        ("exit",    Box::new(exit)),
+    ];
 
-    let add_symbol = |builtins: &mut HashMap<String, Expr>, name, f| {
-        builtins.insert(String::from(name), Function::builtin(name, f).into());
-    };
-
-    // TODO: change booleans from functions to special forms
-    add_symbol(&mut builtins, "not", Box::new(not));
-    add_symbol(&mut builtins, "or", Box::new(or));
-    add_symbol(&mut builtins, "and", Box::new(and));
-    add_symbol(&mut builtins, "print", Box::new(print));
-
-    // Mathematical tokens
-    add_symbol(&mut builtins, "+", Box::new(add));
-    add_symbol(&mut builtins, "-", Box::new(sub));
-    add_symbol(&mut builtins, "*", Box::new(mul));
-    add_symbol(&mut builtins, "/", Box::new(div));
-
-    // Comparison tokens
-    add_symbol(&mut builtins, "=", Box::new(equal));
-    add_symbol(&mut builtins, "<", Box::new(less));
-    add_symbol(&mut builtins, "<=", Box::new(less_eq));
-    add_symbol(&mut builtins, ">", Box::new(greater));
-    add_symbol(&mut builtins, ">=", Box::new(greater_eq));
-
-    // List operations
-    add_symbol(&mut builtins, "first", Box::new(first));
-    add_symbol(&mut builtins, "rest", Box::new(rest));
-    add_symbol(&mut builtins, "cons", Box::new(cons));
-
-    // REPL operations
-    add_symbol(&mut builtins, "exit", Box::new(exit));
+    let builtins = table.into_iter()
+        .map(|(symbol, f)| {
+            (String::from(symbol), Expr::from(Function::builtin(symbol, f)))
+        }).collect::<HashMap<_, _>>();
 
     Env::new(builtins, None)
 }
