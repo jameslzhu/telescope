@@ -1,7 +1,7 @@
 #![allow(unused_variables)]
 
 use std::collections::HashMap;
-use ast::{Expr, Env, Symbol};
+use ast::{Atom, Expr, Env, Symbol};
 use error::*;
 
 type Form = Fn(&[Expr], &mut Env) -> Result<Expr> + Sync;
@@ -23,7 +23,7 @@ pub fn is_special_form(form: &Symbol) -> bool {
     SPECIAL_FORMS.contains_key(&form.0)
 }
 
-pub fn eval_form(form: &Symbol, args: &[Expr], env: &mut Env) -> Result<Expr> {
+pub fn eval(form: &Symbol, args: &[Expr], env: &mut Env) -> Result<Expr> {
     assert!(is_special_form(form));
     (SPECIAL_FORMS.get(&form.0))
         .ok_or("did not find special form".into())
@@ -31,7 +31,16 @@ pub fn eval_form(form: &Symbol, args: &[Expr], env: &mut Env) -> Result<Expr> {
 }
 
 fn def_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
-    unimplemented!()
+    if args.len() != 2 {
+        return Err("#[def] expected 2 arguments".into());
+    }
+
+    if let Expr::Atom(Atom::Sym(ref sym)) = args[0] {
+        env.define(&sym.0, args[1].clone());
+        Ok(Expr::Nil)
+    } else {
+        Err("#[def] expected symbol".into())
+    }
 }
 
 fn if_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
@@ -48,7 +57,7 @@ fn if_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
             args[2].eval(env)
         }
     } else {
-        Err("#[if] expected body".into())
+        Err("#[if] expected body clause".into())
     }
 }
 

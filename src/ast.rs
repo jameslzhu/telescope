@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::fmt;
 use std::rc::Rc;
 use token::Literal;
-use forms::{eval_form, is_special_form};
+use forms;
 
 #[derive(Clone, Debug)]
 pub enum Expr {
@@ -52,8 +52,8 @@ impl Expr {
             &Expr::List(ref lst) => {
                 if let Some((first, rest)) = lst.0.split_first() {
                     if let &Expr::Atom(Atom::Sym(ref sym)) = first {
-                        if is_special_form(sym) {
-                            eval_form(sym, rest, env)
+                        if forms::is_special_form(sym) {
+                            forms::eval(sym, rest, env)
                         } else if let Ok(Expr::Func(ref func)) = first.eval(env) {
                             func.apply(rest, env)
                         } else {
@@ -257,6 +257,10 @@ impl<'a> Env<'a> {
         self.symbols.get(symbol).or_else(|| {
             self.parent.and_then(|p| p.lookup(symbol))
         })
+    }
+
+    pub fn define(&mut self, symbol: &str, value: Expr) {
+        self.symbols.insert(symbol.to_string(), value);
     }
 }
 
