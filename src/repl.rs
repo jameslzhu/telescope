@@ -1,7 +1,7 @@
 use rustyline::Editor;
 use rustyline::error::ReadlineError as RLError;
-use combine::{ParseError, ParseResult};
-use {lexer, parser, token, ast, ops};
+use combine::ParseError;
+use {lexer, parser, ast, ops};
 use error::*;
 use token::Token;
 

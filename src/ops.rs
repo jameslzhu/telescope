@@ -2,7 +2,7 @@ use ast::{Atom, Expr, Env, Function};
 use error::*;
 use itertools::Itertools;
 use std::collections::HashMap;
-use std::ops::{Add, Sub, Mul, Div};
+use std::ops::{Sub, Div};
 
 pub fn env<'a>() -> Env<'a> {
     let mut builtins = HashMap::new();

@@ -417,7 +417,7 @@ mod test {
 
     #[test]
     fn call_fn() {
-        let env = ops::env();
+        let mut env = ops::env();
         let func = Box::new(move |atoms: &[Atom], _env: &Env| {
             Ok(Atom::Int(
                 atoms
@@ -430,12 +430,13 @@ mod test {
 
         let nums: Vec<Expr> = vec![1i64, 2i64].into_iter().map(Expr::from).collect();
         let result = add.apply(nums.as_slice(), &mut env);
-        assert_eq!(Some(Expr::from(3)), result.unwrap());
+        assert_eq!(Expr::from(3), result.unwrap());
     }
 
     #[test]
     fn test_env() {
-        let new_scope = Env::new(HashMap::new(), &ops::env());
+        let env = ops::env();
+        let new_scope = Env::new(HashMap::new(), &env);
         assert!(new_scope.lookup("hello").is_none());
     }
 }
