@@ -2,6 +2,7 @@
 
 use std::collections::HashMap;
 use ast::{Atom, Expr, Env, Symbol};
+use itertools::Itertools;
 use error::*;
 
 type Form = Fn(&[Expr], &mut Env) -> Result<Expr> + Sync;
@@ -66,7 +67,15 @@ fn let_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
 }
 
 fn do_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
-    unimplemented!()
+    match args.split_last() {
+        Some((last, rest)) => {
+            for arg in rest {
+                arg.eval(env)?;
+            }
+            last.eval(env)
+        }
+        None => Ok(Expr::Nil),
+    }
 }
 
 fn quote_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
