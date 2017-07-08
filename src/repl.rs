@@ -35,12 +35,12 @@ pub fn repl() -> Result<()> {
 }
 
 fn exec(line: &str, token_buf: &mut Vec<Token>, mut env: &mut Env) -> Result<()> {
-    let (mut tokens, _unlexed) = lexer::lex(line.trim_right()).unwrap();
-    let mut all_tokens = token_buf.drain(..).collect::<Vec<_>>();
-    all_tokens.append(&mut tokens);
-    match parser::parse(combine::State::new(&*all_tokens)) {
+    let (tokens, _unlexed) = lexer::lex(line.trim_right()).unwrap();
+    let all_tokens = token_buf.drain(..).chain(tokens).collect::<Vec<_>>();
+    let token_iter = combine::from_iter(all_tokens.into_iter());
+    match parser::parse(combine::State::new(token_iter)) {
         Ok((expr, unparsed)) => {
-            token_buf.extend_from_slice(unparsed.input);
+            token_buf.extend(unparsed.input);
             match eval(&expr, &mut env) {
                 Ok(result) => Ok(print(result)),
                 Err(err) => match err.kind() {
@@ -49,7 +49,7 @@ fn exec(line: &str, token_buf: &mut Vec<Token>, mut env: &mut Env) -> Result<()>
                 }
             }
         },
-        Err(err) => Ok(println!("Parsing error: {:?}", err)),
+        Err(err) => Ok(println!("Parsing error: {}", err)),
     }
 }
 
