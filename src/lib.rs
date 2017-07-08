@@ -17,9 +17,9 @@ extern crate combine;
 #[macro_use]
 extern crate lazy_static;
 
+extern crate conv;
 extern crate itertools;
 extern crate unicode_xid;
-
 extern crate rustyline;
 
 mod token;

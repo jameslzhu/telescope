@@ -38,9 +38,9 @@ fn exec(line: &str, token_buf: &mut Vec<Token>, mut env: &mut Env) -> Result<()>
     let (mut tokens, _unlexed) = lexer::lex(line.trim_right()).unwrap();
     let mut all_tokens = token_buf.drain(..).collect::<Vec<_>>();
     all_tokens.append(&mut tokens);
-    match parser::parse(&*all_tokens) {
+    match parser::parse(combine::State::new(&*all_tokens)) {
         Ok((expr, unparsed)) => {
-            token_buf.extend_from_slice(unparsed);
+            token_buf.extend_from_slice(unparsed.input);
             match eval(&expr, &mut env) {
                 Ok(result) => Ok(print(result)),
                 Err(err) => match err.kind() {

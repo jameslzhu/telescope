@@ -40,7 +40,7 @@ where
         token(Token::LParen),
         token(Token::RParen),
         many1(parser(expr)).map(List).map(Expr::List),
-    )).or(nil)
+    )).or(try(nil))
         .parse_stream(input)
 }
 
