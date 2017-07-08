@@ -1,7 +1,8 @@
+use combine;
 use rustyline::Editor;
 use rustyline::error::ReadlineError as RLError;
 use {lexer, parser, ast, ops};
-use combine;
+use eval::Env;
 use error::*;
 use token::Token;
 
@@ -33,7 +34,7 @@ pub fn repl() -> Result<()> {
     }
 }
 
-fn exec(line: &str, token_buf: &mut Vec<Token>, mut env: &mut ast::Env) -> Result<()> {
+fn exec(line: &str, token_buf: &mut Vec<Token>, mut env: &mut Env) -> Result<()> {
     let (mut tokens, _unlexed) = lexer::lex(line.trim_right()).unwrap();
     let mut all_tokens = token_buf.drain(..).collect::<Vec<_>>();
     all_tokens.append(&mut tokens);
@@ -56,7 +57,7 @@ fn read(line: &str) -> ::std::result::Result<(ast::Expr, &[Token]), combine::Par
     unimplemented!()
 }
 
-fn eval(expr: &ast::Expr, mut env: &mut ast::Env) -> Result<ast::Expr> {
+fn eval(expr: &ast::Expr, mut env: &mut Env) -> Result<ast::Expr> {
     expr.eval(&mut env)
 }
 

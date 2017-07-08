@@ -1,5 +1,5 @@
 extern crate telescope;
 
 fn main() {
-    telescope::repl();
+    let _ = telescope::repl();
 }

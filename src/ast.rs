@@ -1,10 +1,9 @@
 use error::*;
 use itertools::Itertools;
-use std::collections::HashMap;
 use std::fmt;
 use std::rc::Rc;
+use eval::Env;
 use token::Literal;
-use forms;
 
 #[derive(Clone, Debug)]
 pub enum Expr {
@@ -39,41 +38,9 @@ pub enum Function {
     User { name: Option<String>, params: Vec<Symbol>, body: Vec<Expr> },
 }
 
-pub struct Env<'a> {
-    symbols: HashMap<String, Expr>,
-    parent: Option<&'a Env<'a>>,
-}
-
 pub type Lambda = Fn(&[Expr], &Env) -> Result<Expr>;
 
 impl Expr {
-    pub fn eval(&self, env: &mut Env) -> Result<Expr> {
-        match self {
-            &Expr::List(ref lst) => {
-                if let Some((first, rest)) = lst.0.split_first() {
-                    if let &Expr::Atom(Atom::Sym(ref sym)) = first {
-                        if forms::is_special_form(sym) {
-                            forms::eval(sym, rest, env)
-                        } else if let Ok(Expr::Func(ref func)) = first.eval(env) {
-                            func.apply(rest, env)
-                        } else {
-                            Err(format!("could not find symbol {}", first).into())
-                        }
-                    } else {
-                        Err("expected function call".into())
-                    }
-                } else {
-                    Ok(self.clone())
-                }
-            }
-            &Expr::Atom(Atom::Sym(ref symbol)) => {
-                env.lookup(&symbol.0).cloned().ok_or(
-                    format!("undefined symbol: {}", symbol.0).into())
-            }
-            _ => Ok(self.clone()),
-        }
-    }
-
     pub fn atom(&self) -> Option<&Atom> {
         if let &Expr::Atom(ref x) = self {
             Some(x)
@@ -104,6 +71,10 @@ impl Expr {
         } else {
             None
         }
+    }
+
+    pub fn sym(&self) -> Option<&Symbol> {
+        self.atom().and_then(|a| a.sym())
     }
 
     pub fn truthiness(&self) -> bool {
@@ -214,66 +185,6 @@ impl Function {
             name: name.into(),
             func: Rc::new(func),
         }
-    }
-
-    #[cfg_attr(rustfmt, rustfmt_skip)]
-    #[allow(unused_variables)]
-    pub fn apply<'a>(&self, args: &'a [Expr], env: &mut Env) -> Result<Expr> {
-        // Eval all arguments, returning if any errors
-        let evaled_args = args.iter()
-            .map(|a| a.eval(env))
-            .collect::<Result<Vec<_>>>()
-            .chain_err(|| "argument eval failed")?;
-
-        // Call function on args
-        match self {
-            &Function::Builtin { ref name, ref func } => (func)(&evaled_args, env),
-            &Function::User { ref name, ref params, ref body, } => {
-                if args.len() != params.len() {
-                    Err(format!("fn expected {} args", params.len()).into())
-                } else {
-                    // Create new env with arguments, eval body with new env
-                    let bound_params = params
-                        .iter()
-                        .map(|x| x.0.to_owned())
-                        .zip(args.to_owned())
-                        .collect();
-                    let mut fn_env = Env::new(bound_params, &*env);
-
-                    match body.split_last() {
-                        Some((last, rest)) => {
-                            for arg in rest {
-                                arg.eval(&mut fn_env)?;
-                            }
-                            last.eval(&mut fn_env)
-                        }
-                        None => Ok(Expr::Nil),
-                    }
-                }
-            }
-        }
-    }
-}
-
-impl<'a> Env<'a> {
-    pub fn new<E>(symbols: HashMap<String, Expr>, parent: E) -> Self
-    where
-        E: Into<Option<&'a Env<'a>>>,
-    {
-        Env {
-            symbols: symbols,
-            parent: parent.into(),
-        }
-    }
-
-    pub fn lookup(&self, symbol: &str) -> Option<&Expr> {
-        self.symbols.get(symbol).or_else(|| {
-            self.parent.and_then(|p| p.lookup(symbol))
-        })
-    }
-
-    pub fn define(&mut self, symbol: &str, value: Expr) {
-        self.symbols.insert(symbol.to_string(), value);
     }
 }
 
@@ -414,6 +325,7 @@ impl PartialEq for Expr {
 #[cfg(test)]
 mod test {
     use super::*;
+    use eval::Env;
     use ops;
 
     #[test]
@@ -430,8 +342,7 @@ mod test {
 
     #[test]
     fn test_env() {
-        let env = ops::env();
-        let new_scope = Env::new(HashMap::new(), &env);
+        let new_scope = Env::default();
         assert!(new_scope.lookup("hello").is_none());
     }
 }

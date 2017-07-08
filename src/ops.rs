@@ -1,4 +1,5 @@
-use ast::{Atom, Expr, List, Vector, Env, Function, Lambda};
+use ast::{Atom, Expr, List, Vector, Function, Lambda};
+use eval::Env;
 use error::*;
 use itertools::Itertools;
 use std::collections::HashMap;

@@ -1,7 +1,8 @@
 #![allow(unused_variables)]
 
 use std::collections::HashMap;
-use ast::{Atom, Expr, Env, Function, Symbol};
+use ast::{Atom, Expr, Function, Symbol};
+use eval::Env;
 use error::*;
 
 type Form = Fn(&[Expr], &mut Env) -> Result<Expr> + Sync;
