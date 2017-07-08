@@ -8,6 +8,8 @@ extern crate quickcheck;
 
 #[macro_use]
 extern crate error_chain;
+#[macro_use]
+extern crate derive_error_chain;
 
 #[macro_use]
 extern crate combine;
@@ -24,9 +26,13 @@ mod token;
 mod ops;
 mod forms;
 mod repl;
+mod eval;
 
 mod ast;
 mod lexer;
 mod parser;
 pub mod error;
 pub use repl::repl;
+
+pub use ast::{Atom, List, Vector, Symbol, Expr, Function};
+pub use eval::Env;

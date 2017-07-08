@@ -5,6 +5,7 @@ version = "0.5.0"
 
 [dependencies]
 combine = "2.3.0"
+derive-error-chain = "0.10.0"
 error-chain = "0.10.0"
 float-cmp = "0.2.3"
 itertools = "0.6.0"
