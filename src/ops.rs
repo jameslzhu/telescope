@@ -1,35 +1,40 @@
 use ast::{Atom, Expr, List, Vector, Function, Lambda};
-use eval::Env;
 use error::*;
+use eval::Env;
 use itertools::Itertools;
 use std::collections::HashMap;
 use std::ops::{Sub, Div};
 
 pub fn env<'a>() -> Env<'a> {
     let table: Vec<(&str, Box<Lambda>)> = vec![
-        ("not",     Box::new(not)),
-        ("or",      Box::new(or)),
-        ("and",     Box::new(and)),
-        ("print",   Box::new(print)),
-        ("+",       Box::new(add)),
-        ("-",       Box::new(sub)),
-        ("*",       Box::new(mul)),
-        ("/",       Box::new(div)),
-        ("=",       Box::new(equal)),
-        ("<",       Box::new(less)),
-        ("<=",      Box::new(less_eq)),
-        (">",       Box::new(greater)),
-        (">=",      Box::new(greater_eq)),
-        ("first",   Box::new(first)),
-        ("rest",    Box::new(rest)),
-        ("cons",    Box::new(cons)),
-        ("exit",    Box::new(exit)),
+        ("not", Box::new(not)),
+        ("or", Box::new(or)),
+        ("and", Box::new(and)),
+        ("print", Box::new(print)),
+        ("+", Box::new(add)),
+        ("-", Box::new(sub)),
+        ("*", Box::new(mul)),
+        ("/", Box::new(div)),
+        ("=", Box::new(equal)),
+        ("<", Box::new(less)),
+        ("<=", Box::new(less_eq)),
+        (">", Box::new(greater)),
+        (">=", Box::new(greater_eq)),
+        ("first", Box::new(first)),
+        ("rest", Box::new(rest)),
+        ("cons", Box::new(cons)),
+        ("exit", Box::new(exit)),
     ];
 
-    let builtins = table.into_iter()
+    let builtins = table
+        .into_iter()
         .map(|(symbol, f)| {
-            (String::from(symbol), Expr::from(Function::builtin(symbol, f)))
-        }).collect::<HashMap<_, _>>();
+            (
+                String::from(symbol),
+                Expr::from(Function::builtin(symbol, f)),
+            )
+        })
+        .collect::<HashMap<_, _>>();
 
     Env::new(builtins, None)
 }
@@ -280,17 +285,21 @@ pub fn first(args: &[Expr], _env: &Env) -> Result<Expr> {
 pub fn rest(args: &[Expr], _env: &Env) -> Result<Expr> {
     match &args[0] {
         &Expr::List(ref l) => {
-            Ok(l.0.split_first()
-                .map(|(_, rest)| {
-                    Expr::List(List(rest.to_vec()))
-                }).unwrap_or(Expr::Nil))
-        },
+            Ok(
+                l.0
+                    .split_first()
+                    .map(|(_, rest)| Expr::List(List(rest.to_vec())))
+                    .unwrap_or(Expr::Nil),
+            )
+        }
         &Expr::Vector(ref v) => {
-            Ok(v.0.split_first()
-                .map(|(_, rest)| {
-                    Expr::Vector(Vector(rest.to_vec()))
-                }).unwrap_or(Expr::Nil))
-        },
+            Ok(
+                v.0
+                    .split_first()
+                    .map(|(_, rest)| Expr::Vector(Vector(rest.to_vec())))
+                    .unwrap_or(Expr::Nil),
+            )
+        }
         _ => Err("#[rest] expected list".into()),
     }
 }
@@ -304,12 +313,12 @@ pub fn cons(args: &[Expr], _env: &Env) -> Result<Expr> {
             let mut new = l.clone();
             new.0.insert(0, args[1].clone());
             Ok(Expr::List(new))
-        },
+        }
         &Expr::Vector(ref v) => {
             let mut new = v.clone();
             new.0.push(args[1].clone());
             Ok(Expr::Vector(new))
-        },
+        }
         _ => Err("#[cons] expected list".into()),
     }
 }

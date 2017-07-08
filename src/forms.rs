@@ -1,9 +1,9 @@
 #![allow(unused_variables)]
 
-use std::collections::HashMap;
 use ast::{Atom, Expr, Function, Symbol};
-use eval::Env;
 use error::*;
+use eval::Env;
+use std::collections::HashMap;
 
 type Form = Fn(&[Expr], &mut Env) -> Result<Expr> + Sync;
 
@@ -38,9 +38,11 @@ fn def_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
     }
 
     if let Expr::Atom(Atom::Sym(ref sym)) = args[0] {
-        args[1].eval(env)
-            .map(|expr| env.define(&sym.0, expr))
-            .map(|_| args[0].clone())
+        args[1].eval(env).map(|expr| env.define(&sym.0, expr)).map(
+            |_| {
+                args[0].clone()
+            },
+        )
     } else {
         Err("#[def] expected symbol".into())
     }
@@ -97,7 +99,9 @@ fn fn_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
     if args.len() >= 2 {
         let name = args[0].clone().atom().and_then(|a| a.sym().cloned());
         if name.is_some() {
-            let params = args[1].clone().vector()
+            let params = args[1]
+                .clone()
+                .vector()
                 .ok_or("#[fn] expected arg vector")?
                 .0
                 .iter()
@@ -108,10 +112,12 @@ fn fn_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
             Ok(Expr::Func(Function::User {
                 name: name.map(|n| n.0),
                 params: params,
-                body: body
+                body: body,
             }))
         } else {
-            let params = args[0].clone().vector()
+            let params = args[0]
+                .clone()
+                .vector()
                 .ok_or("#[fn] expected arg vector")?
                 .0
                 .iter()
@@ -122,7 +128,7 @@ fn fn_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
             Ok(Expr::Func(Function::User {
                 name: None,
                 params: params,
-                body: body
+                body: body,
             }))
         }
     } else {

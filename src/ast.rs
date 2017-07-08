@@ -1,8 +1,8 @@
 use error::*;
+use eval::Env;
 use itertools::Itertools;
 use std::fmt;
 use std::rc::Rc;
-use eval::Env;
 use token::Literal;
 
 #[derive(Clone, Debug)]
@@ -35,7 +35,11 @@ pub struct Symbol(pub String);
 #[derive(Clone)]
 pub enum Function {
     Builtin { name: String, func: Rc<Box<Lambda>> },
-    User { name: Option<String>, params: Vec<Symbol>, body: Vec<Expr> },
+    User {
+        name: Option<String>,
+        params: Vec<Symbol>,
+        body: Vec<Expr>,
+    },
 }
 
 pub type Lambda = Fn(&[Expr], &Env) -> Result<Expr>;
@@ -80,10 +84,12 @@ impl Expr {
     pub fn truthiness(&self) -> bool {
         match self {
             &Expr::Nil => false,
-            &Expr::Atom(ref a) => match a {
-                &Atom::Bool(b) => b,
-                _ => true,
-            },
+            &Expr::Atom(ref a) => {
+                match a {
+                    &Atom::Bool(b) => b,
+                    _ => true,
+                }
+            }
             _ => true,
         }
     }
@@ -331,9 +337,9 @@ mod test {
     #[test]
     fn call_fn() {
         let mut env = ops::env();
-        let add = env.lookup("+")
-            .and_then(|f| f.func().cloned())
-            .expect("Expected #[+] in builtins");
+        let add = env.lookup("+").and_then(|f| f.func().cloned()).expect(
+            "Expected #[+] in builtins",
+        );
 
         let nums: Vec<Expr> = vec![1i64, 2i64].into_iter().map(Expr::from).collect();
         let result = add.apply(nums.as_slice(), &mut env);

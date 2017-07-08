@@ -1,7 +1,8 @@
-use std::collections::HashMap;
+
 use ast::*;
 use error::*;
 use forms;
+use std::collections::HashMap;
 
 pub struct Env<'a> {
     symbols: HashMap<String, Expr>,
@@ -22,10 +23,14 @@ impl Atom {
     pub fn eval(&self, env: &mut Env) -> Result<Expr> {
         match self {
             &Atom::Sym(ref symbol) => {
-                env.lookup(&symbol.0).cloned()
-                    .ok_or(format!("undefined symbol: {}", symbol.0).into())
-            },
-            _ => Ok(Expr::Atom(self.clone()))
+                env.lookup(&symbol.0).cloned().ok_or(
+                    format!(
+                        "undefined symbol: {}",
+                        symbol.0
+                    ).into(),
+                )
+            }
+            _ => Ok(Expr::Atom(self.clone())),
         }
     }
 }

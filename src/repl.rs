@@ -1,9 +1,9 @@
+use {lexer, parser, ast, ops};
 use combine;
+use error::*;
+use eval::Env;
 use rustyline::Editor;
 use rustyline::error::ReadlineError as RLError;
-use {lexer, parser, ast, ops};
-use eval::Env;
-use error::*;
 use token::Token;
 
 pub fn repl() -> Result<()> {
@@ -34,35 +34,45 @@ pub fn repl() -> Result<()> {
     }
 }
 
-fn exec(line: &str, token_buf: &mut Vec<Token>, mut env: &mut Env) -> Result<()> {
-    let (mut tokens, _unlexed) = lexer::lex(line.trim_right()).unwrap();
-    let mut all_tokens = token_buf.drain(..).collect::<Vec<_>>();
-    all_tokens.append(&mut tokens);
-    match parser::parse(&*all_tokens) {
-        Ok((expr, unparsed)) => {
-            token_buf.extend_from_slice(unparsed);
-            match eval(&expr, &mut env) {
-                Ok(result) => Ok(print(result)),
-                Err(err) => match err.kind() {
-                    &ErrorKind::Exit(_) => Err(err),
-                    _ => Ok(println!("Error: {}", err)),
-                }
-            }
-        },
-        Err(err) => Ok(println!("Parsing error: {:?}", err)),
+fn exec(line: &str, mut token_buf: &mut Vec<Token>, mut env: &mut Env) -> Result<()> {
+    match read(&line, &mut token_buf) {
+        Ok(expr) => {
+            eval(&expr, &mut env)
+                .map(|value| print(Ok(value)))
+                .or_else(|err| if let &ErrorKind::Exit(_) = err.kind() {
+                    Err(err)
+                } else {
+                    print(Err(err));
+                    Ok(())
+                })
+        }
+        Err(err) => Ok(println!("Parsing error: {}", err)),
     }
 }
 
-fn read(line: &str) -> ::std::result::Result<(ast::Expr, &[Token]), combine::ParseError<&[Token]>> {
-    unimplemented!()
+fn read(line: &str, mut token_buf: &mut Vec<Token>) -> Result<(ast::Expr)> {
+    let (tokens, _unlexed) = lexer::lex(line.trim_right()).unwrap();
+    let all_tokens = token_buf.drain(..).chain(tokens).collect::<Vec<_>>();
+    let token_iter = combine::from_iter(all_tokens.into_iter());
+    parser::parse(combine::State::new(token_iter))
+        .map(|(expr, unparsed)| {
+            token_buf.extend(unparsed.input);
+            expr
+        })
+        .map_err(|x| x.into())
 }
 
 fn eval(expr: &ast::Expr, mut env: &mut Env) -> Result<ast::Expr> {
     expr.eval(&mut env)
 }
 
-fn print(value: ast::Expr) {
-    if value != ast::Expr::Nil {
-        println!("{}", value);
+fn print(result: Result<ast::Expr>) {
+    match result {
+        Ok(value) => {
+            if value != ast::Expr::Nil {
+                println!("{}", value);
+            }
+        }
+        Err(err) => println!("Error: {}", err),
     }
 }
