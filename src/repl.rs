@@ -1,9 +1,9 @@
+use {lexer, parser, ast, ops};
 use combine;
+use error::*;
+use eval::Env;
 use rustyline::Editor;
 use rustyline::error::ReadlineError as RLError;
-use {lexer, parser, ast, ops};
-use eval::Env;
-use error::*;
 use token::Token;
 
 pub fn repl() -> Result<()> {
@@ -39,22 +39,18 @@ fn exec(line: &str, mut token_buf: &mut Vec<Token>, mut env: &mut Env) -> Result
         Ok(expr) => {
             eval(&expr, &mut env)
                 .map(|value| print(Ok(value)))
-                .or_else(|err| {
-                    if let &ErrorKind::Exit(_) = err.kind() {
-                        Err(err)
-                    } else {
-                        print(Err(err));
-                        Ok(())
-                    }
+                .or_else(|err| if let &ErrorKind::Exit(_) = err.kind() {
+                    Err(err)
+                } else {
+                    print(Err(err));
+                    Ok(())
                 })
-        },
+        }
         Err(err) => Ok(println!("Parsing error: {}", err)),
     }
 }
 
-fn read(line: &str, mut token_buf: &mut Vec<Token>)
-    -> Result<(ast::Expr)>
-{
+fn read(line: &str, mut token_buf: &mut Vec<Token>) -> Result<(ast::Expr)> {
     let (tokens, _unlexed) = lexer::lex(line.trim_right()).unwrap();
     let all_tokens = token_buf.drain(..).chain(tokens).collect::<Vec<_>>();
     let token_iter = combine::from_iter(all_tokens.into_iter());
@@ -77,8 +73,6 @@ fn print(result: Result<ast::Expr>) {
                 println!("{}", value);
             }
         }
-        Err(err) => {
-            println!("Error: {}", err)
-        }
+        Err(err) => println!("Error: {}", err),
     }
 }

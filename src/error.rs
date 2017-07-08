@@ -2,12 +2,6 @@ use combine;
 use combine::primitives::IteratorStream;
 use std::vec;
 use token::Token;
-// error_chain! {
-//     errors {
-//         Eof
-//         Exit(status: i32)
-//     }
-// }
 
 #[derive(Debug, error_chain)]
 pub enum ErrorKind {

@@ -32,7 +32,7 @@ mod ast;
 mod lexer;
 mod parser;
 pub mod error;
-pub use repl::repl;
 
 pub use ast::{Atom, List, Vector, Symbol, Expr, Function};
 pub use eval::Env;
+pub use repl::repl;
