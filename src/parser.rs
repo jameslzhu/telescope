@@ -7,7 +7,6 @@ pub fn parse<I>(input: I) -> Result<(Expr, I), ParseError<I>>
 where
     I: Stream<Item = Token>,
 {
-    // many(parser(expr)).parse(input)
     parser(expr).parse(input)
 }
 

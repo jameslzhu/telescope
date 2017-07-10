@@ -9,7 +9,20 @@ pub fn lex<I>(input: I) -> Result<(Vec<Token>, I), ParseError<I>>
 where
     I: Stream<Item = char>,
 {
-    spaces().with(sep_by(parser(token), spaces())).parse(input)
+    many(parser(token)).parse(input)
+}
+
+fn token<I>(input: I) -> ParseResult<Token, I>
+where
+    I: Stream<Item = char>,
+{
+    spaces()
+        .with(choice!(
+            parser(symbol),
+            parser(literal),
+            parser(punctuation)
+        ))
+        .parse_stream(input)
 }
 
 fn literal<I>(input: I) -> ParseResult<Token, I>
@@ -89,13 +102,6 @@ where
         ']' => Some(Token::RBracket),
         _ => None,
     }).parse_stream(input)
-}
-
-fn token<I>(input: I) -> ParseResult<Token, I>
-where
-    I: Stream<Item = char>,
-{
-    choice!(parser(symbol), parser(literal), parser(punctuation)).parse_stream(input)
 }
 
 #[cfg(test)]
