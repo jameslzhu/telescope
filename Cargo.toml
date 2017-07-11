@@ -4,6 +4,7 @@ name = "telescope"
 version = "0.5.0"
 
 [dependencies]
+clap = "2.25.0"
 combine = "2.3.0"
 conv = "0.3.3"
 derive-error-chain = "0.10.0"
