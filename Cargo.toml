@@ -2,6 +2,7 @@
 authors = ["James Zhu <jameszhu@berkeley.edu>"]
 name = "telescope"
 version = "0.5.0"
+description = "An elegant Lisp, for a more civilized age."
 
 [dependencies]
 clap = "2.25.0"

@@ -50,16 +50,13 @@ fn exec(line: &str, mut token_buf: &mut Vec<Token>, mut env: &mut Env) -> Result
     }
 }
 
-fn read(line: &str, mut token_buf: &mut Vec<Token>) -> Result<(ast::Expr)> {
+fn read(line: &str, mut token_buf: &mut Vec<Token>) -> Result<ast::Expr> {
     let (tokens, _unlexed) = lexer::lex(line.trim_right()).unwrap();
     let all_tokens = token_buf.drain(..).chain(tokens).collect::<Vec<_>>();
     let token_iter = combine::from_iter(all_tokens.into_iter());
-    parser::parse(combine::State::new(token_iter))
-        .map(|(expr, unparsed)| {
-            token_buf.extend(unparsed.input);
-            expr
-        })
-        .map_err(|x| x.into())
+    let (expr, unparsed) = parser::parse(combine::State::new(token_iter))?;
+    token_buf.extend(unparsed.input);
+    Ok(expr)
 }
 
 fn eval(expr: &ast::Expr, mut env: &mut Env) -> Result<ast::Expr> {
