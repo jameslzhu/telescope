@@ -29,6 +29,7 @@ mod parser;
 mod ops;
 mod token;
 mod repl;
+mod file;
 mod error;
 
 use clap::{App, Arg};
@@ -43,7 +44,7 @@ fn main() {
         .get_matches();
     
     if let Some(file) = matches.value_of("input") {
-        // Do nothing at the moment
+        let _ = file::run(file);
     }
     
     // Run REPL if -i flag supplied or no arguments

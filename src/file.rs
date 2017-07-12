@@ -1,43 +1,30 @@
 use {lexer, parser, ast, ops};
+use std::io::prelude::*;
+use std::io::BufReader;
+use std::fs::File;
 use combine;
 use error::*;
 use eval::Env;
-use rustyline::Editor;
-use rustyline::error::ReadlineError as RLError;
 use token::Token;
 
-pub fn repl() -> Result<()> {
-    // Prompt constants
-    let header = format!(r"telescope v{}", env!("CARGO_PKG_VERSION"));
-    let prompt = "> ";
-
-    let mut rl = Editor::<()>::new();
-
-    println!("{}", header);
-
+pub fn run(path: &str) -> Result<()> {
     let mut env = ops::env();
     let mut token_buf = Vec::<Token>::with_capacity(1024);
 
-    loop {
-        match rl.readline(prompt) {
-            Ok(line) => {
-                rl.add_history_entry(&line);
-                exec(&line, &mut token_buf, &mut env)?;
-            }
-            Err(RLError::Interrupted) |
-            Err(RLError::Eof) => bail!(ErrorKind::Eof),
-            Err(err) => {
-                println!("Error: {:?}", err);
-                bail!(ErrorKind::Eof);
-            }
-        };
-    }
+    let file = File::open(path)?;
+    let mut buf_reader = BufReader::new(file);
+    let mut source = String::with_capacity(128);
+    buf_reader.read_to_string(&mut source)?;
+    exec(combine::from_iter(source.chars()), &mut token_buf, &mut env)
 }
 
-fn exec(line: &str, mut token_buf: &mut Vec<Token>, mut env: &mut Env) -> Result<()> {
-    match read(&line, &mut token_buf) {
-        Ok(expr) => {
-            eval(&expr, &mut env)
+fn exec<S>(input: S, mut token_buf: &mut Vec<Token>, mut env: &mut Env) -> Result<()>
+where
+    S: combine::Stream<Item = char>
+{
+    match read(input, &mut token_buf) {
+        Ok(exprs) => {
+            eval(&exprs, &mut env)
                 .map(|value| print(Ok(value)))
                 .or_else(|err| if let &ErrorKind::Exit(_) = err.kind() {
                     Err(err)
@@ -50,8 +37,13 @@ fn exec(line: &str, mut token_buf: &mut Vec<Token>, mut env: &mut Env) -> Result
     }
 }
 
-fn read(line: &str, mut token_buf: &mut Vec<Token>) -> Result<Vec<ast::Expr>> {
-    let (tokens, _unlexed) = lexer::lex(line.trim_right()).unwrap();
+fn read<S>(input: S, mut token_buf: &mut Vec<Token>) -> Result<Vec<ast::Expr>>
+where
+    S: combine::Stream<Item = char>
+{
+    let tokens = lexer::lex(input)
+        .map(|x| x.0)
+        .unwrap_or(Vec::new());
     let all_tokens = token_buf.drain(..).chain(tokens).collect::<Vec<_>>();
     let token_iter = combine::from_iter(all_tokens.into_iter());
     let (exprs, unparsed) = parser::parse(combine::State::new(token_iter))?;
