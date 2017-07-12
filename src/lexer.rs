@@ -1,5 +1,5 @@
 use combine::{Parser, Stream, ParseError, ParseResult};
-use combine::{between, many, many1, one_of, optional, parser, satisfy, satisfy_map, sep_by, try};
+use combine::{between, many, many1, one_of, optional, parser, satisfy, satisfy_map, try};
 use combine::char::{digit, char, spaces};
 
 use token::{Literal, Token};
@@ -17,11 +17,10 @@ where
     I: Stream<Item = char>,
 {
     spaces()
-        .with(choice!(
-            parser(symbol),
-            parser(literal),
-            parser(punctuation)
-        ))
+        .with(parser(symbol)
+            .or(parser(literal))
+            .or(parser(punctuation))
+        )
         .parse_stream(input)
 }
 
@@ -68,7 +67,9 @@ where
 
     let string = between(char('"'), char('"'), many::<String, _>(non_quote)).map(Literal::from);
 
-    choice!(boolean, string, num)
+    boolean
+        .or(num)
+        .or(string)
         .map(Token::from)
         .parse_stream(input)
 }

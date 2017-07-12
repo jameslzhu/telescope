@@ -12,12 +12,10 @@ extern crate error_chain;
 extern crate derive_error_chain;
 
 #[macro_use]
-extern crate combine;
-
-#[macro_use]
 extern crate lazy_static;
 
 extern crate clap;
+extern crate combine;
 extern crate conv;
 extern crate itertools;
 extern crate unicode_xid;
