@@ -22,19 +22,11 @@ fn exec<S>(input: S, mut token_buf: &mut Vec<Token>, mut env: &mut Env) -> Resul
 where
     S: combine::Stream<Item = char>
 {
-    match read(input, &mut token_buf) {
-        Ok(exprs) => {
-            eval(&exprs, &mut env)
-                .map(|value| print(Ok(value)))
-                .or_else(|err| if let &ErrorKind::Exit(_) = err.kind() {
-                    Err(err)
-                } else {
-                    print(Err(err));
-                    Ok(())
-                })
-        }
-        Err(err) => Ok(println!("Parsing error: {}", err)),
-    }
+    let exprs = read(input, &mut token_buf)?;
+    let result = eval(&exprs, &mut env)
+        .chain_err(|| "Error: ")?;
+    print(result);
+    Ok(())
 }
 
 fn read<S>(input: S, mut token_buf: &mut Vec<Token>) -> Result<Vec<ast::Expr>>
@@ -63,13 +55,8 @@ fn eval(exprs: &[ast::Expr], mut env: &mut Env) -> Result<ast::Expr> {
     }
 }
 
-fn print(result: Result<ast::Expr>) {
-    match result {
-        Ok(value) => {
-            if value != ast::Expr::Nil {
-                println!("{}", value);
-            }
-        }
-        Err(err) => println!("Error: {}", err),
+fn print(result: ast::Expr) {
+    if result != ast::Expr::Nil {
+        println!("{}", result);
     }
 }

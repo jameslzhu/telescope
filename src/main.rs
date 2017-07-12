@@ -32,9 +32,13 @@ mod repl;
 mod file;
 mod error;
 
+use error::*;
+
+quick_main!(run);
+
 use clap::{App, Arg};
 
-fn main() {
+fn run() -> Result<()> {
     let matches = App::new(env!("CARGO_PKG_NAME"))
         .version(env!("CARGO_PKG_VERSION"))
         .author(env!("CARGO_PKG_AUTHORS"))
@@ -44,11 +48,12 @@ fn main() {
         .get_matches();
     
     if let Some(file) = matches.value_of("input") {
-        let _ = file::run(file);
+        file::run(file)?;
     }
     
     // Run REPL if -i flag supplied or no arguments
     if matches.is_present("interactive") || !matches.is_present("input") {
-        let _ = repl::repl();
+        repl::repl()?;
     }
+    Ok(())
 }

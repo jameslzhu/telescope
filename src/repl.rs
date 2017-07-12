@@ -25,13 +25,14 @@ pub fn repl() -> Result<()> {
                 exec(&line, &mut token_buf, &mut env)?;
             }
             Err(RLError::Interrupted) |
-            Err(RLError::Eof) => bail!(ErrorKind::Eof),
+            Err(RLError::Eof) => break,
             Err(err) => {
                 println!("Error: {:?}", err);
                 bail!(ErrorKind::Eof);
             }
         };
     }
+    Ok(())
 }
 
 fn exec(line: &str, mut token_buf: &mut Vec<Token>, mut env: &mut Env) -> Result<()> {
