@@ -23,17 +23,16 @@ extern crate itertools;
 extern crate unicode_xid;
 extern crate rustyline;
 
-mod token;
-mod ops;
-mod forms;
-mod repl;
-mod eval;
-
 mod ast;
+mod eval;
+mod forms;
 mod lexer;
 mod parser;
-pub mod error;
+mod ops;
+mod token;
+mod repl;
+mod error;
 
-pub use ast::{Atom, List, Vector, Symbol, Expr, Function};
-pub use eval::Env;
-pub use repl::repl;
+fn main() {
+    let _ = repl::repl();
+}
