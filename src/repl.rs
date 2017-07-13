@@ -1,4 +1,4 @@
-use {lexer, parser, ast, ops};
+use {lexer, parser, ast};
 use combine;
 use error::*;
 use eval::Env;
@@ -6,7 +6,7 @@ use rustyline::Editor;
 use rustyline::error::ReadlineError as RLError;
 use token::Token;
 
-pub fn repl() -> Result<()> {
+pub fn repl(mut env: &mut Env) -> Result<()> {
     // Prompt constants
     let header = format!(r"telescope v{}", env!("CARGO_PKG_VERSION"));
     let prompt = "> ";
@@ -15,7 +15,6 @@ pub fn repl() -> Result<()> {
 
     println!("{}", header);
 
-    let mut env = ops::env();
     let mut token_buf = Vec::<Token>::with_capacity(1024);
 
     loop {

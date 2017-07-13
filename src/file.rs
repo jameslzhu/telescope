@@ -1,21 +1,21 @@
-use {lexer, parser, ast, ops};
+use {lexer, parser, ast};
 use std::io::prelude::*;
 use std::io::BufReader;
 use std::fs::File;
 use combine;
+use combine::State;
 use error::*;
 use eval::Env;
 use token::Token;
 
-pub fn run(path: &str) -> Result<()> {
-    let mut env = ops::env();
+pub fn run(path: &str, mut env: &mut Env) -> Result<()> {
     let mut token_buf = Vec::<Token>::with_capacity(1024);
 
     let file = File::open(path)?;
     let mut buf_reader = BufReader::new(file);
     let mut source = String::with_capacity(128);
     buf_reader.read_to_string(&mut source)?;
-    exec(combine::from_iter(source.chars()), &mut token_buf, &mut env)
+    exec(State::new(source.as_str()), &mut token_buf, &mut env)
 }
 
 fn exec<S>(input: S, mut token_buf: &mut Vec<Token>, mut env: &mut Env) -> Result<()>
@@ -23,8 +23,7 @@ where
     S: combine::Stream<Item = char>
 {
     let exprs = read(input, &mut token_buf)?;
-    let result = eval(&exprs, &mut env)
-        .chain_err(|| "Error: ")?;
+    let result = eval(&exprs, &mut env)?;
     print(result);
     Ok(())
 }
@@ -33,7 +32,7 @@ fn read<S>(input: S, mut token_buf: &mut Vec<Token>) -> Result<Vec<ast::Expr>>
 where
     S: combine::Stream<Item = char>
 {
-    let tokens = lexer::lex(input)
+    let tokens = lexer::lex(State::new(input))
         .map(|x| x.0)
         .unwrap_or(Vec::new());
     let all_tokens = token_buf.drain(..).chain(tokens).collect::<Vec<_>>();
