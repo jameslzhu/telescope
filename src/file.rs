@@ -15,7 +15,8 @@ pub fn run(path: &str, mut env: &mut Env) -> Result<()> {
     let mut buf_reader = BufReader::new(file);
     let mut source = String::with_capacity(128);
     buf_reader.read_to_string(&mut source)?;
-    exec(State::new(source.as_str()), &mut token_buf, &mut env)
+    // TODO: why is trimming necessary?
+    exec(State::new(source.trim()), &mut token_buf, &mut env)
 }
 
 fn exec<S>(input: S, mut token_buf: &mut Vec<Token>, mut env: &mut Env) -> Result<()>
@@ -32,7 +33,7 @@ fn read<S>(input: S, mut token_buf: &mut Vec<Token>) -> Result<Vec<ast::Expr>>
 where
     S: combine::Stream<Item = char>
 {
-    let tokens = lexer::lex(State::new(input))
+    let tokens = lexer::lex(input)
         .map(|x| x.0)
         .unwrap_or(Vec::new());
     let all_tokens = token_buf.drain(..).chain(tokens).collect::<Vec<_>>();
