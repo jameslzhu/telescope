@@ -1,6 +1,6 @@
 #![allow(unused_variables)]
 
-use ast::{Atom, Expr, Function, Symbol};
+use types::{Atom, Expr, Function, Symbol};
 use error::*;
 use eval::Env;
 use std::collections::HashMap;

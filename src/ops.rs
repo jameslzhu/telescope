@@ -1,4 +1,4 @@
-use ast::{Atom, Expr, List, Vector, Function, Lambda};
+use types::{Atom, Expr, List, Vector, Function, Lambda};
 use error::*;
 use eval::Env;
 use itertools::Itertools;

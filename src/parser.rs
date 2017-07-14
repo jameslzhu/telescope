@@ -1,4 +1,4 @@
-use ast::{Expr, List, Vector, Symbol};
+use types::{Expr, List, Vector, Symbol};
 use combine::{Stream, Parser, ParseError, ParseResult};
 use combine::{between, many, many1, parser, satisfy_map, token, value};
 use token::Token;

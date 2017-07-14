@@ -1,4 +1,4 @@
-use {lexer, parser, ast};
+use {lexer, parser, types};
 use combine;
 use error::*;
 use eval::Env;
@@ -50,7 +50,7 @@ fn exec(line: &str, mut token_buf: &mut Vec<Token>, mut env: &mut Env) -> Result
     }
 }
 
-fn read(line: &str, mut token_buf: &mut Vec<Token>) -> Result<Vec<ast::Expr>> {
+fn read(line: &str, mut token_buf: &mut Vec<Token>) -> Result<Vec<types::Expr>> {
     let (tokens, _unlexed) = lexer::lex(line.trim_right()).unwrap();
     let all_tokens = token_buf.drain(..).chain(tokens).collect::<Vec<_>>();
     let token_iter = combine::from_iter(all_tokens.into_iter());
@@ -59,7 +59,7 @@ fn read(line: &str, mut token_buf: &mut Vec<Token>) -> Result<Vec<ast::Expr>> {
     Ok(exprs)
 }
 
-fn eval(exprs: &[ast::Expr], mut env: &mut Env) -> Result<ast::Expr> {
+fn eval(exprs: &[types::Expr], mut env: &mut Env) -> Result<types::Expr> {
     match exprs.split_last() {
         Some((last, rest)) => {
             for expr in rest {
@@ -67,14 +67,14 @@ fn eval(exprs: &[ast::Expr], mut env: &mut Env) -> Result<ast::Expr> {
             }
             last.eval(&mut env)
         }
-        None => Ok(ast::Expr::Nil),
+        None => Ok(types::Expr::Nil),
     }
 }
 
-fn print(result: Result<ast::Expr>) {
+fn print(result: Result<types::Expr>) {
     match result {
         Ok(value) => {
-            if value != ast::Expr::Nil {
+            if value != types::Expr::Nil {
                 println!("{}", value);
             }
         }

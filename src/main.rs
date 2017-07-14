@@ -21,7 +21,7 @@ extern crate itertools;
 extern crate unicode_xid;
 extern crate rustyline;
 
-mod ast;
+mod types;
 mod eval;
 mod forms;
 mod lexer;

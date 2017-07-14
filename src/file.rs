@@ -1,4 +1,4 @@
-use {lexer, parser, ast};
+use {lexer, parser, types};
 use std::io::prelude::*;
 use std::io::BufReader;
 use std::fs::File;
@@ -29,7 +29,7 @@ where
     Ok(())
 }
 
-fn read<S>(input: S, mut token_buf: &mut Vec<Token>) -> Result<Vec<ast::Expr>>
+fn read<S>(input: S, mut token_buf: &mut Vec<Token>) -> Result<Vec<types::Expr>>
 where
     S: combine::Stream<Item = char>
 {
@@ -43,14 +43,14 @@ where
     Ok(exprs)
 }
 
-fn eval(exprs: &[ast::Expr], mut env: &mut Env) -> Result<ast::Expr> {
+fn eval(exprs: &[types::Expr], mut env: &mut Env) -> Result<types::Expr> {
     for expr in exprs {
         expr.eval(&mut env)?;
     }
-    Ok(ast::Expr::Nil)
+    Ok(types::Expr::Nil)
 }
 
-fn print(result: Result<ast::Expr>) {
+fn print(result: Result<types::Expr>) {
     match result {
         Err(err) => println!("Error: {}", err),
         _ => (),

@@ -1,5 +1,4 @@
-
-use ast::*;
+use types::*;
 use error::*;
 use forms;
 use std::collections::HashMap;

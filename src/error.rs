@@ -3,7 +3,7 @@ use combine::primitives::IteratorStream;
 use std::vec;
 use std::io;
 use token::Token;
-use ast::{Symbol, Expr};
+use types::{Symbol, Expr};
 
 #[derive(Debug, error_chain)]
 pub enum ErrorKind {
