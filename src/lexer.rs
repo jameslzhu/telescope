@@ -17,10 +17,7 @@ where
     I: Stream<Item = char>,
 {
     spaces()
-        .with(parser(symbol)
-            .or(parser(literal))
-            .or(parser(punctuation))
-        )
+        .with(parser(symbol).or(parser(literal)).or(parser(punctuation)))
         .parse_stream(input)
 }
 
@@ -67,11 +64,9 @@ where
 
     let string = between(char('"'), char('"'), many::<String, _>(non_quote)).map(Literal::from);
 
-    boolean
-        .or(num)
-        .or(string)
-        .map(Token::from)
-        .parse_stream(input)
+    boolean.or(num).or(string).map(Token::from).parse_stream(
+        input,
+    )
 }
 
 fn symbol<I>(input: I) -> ParseResult<Token, I>

@@ -1,7 +1,7 @@
-use types::{Expr, List, Vector, Symbol};
 use combine::{Stream, Parser, ParseError, ParseResult};
 use combine::{between, many, many1, parser, satisfy_map, token, value};
 use token::Token;
+use types::{Expr, List, Vector, Symbol};
 
 pub fn parse<I>(input: I) -> Result<(Vec<Expr>, I), ParseError<I>>
 where
@@ -27,7 +27,7 @@ where
     satisfy_map(|token| match token {
         Token::Literal(lit) => Some(Expr::from(lit)),
         Token::Symbol(sym) => Some(Expr::from(Symbol(sym))),
-        _ => None
+        _ => None,
     }).parse_stream(input)
 }
 
@@ -38,8 +38,9 @@ where
     between(
         token(Token::LParen),
         token(Token::RParen),
-        many1(parser(expr)).map(List).map(Expr::List)
-            .or(value(Expr::Nil)),
+        many1(parser(expr)).map(List).map(Expr::List).or(value(
+            Expr::Nil,
+        )),
     ).parse_stream(input)
 }
 

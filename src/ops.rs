@@ -1,9 +1,9 @@
-use types::{Atom, Expr, List, Vector, Function, Lambda};
 use error::*;
 use eval::Env;
 use itertools::Itertools;
 use std::collections::HashMap;
 use std::ops::{Sub, Div};
+use types::{Atom, Expr, List, Vector, Function, Lambda};
 
 pub fn env<'a>() -> Env<'a> {
     let table: Vec<(&str, Lambda)> = vec![

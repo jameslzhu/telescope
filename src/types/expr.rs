@@ -1,9 +1,8 @@
 #![allow(dead_code)]
 
-use std::sync::Arc;
-use std::fmt;
-
 use super::*;
+use std::fmt;
+use std::sync::Arc;
 
 #[derive(Clone, Debug)]
 pub enum Expr {
@@ -100,10 +99,9 @@ mod test {
     #[test]
     fn call_fn() {
         let mut env = ops::env();
-        let add = env.lookup("+")
-            .clone()
-            .and_then(|f| f.func())
-            .expect("Expected #[+] in builtins");
+        let add = env.lookup("+").clone().and_then(|f| f.func()).expect(
+            "Expected #[+] in builtins",
+        );
 
         let nums: Vec<Expr> = vec![1i64, 2i64].into_iter().map(Expr::from).collect();
         let result = add.apply(nums.as_slice(), &mut env);

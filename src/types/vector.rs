@@ -1,6 +1,6 @@
-use std::fmt;
-use itertools::Itertools;
 use super::expr::Expr;
+use itertools::Itertools;
+use std::fmt;
 
 #[derive(Clone, Debug)]
 pub struct Vector(pub Vec<Expr>);

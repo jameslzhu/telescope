@@ -1,7 +1,7 @@
 use combine;
 use combine::primitives::IteratorStream;
-use std::vec;
 use std::io;
+use std::vec;
 use token::Token;
 use types::{Symbol, Expr};
 

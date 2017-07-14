@@ -1,9 +1,9 @@
 #![allow(unused_variables)]
 
-use types::{Atom, Expr, Function, Symbol};
 use error::*;
 use eval::Env;
 use std::collections::HashMap;
+use types::{Atom, Expr, Function, Symbol};
 
 type Form = fn(&[Expr], &mut Env) -> Result<Expr>;
 

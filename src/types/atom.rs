@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
-use std::fmt;
 use super::symbol::Symbol;
+use std::fmt;
 
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub enum Atom {

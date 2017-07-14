@@ -1,12 +1,17 @@
-use std::fmt;
-use itertools::Itertools;
+#![cfg_attr(rustfmt, rustfmt_skip)]
+
 use super::expr::Expr;
 use super::symbol::Symbol;
-use eval::Env;
 use error::*;
+use eval::Env;
+use itertools::Itertools;
+use std::fmt;
 
 pub enum Function {
-    Builtin { name: String, func: Lambda },
+    Builtin {
+        name: String,
+        func: Lambda
+    },
     User {
         name: Option<String>,
         params: Vec<Symbol>,
@@ -29,7 +34,6 @@ impl Function {
 }
 
 impl fmt::Debug for Function {
-    #[cfg_attr(rustfmt, rustfmt_skip)]
     #[allow(unused_variables)]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
@@ -50,10 +54,13 @@ impl fmt::Debug for Function {
 impl fmt::Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            &Function::Builtin { ref name, ref func }
-                => write!(f, "#[{}]", name),
-            &Function::User { ref name, ref params, ref body, }
-                => write!(f, "(fn [{}] {})", params.iter().join(" "), body.iter().join("\n")),
+            &Function::Builtin { ref name, ref func } => write!(f, "#[{}]", name),
+            &Function::User { ref name, ref params, ref body, } => {
+                write!( f, "(fn [{}] {})",
+                    params.iter().join(" "),
+                    body.iter().join("\n")
+                )
+            }
         }
     }
 }

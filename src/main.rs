@@ -43,12 +43,16 @@ fn run<'a>() -> Result<()> {
         .version(env!("CARGO_PKG_VERSION"))
         .author(env!("CARGO_PKG_AUTHORS"))
         .about(env!("CARGO_PKG_DESCRIPTION"))
-        .arg(Arg::from_usage("-i --interactive 'Run in interactive mode'"))
-        .arg(Arg::from_usage("[input] 'Read program from file (- for stdin)'"))
+        .arg(Arg::from_usage(
+            "-i --interactive 'Run in interactive mode'",
+        ))
+        .arg(Arg::from_usage(
+            "[input] 'Read program from file (- for stdin)'",
+        ))
         .get_matches();
-    
+
     let mut env = ops::env();
-    
+
     if let Some(file) = matches.value_of("input") {
         if file == "-" {
 
@@ -56,7 +60,7 @@ fn run<'a>() -> Result<()> {
             file::run(file, &mut env)?;
         }
     }
-    
+
     // Run REPL if -i flag supplied or no arguments
     if matches.is_present("interactive") || !matches.is_present("input") {
         repl::repl(&mut env)?;

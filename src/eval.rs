@@ -1,8 +1,9 @@
-use types::*;
 use error::*;
 use forms;
 use std::collections::HashMap;
+use types::*;
 
+#[derive(Clone, Debug)]
 pub struct Env<'a> {
     symbols: HashMap<String, Expr>,
     parent: Option<&'a Env<'a>>,
@@ -10,11 +11,12 @@ pub struct Env<'a> {
 
 impl Expr {
     pub fn eval(&self, mut env: &mut Env) -> Result<Expr> {
-        match self {
+        let result = match self {
             &Expr::List(ref lst) => lst.eval(&mut env),
             &Expr::Atom(ref a) => a.eval(&mut env),
             _ => Ok(self.clone()),
-        }
+        };
+        result.chain_err(|| ErrorKind::Eval(self.clone()))
     }
 }
 
@@ -23,10 +25,7 @@ impl Atom {
         match self {
             &Atom::Sym(ref symbol) => {
                 env.lookup(&symbol.0).cloned().ok_or(
-                    format!(
-                        "undefined symbol: {}",
-                        symbol.0
-                    ).into(),
+                    format!("undefined symbol: {}", symbol.0).into()
                 )
             }
             _ => Ok(Expr::Atom(self.clone())),
@@ -59,17 +58,14 @@ impl Function {
     #[allow(unused_variables)]
     pub fn apply<'a>(&self, args: &'a [Expr], env: &mut Env) -> Result<Expr> {
         // Eval all arguments, returning if any errors
-        let evaled_args = args.iter()
-            .map(|a| a.eval(env))
-            .collect::<Result<Vec<_>>>()
-            .chain_err(|| "argument eval failed")?;
+        let evaled_args = args.iter().map(|a| a.eval(env)).collect::<Result<Vec<_>>>()?;
 
         // Call function on args
         match self {
             &Function::Builtin { ref name, ref func } => (func)(&evaled_args, env),
             &Function::User { ref name, ref params, ref body, } => {
                 if args.len() != params.len() {
-                    return Err(format!("fn expected {} args", params.len()).into())
+                    return Err(format!("fn expected {} args", params.len()).into());
                 }
 
                 // Create new env with arguments, eval body with new env

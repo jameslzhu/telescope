@@ -1,5 +1,5 @@
-use std::sync::Arc;
 use super::*;
+use std::sync::Arc;
 use token::Literal;
 
 impl<T> From<T> for Atom
