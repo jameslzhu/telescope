@@ -5,28 +5,29 @@ use error::*;
 use eval::Env;
 use std::collections::HashMap;
 
-type Form = Fn(&[Expr], &mut Env) -> Result<Expr> + Sync;
+type Form = fn(&[Expr], &mut Env) -> Result<Expr>;
 
 lazy_static! {
-    static ref SPECIAL_FORMS: HashMap<String, Box<Form>> = {
-        let mut forms = HashMap::<String, Box<Form>>::new();
-        forms.insert("def".into(), Box::new(def_form));
-        forms.insert("if".into(), Box::new(if_form));
-        forms.insert("let".into(), Box::new(let_form));
-        forms.insert("do".into(), Box::new(do_form));
-        forms.insert("fn".into(), Box::new(fn_form));
-        forms.insert("quote".into(), Box::new(quote_form));
-        forms
+    static ref SPECIAL_FORMS: HashMap<&'static str, Form> = {
+        let forms: Vec<(&'static str, Form)> = vec![
+            ("def", def_form),
+            ("if",  if_form),
+            ("let", let_form),
+            ("do",  do_form),
+            ("fn",  fn_form),
+            ("quote", quote_form),
+        ];
+        forms.into_iter().collect()
     };
 }
 
 pub fn is_special_form(form: &Symbol) -> bool {
-    SPECIAL_FORMS.contains_key(&form.0)
+    SPECIAL_FORMS.contains_key(form.0.as_str())
 }
 
 pub fn eval(form: &Symbol, args: &[Expr], env: &mut Env) -> Result<Expr> {
     assert!(is_special_form(form));
-    (SPECIAL_FORMS.get(&form.0))
+    (SPECIAL_FORMS.get(form.0.as_str()))
         .ok_or("did not find special form".into())
         .and_then(|f| (f)(args, env))
 }
@@ -109,7 +110,7 @@ fn fn_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
                 .collect::<Option<Vec<_>>>()
                 .ok_or("#[fn] expected argument symbol")?;
             let body = args[2..].to_vec();
-            Ok(Expr::Func(Function::User {
+            Ok(Expr::from(Function::User {
                 name: name.map(|n| n.0),
                 params: params,
                 body: body,
@@ -125,7 +126,7 @@ fn fn_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
                 .collect::<Option<Vec<_>>>()
                 .ok_or("#[fn] expected argument symbol")?;
             let body = args[1..].to_vec();
-            Ok(Expr::Func(Function::User {
+            Ok(Expr::from(Function::User {
                 name: None,
                 params: params,
                 body: body,
