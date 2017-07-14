@@ -3,10 +3,21 @@ use combine::primitives::IteratorStream;
 use std::vec;
 use std::io;
 use token::Token;
+use ast::{Symbol, Expr};
 
 #[derive(Debug, error_chain)]
 pub enum ErrorKind {
     Msg(String),
+
+    #[error_chain(custom)]
+    #[error_chain(description = r#"|_| "evaluation error""#)]
+    #[error_chain(display = r#"|t| write!(f, "evaluation error: {}", t)"#)]
+    Eval(Expr),
+
+    #[error_chain(custom)]
+    #[error_chain(description = r#"|_| "undefined symbol""#)]
+    #[error_chain(display = r#"|t| write!(f, "undefined symbol {}", t)"#)]
+    UndefinedSymbol(Symbol),
 
     #[error_chain(foreign)]
     Io(io::Error),

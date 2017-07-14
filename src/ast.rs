@@ -1,14 +1,16 @@
+#![allow(dead_code)]
+
+use std::sync::Arc;
 use error::*;
 use eval::Env;
 use itertools::Itertools;
 use std::fmt;
-use std::rc::Rc;
 use token::Literal;
 
 #[derive(Clone, Debug)]
 pub enum Expr {
     Nil,
-    Func(Function),
+    Func(Arc<Function>),
     Atom(Atom),
     List(List),
     Vector(Vector),
@@ -32,9 +34,8 @@ pub struct Vector(pub Vec<Expr>);
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Symbol(pub String);
 
-#[derive(Clone)]
 pub enum Function {
-    Builtin { name: String, func: Rc<Box<Lambda>> },
+    Builtin { name: String, func: Lambda },
     User {
         name: Option<String>,
         params: Vec<Symbol>,
@@ -42,7 +43,7 @@ pub enum Function {
     },
 }
 
-pub type Lambda = Fn(&[Expr], &Env) -> Result<Expr>;
+pub type Lambda = fn(&[Expr], &Env) -> Result<Expr>;
 
 impl Expr {
     pub fn atom(&self) -> Option<&Atom> {
@@ -183,13 +184,13 @@ impl Atom {
 }
 
 impl Function {
-    pub fn builtin<S>(name: S, func: Box<Lambda>) -> Self
+    pub fn builtin<S>(name: S, func: Lambda) -> Self
     where
         S: Into<String>,
     {
         Function::Builtin {
             name: name.into(),
-            func: Rc::new(func),
+            func: func,
         }
     }
 }
@@ -266,7 +267,7 @@ where
 
 impl From<Function> for Expr {
     fn from(x: Function) -> Expr {
-        Expr::Func(x)
+        Expr::Func(Arc::new(x))
     }
 }
 

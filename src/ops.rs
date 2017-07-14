@@ -6,24 +6,24 @@ use std::collections::HashMap;
 use std::ops::{Sub, Div};
 
 pub fn env<'a>() -> Env<'a> {
-    let table: Vec<(&str, Box<Lambda>)> = vec![
-        ("not", Box::new(not)),
-        ("or", Box::new(or)),
-        ("and", Box::new(and)),
-        ("print", Box::new(print)),
-        ("+", Box::new(add)),
-        ("-", Box::new(sub)),
-        ("*", Box::new(mul)),
-        ("/", Box::new(div)),
-        ("=", Box::new(equal)),
-        ("<", Box::new(less)),
-        ("<=", Box::new(less_eq)),
-        (">", Box::new(greater)),
-        (">=", Box::new(greater_eq)),
-        ("first", Box::new(first)),
-        ("rest", Box::new(rest)),
-        ("cons", Box::new(cons)),
-        ("exit", Box::new(exit)),
+    let table: Vec<(&str, Lambda)> = vec![
+        ("not", not),
+        ("or", or),
+        ("and", and),
+        ("print", print),
+        ("+", add),
+        ("-", sub),
+        ("*", mul),
+        ("/", div),
+        ("=", equal),
+        ("<", less),
+        ("<=", less_eq),
+        (">", greater),
+        (">=", greater_eq),
+        ("first", first),
+        ("rest", rest),
+        ("cons", cons),
+        ("exit", exit),
     ];
 
     let builtins = table
