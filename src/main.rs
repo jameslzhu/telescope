@@ -44,13 +44,17 @@ fn run<'a>() -> Result<()> {
         .author(env!("CARGO_PKG_AUTHORS"))
         .about(env!("CARGO_PKG_DESCRIPTION"))
         .arg(Arg::from_usage("-i --interactive 'Run in interactive mode'"))
-        .arg(Arg::from_usage("[input] 'Input file'"))
+        .arg(Arg::from_usage("[input] 'Read program from file (- for stdin)'"))
         .get_matches();
     
     let mut env = ops::env();
     
     if let Some(file) = matches.value_of("input") {
-        file::run(file, &mut env)?;
+        if file == "-" {
+
+        } else {
+            file::run(file, &mut env)?;
+        }
     }
     
     // Run REPL if -i flag supplied or no arguments
