@@ -39,9 +39,9 @@ impl Expr {
         }
     }
 
-    pub fn func(&self) -> Option<&Function> {
+    pub fn func(&self) -> Option<Arc<Function>> {
         if let &Expr::Func(ref x) = self {
-            Some(x)
+            Some(x.clone())
         } else {
             None
         }
@@ -100,9 +100,10 @@ mod test {
     #[test]
     fn call_fn() {
         let mut env = ops::env();
-        let add = env.lookup("+").and_then(|f| f.func().cloned()).expect(
-            "Expected #[+] in builtins",
-        );
+        let add = env.lookup("+")
+            .clone()
+            .and_then(|f| f.func())
+            .expect("Expected #[+] in builtins");
 
         let nums: Vec<Expr> = vec![1i64, 2i64].into_iter().map(Expr::from).collect();
         let result = add.apply(nums.as_slice(), &mut env);
