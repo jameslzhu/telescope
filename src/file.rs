@@ -24,7 +24,7 @@ where
     S: combine::Stream<Item = char>
 {
     let exprs = read(input, &mut token_buf)?;
-    let result = eval(&exprs, &mut env)?;
+    let result = eval(&exprs, &mut env);
     print(result);
     Ok(())
 }
@@ -44,19 +44,15 @@ where
 }
 
 fn eval(exprs: &[ast::Expr], mut env: &mut Env) -> Result<ast::Expr> {
-    match exprs.split_last() {
-        Some((last, rest)) => {
-            for expr in rest {
-                expr.eval(&mut env)?;
-            }
-            last.eval(&mut env)
-        }
-        None => Ok(ast::Expr::Nil),
+    for expr in exprs {
+        expr.eval(&mut env)?;
     }
+    Ok(ast::Expr::Nil)
 }
 
-fn print(result: ast::Expr) {
-    if result != ast::Expr::Nil {
-        println!("{}", result);
+fn print(result: Result<ast::Expr>) {
+    match result {
+        Err(err) => println!("Error: {}", err),
+        _ => (),
     }
 }
