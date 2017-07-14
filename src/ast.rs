@@ -227,7 +227,7 @@ impl fmt::Display for Atom {
             Atom::Int(int) => write!(f, "{}", int),
             Atom::Flt(flt) => write!(f, "{}", flt),
             Atom::Str(ref string) => write!(f, "\"{}\"", string),
-            Atom::Sym(ref sym) => write!(f, "#{}", sym.0),
+            Atom::Sym(ref sym) => write!(f, "{}", sym.0),
         }
     }
 }
