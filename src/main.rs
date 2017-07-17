@@ -31,6 +31,7 @@ mod token;
 mod repl;
 mod file;
 mod error;
+mod util;
 
 use error::*;
 

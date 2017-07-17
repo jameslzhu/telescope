@@ -1,9 +1,10 @@
-use error::*;
-use eval::Env;
-use itertools::Itertools;
 use std::collections::HashMap;
 use std::ops::{Sub, Div};
+use itertools::Itertools;
+use error::*;
+use eval::Env;
 use types::{Atom, Expr, List, Vector, Function, Lambda};
+use util::*;
 
 pub fn env<'a>() -> Env<'a> {
     let table: Vec<(&str, Lambda)> = vec![
@@ -46,14 +47,6 @@ where
     args.map(|e| e.atom().cloned())
         .collect::<Option<Vec<_>>>()
         .ok_or("expected atom".into())
-}
-
-fn check_args(f: &str, args: &[Expr], arity: usize) -> Result<()> {
-    if args.len() == arity {
-        Ok(())
-    } else {
-        Err(format!("{} expected {} arguments", f, arity).into())
-    }
 }
 
 pub fn add(args: &[Expr], _env: &Env) -> Result<Expr> {
@@ -150,12 +143,14 @@ pub fn mul(args: &[Expr], _env: &Env) -> Result<Expr> {
 }
 
 pub fn div(args: &[Expr], _env: &Env) -> Result<Expr> {
+    ensure_min_args("[/]", args, 2)?;
+
     // Unwrap to atoms
     let atoms = unwrap_atoms(args.iter().cloned())?;
 
     // Check all arguments are numeric
     if !atoms.iter().all(Atom::is_num) {
-        return Err("#[-] expected numeric".into());
+        return Err("#[/] expected numeric".into());
     }
 
     // If any are float, promote all to float and perform float division
@@ -188,12 +183,12 @@ pub fn div(args: &[Expr], _env: &Env) -> Result<Expr> {
 }
 
 pub fn equal(args: &[Expr], _env: &Env) -> Result<Expr> {
-    check_args("#[=]", args, 2)?;
+    ensure_args("[=]", args, 2)?;
     Ok(Expr::from(args[0] == args[1]))
 }
 
 pub fn less(args: &[Expr], _env: &Env) -> Result<Expr> {
-    check_args("#[<]", args, 2)?;
+    ensure_args("[<]", args, 2)?;
     match (&args[0], &args[1]) {
         (&Expr::Atom(ref a), &Expr::Atom(ref b)) => Ok(Expr::from(a < b)),
         _ => Err(
@@ -203,7 +198,7 @@ pub fn less(args: &[Expr], _env: &Env) -> Result<Expr> {
 }
 
 pub fn less_eq(args: &[Expr], _env: &Env) -> Result<Expr> {
-    check_args("#[<=]", args, 2)?;
+    ensure_args("[<=]", args, 2)?;
     match (&args[0], &args[1]) {
         (&Expr::Atom(ref a), &Expr::Atom(ref b)) => Ok(Expr::from(a <= b)),
         _ => Err(
@@ -213,7 +208,7 @@ pub fn less_eq(args: &[Expr], _env: &Env) -> Result<Expr> {
 }
 
 pub fn greater(args: &[Expr], _env: &Env) -> Result<Expr> {
-    check_args("#[>]", args, 2)?;
+    ensure_args("[>]", args, 2)?;
     match (&args[0], &args[1]) {
         (&Expr::Atom(ref a), &Expr::Atom(ref b)) => Ok(Expr::from(a > b)),
         _ => Err(
@@ -223,7 +218,7 @@ pub fn greater(args: &[Expr], _env: &Env) -> Result<Expr> {
 }
 
 pub fn greater_eq(args: &[Expr], _env: &Env) -> Result<Expr> {
-    check_args("#[>=]", args, 2)?;
+    ensure_args("[>=]", args, 2)?;
     match (&args[0], &args[1]) {
         (&Expr::Atom(ref a), &Expr::Atom(ref b)) => Ok(Expr::from(a >= b)),
         _ => Err(
@@ -233,7 +228,7 @@ pub fn greater_eq(args: &[Expr], _env: &Env) -> Result<Expr> {
 }
 
 pub fn not(args: &[Expr], _env: &Env) -> Result<Expr> {
-    check_args("#[not]", args, 1)?;
+    ensure_args("[not]", args, 1)?;
     match &args[0] {
         &Expr::Atom(Atom::Bool(b)) => Ok(Expr::from(!b)),
         _ => Err(format!("negation undefined for: {}", args[0]).into()),
@@ -267,13 +262,13 @@ pub fn or(args: &[Expr], _env: &Env) -> Result<Expr> {
 }
 
 pub fn print(args: &[Expr], _env: &Env) -> Result<Expr> {
-    check_args("#[print]", args, 1)?;
+    ensure_args("#[print]", args, 1)?;
     println!("{}", args[0]);
     Ok(Expr::Nil)
 }
 
 pub fn first(args: &[Expr], _env: &Env) -> Result<Expr> {
-    check_args("#[first]", args, 1)?;
+    ensure_args("#[first]", args, 1)?;
 
     match &args[0] {
         &Expr::List(ref l) => Ok(l.0.first().cloned().unwrap_or(Expr::Nil)),
@@ -306,7 +301,7 @@ pub fn rest(args: &[Expr], _env: &Env) -> Result<Expr> {
 
 // (cons item seq)
 pub fn cons(args: &[Expr], _env: &Env) -> Result<Expr> {
-    check_args("#[cons]", args, 2)?;
+    ensure_args("cons]", args, 2)?;
 
     match &args[2] {
         &Expr::List(ref l) => {

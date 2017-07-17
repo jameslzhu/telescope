@@ -1,9 +1,10 @@
 #![allow(unused_variables)]
 
-use error::*;
-use eval::Env;
 use std::collections::HashMap;
-use types::{Atom, Expr, Function, Symbol};
+use eval::Env;
+use error::*;
+use types::{Expr, Function, Symbol};
+use util::*;
 
 type Form = fn(&[Expr], &mut Env) -> Result<Expr>;
 
@@ -26,27 +27,23 @@ pub fn is_special_form(form: &Symbol) -> bool {
 }
 
 pub fn eval(form: &Symbol, args: &[Expr], env: &mut Env) -> Result<Expr> {
-    assert!(is_special_form(form));
+    debug_assert!(is_special_form(form));
     (SPECIAL_FORMS.get(form.0.as_str()))
         .ok_or("did not find special form".into())
         .and_then(|f| (f)(args, env))
 }
 
 // (def symbol init)
+#[cfg_attr(rustfmt, rustfmt_skip)]
 fn def_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
-    if args.len() != 2 {
-        return Err("#[def] expected 2 arguments".into());
-    }
+    ensure_args("def", args, 2)?;
 
-    if let Expr::Atom(Atom::Sym(ref sym)) = args[0] {
-        args[1].eval(env).map(|expr| env.define(&sym.0, expr)).map(
-            |_| {
-                args[0].clone()
-            },
-        )
-    } else {
-        Err("#[def] expected symbol".into())
-    }
+    let sym = args[0].sym()
+        .ok_or("#[def] expected symbol")?;
+
+    args[1].eval(env)
+        .map(|expr| env.define(&sym.0, expr))
+        .map(|_| args[0].clone())
 }
 
 // (if cond then else?)
@@ -88,51 +85,23 @@ fn do_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
 
 // (quote form)
 fn quote_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
-    if args.len() == 1 {
-        Ok(args[0].clone())
-    } else {
-        Err("#[quote] expected 1 argument".into())
-    }
+    ensure_args("quote", args, 1)?;
+    Ok(args[0].clone())
 }
 
 // (fn name? [params* ] exprs*)
 fn fn_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
-    if args.len() >= 2 {
-        let name = args[0].clone().atom().and_then(|a| a.sym().cloned());
-        if name.is_some() {
-            let params = args[1]
-                .clone()
-                .vector()
-                .ok_or("#[fn] expected arg vector")?
-                .0
-                .iter()
-                .map(|ref x| x.atom().and_then(|x2| x2.sym().cloned()))
-                .collect::<Option<Vec<_>>>()
-                .ok_or("#[fn] expected argument symbol")?;
-            let body = args[2..].to_vec();
-            Ok(Expr::from(Function::User {
-                name: name.map(|n| n.0),
-                params: params,
-                body: body,
-            }))
-        } else {
-            let params = args[0]
-                .clone()
-                .vector()
-                .ok_or("#[fn] expected arg vector")?
-                .0
-                .iter()
-                .map(|ref x| x.atom().and_then(|x2| x2.sym().cloned()))
-                .collect::<Option<Vec<_>>>()
-                .ok_or("#[fn] expected argument symbol")?;
-            let body = args[1..].to_vec();
-            Ok(Expr::from(Function::User {
-                name: None,
-                params: params,
-                body: body,
-            }))
-        }
-    } else {
-        Err("#[fn] expected arguments (fn name? [params] exprs*)".into())
-    }
+    ensure_min_args("fn", args, 2)?;
+    let name = args[0].clone().atom().and_then(|a| a.sym().cloned()).map(|n| n.0);
+    let raw_params = if name.is_some() { &args[1] } else { &args[0] };
+    let params = raw_params
+        .vector()
+        .ok_or("#[fn] expected arg vector")?
+        .0
+        .iter()
+        .map(|ref x| x.sym().cloned())
+        .collect::<Option<Vec<_>>>()
+        .ok_or("#[fn] expected argument symbol")?;
+    let body = if name.is_some() { args[2..].to_vec() } else { args[1..].to_vec() };
+    Ok(Expr::from(Function::User { name, params, body }))
 }
