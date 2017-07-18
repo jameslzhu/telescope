@@ -1,5 +1,5 @@
 use combine::{Stream, Parser, ParseError, ParseResult};
-use combine::{between, many, many1, parser, satisfy_map, token, value};
+use combine::{between, many, many1, parser, satisfy_map, token, value, try};
 use token::Token;
 use types::{Expr, List, Vector, Symbol};
 
@@ -7,7 +7,7 @@ pub fn parse<I>(input: I) -> Result<(Vec<Expr>, I), ParseError<I>>
 where
     I: Stream<Item = Token>,
 {
-    many(parser(expr)).parse(input)
+    try(many(parser(expr))).or(value(Vec::new())).parse(input)
 }
 
 fn expr<I>(input: I) -> ParseResult<Expr, I>

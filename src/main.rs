@@ -29,18 +29,15 @@ mod lexer;
 mod parser;
 mod ops;
 mod token;
-mod repl;
-mod file;
+// mod repl;
+// mod file;
 mod error;
 mod util;
-
-use error::*;
-
-quick_main!(run);
+mod input;
 
 use clap::{App, Arg};
 
-fn run<'a>() -> Result<()> {
+fn main() {
     let matches = App::new(env!("CARGO_PKG_NAME"))
         .version(env!("CARGO_PKG_VERSION"))
         .author(env!("CARGO_PKG_AUTHORS"))
@@ -59,13 +56,22 @@ fn run<'a>() -> Result<()> {
         if file == "-" {
 
         } else {
-            file::run(file, &mut env)?;
+            match input::file(file, &mut env) {
+                Ok(_) => (),
+                Err(err) => println!("{}", err),
+            }
         }
+    }
+
+    if !matches.is_present("input") {
+        println!("telescope v{}", env!("CARGO_PKG_VERSION"));
     }
 
     // Run REPL if -i flag supplied or no arguments
     if matches.is_present("interactive") || !matches.is_present("input") {
-        repl::repl(&mut env)?;
+        match input::repl(&mut env) {
+            Ok(_) => (),
+            Err(err) => println!("{}", err),
+        }
     }
-    Ok(())
 }

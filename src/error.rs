@@ -1,9 +1,11 @@
 use combine;
 use combine::primitives::IteratorStream;
+// use std::fs;
 use std::io;
 use std::vec;
 use token::Token;
-use types::{Symbol, Expr};
+use types::Expr;
+// use buffer::Readline;
 
 #[derive(Debug, error_chain)]
 pub enum ErrorKind {
@@ -14,13 +16,19 @@ pub enum ErrorKind {
     #[error_chain(display = r#"|t| write!(f, "evaluation error: {}", t)"#)]
     Eval(Expr),
 
-    #[error_chain(custom)]
-    #[error_chain(description = r#"|_| "undefined symbol""#)]
-    #[error_chain(display = r#"|t| write!(f, "undefined symbol {}", t)"#)]
-    UndefinedSymbol(Symbol),
+    // #[error_chain(custom)]
+    // #[error_chain(description = r#"|_| "undefined symbol""#)]
+    // #[error_chain(display = r#"|t| write!(f, "undefined symbol {}", t)"#)]
+    // UndefinedSymbol(Symbol),
 
     #[error_chain(foreign)]
     Io(io::Error),
+
+    // #[error_chain(foreign)]
+    // File(combine::ParseError<LineStream<io::BufReader<fs::File>>>),
+
+    // #[error_chain(foreign)]
+    // Lex(combine::ParseError<LineStream<Readline>>),
 
     #[error_chain(foreign)]
     Parse(combine::ParseError<combine::State<IteratorStream<vec::IntoIter<Token>>>>),

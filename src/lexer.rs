@@ -27,8 +27,11 @@ where
 {
     let sign = optional(char('-'));
     let digits = many1::<String, _>(digit());
-    let integer = sign.clone()
-        .and(digits.clone().and_then(|s| s.parse::<i64>()))
+    let integer =
+    (
+        sign.clone(),
+        digits.clone().and_then(|s| s.parse::<i64>())
+    )
         .map(|(sign, num)| if sign.is_some() { -num } else { num })
         .map(Literal::from);
 
@@ -64,9 +67,11 @@ where
 
     let string = between(char('"'), char('"'), many::<String, _>(non_quote)).map(Literal::from);
 
-    boolean.or(num).or(string).map(Token::from).parse_stream(
-        input,
-    )
+    boolean
+        .or(num)
+        .or(string)
+        .map(Token::from)
+        .parse_stream(input)
 }
 
 fn symbol<I>(input: I) -> ParseResult<Token, I>

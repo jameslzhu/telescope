@@ -54,8 +54,8 @@ impl fmt::Debug for Function {
 impl fmt::Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            &Function::Builtin { ref name, ref func } => write!(f, "#[{}]", name),
-            &Function::User { ref name, ref params, ref body, } => {
+            &Function::Builtin { ref name, func: _ } => write!(f, "#[{}]", name),
+            &Function::User { name: _, ref params, ref body, } => {
                 write!( f, "(fn [{}] {})",
                     params.iter().join(" "),
                     body.iter().join("\n")
