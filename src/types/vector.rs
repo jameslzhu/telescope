@@ -13,6 +13,6 @@ impl fmt::Display for Vector {
 
 impl PartialEq for Vector {
     fn eq(&self, other: &Self) -> bool {
-        self.0.len() == other.0.len() && self.0.iter().zip(&other.0).all(|(a, b)| a == b)
+    	self.0 == other.0
     }
 }

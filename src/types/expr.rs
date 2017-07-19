@@ -15,6 +15,7 @@ pub enum Expr {
     Func(Arc<Function>),
     List(List),
     Vector(Vector),
+    Map(Map),
 }
 
 impl Expr {
@@ -139,6 +140,7 @@ impl fmt::Display for Expr {
             Expr::Func(ref func) => write!(f, "{}", func),
             Expr::List(ref list) => write!(f, "{}", list),
             Expr::Vector(ref vec) => write!(f, "{}", vec),
+            Expr::Map(ref map) => write!(f, "{}", map),
         }
     }
 }
