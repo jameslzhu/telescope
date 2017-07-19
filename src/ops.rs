@@ -218,12 +218,14 @@ pub fn or(args: &[Expr], _env: &Env) -> Result<Expr> {
         .map(Expr::from)
 }
 
+// (print expr)
 pub fn print(args: &[Expr], _env: &Env) -> Result<Expr> {
     ensure_args("#[print]", args, 1)?;
     println!("{}", args[0]);
     Ok(Expr::Nil)
 }
 
+// (first seq)
 pub fn first(args: &[Expr], _env: &Env) -> Result<Expr> {
     ensure_args("#[first]", args, 1)?;
 
@@ -234,6 +236,7 @@ pub fn first(args: &[Expr], _env: &Env) -> Result<Expr> {
     }
 }
 
+// (rest seq)
 pub fn rest(args: &[Expr], _env: &Env) -> Result<Expr> {
     match &args[0] {
         &Expr::List(ref l) => {

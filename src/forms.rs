@@ -1,9 +1,8 @@
-#![allow(unused_variables)]
-
 use std::collections::HashMap;
 use eval::Env;
 use error::*;
 use types::{Expr, Function, Symbol};
+use itertools::Itertools;
 use util::*;
 
 type Form = fn(&[Expr], &mut Env) -> Result<Expr>;
@@ -33,17 +32,20 @@ pub fn eval(form: &Symbol, args: &[Expr], env: &mut Env) -> Result<Expr> {
         .and_then(|f| (f)(args, env))
 }
 
-// (def symbol init)
-#[cfg_attr(rustfmt, rustfmt_skip)]
-fn def_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
-    ensure_args("def", args, 2)?;
-
-    let sym = args[0].sym()
-        .ok_or("#[def] expected symbol")?;
+fn def_impl(args: &[Expr], env: &mut Env) -> Result<Expr> {
+    let sym = args[0].sym().ok_or("expected symbol")?;
 
     args[1].eval(env)
         .map(|expr| env.define(&sym.0, expr))
         .map(|_| args[0].clone())
+}
+
+// (def symbol init)
+#[cfg_attr(rustfmt, rustfmt_skip)]
+fn def_form(args: &[Expr], mut env: &mut Env) -> Result<Expr> {
+    ensure_args("def", args, 2)?;
+
+    def_impl(&args, &mut env)
 }
 
 // (if cond then else?)
@@ -65,13 +67,7 @@ fn if_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
     }
 }
 
-// (let [bindings*] exprs*)
-fn let_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
-    unimplemented!()
-}
-
-// (do exprs*)
-fn do_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
+fn do_impl(args: &[Expr], env: &mut Env) -> Result<Expr> {
     match args.split_last() {
         Some((last, rest)) => {
             for arg in rest {
@@ -83,14 +79,30 @@ fn do_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
     }
 }
 
+// (do exprs*)
+fn do_form(args: &[Expr], mut env: &mut Env) -> Result<Expr> {
+    do_impl(args, &mut env)
+}
+
+// (let [bindings*] exprs*)
+fn let_form(args: &[Expr], mut env: &mut Env) -> Result<Expr> {
+    let bindings = args[0].vector().ok_or("expected list of bindings")?;
+
+    for i in (0..bindings.0.len()).step(2) {
+        def_impl(&(bindings.0)[i..i+2], &mut env)?;
+    }
+
+    do_impl(&args[1..], &mut env)
+}
+
 // (quote form)
-fn quote_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
+fn quote_form(args: &[Expr], _env: &mut Env) -> Result<Expr> {
     ensure_args("quote", args, 1)?;
     Ok(args[0].clone())
 }
 
 // (fn name? [params* ] exprs*)
-fn fn_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
+fn fn_form(args: &[Expr], _env: &mut Env) -> Result<Expr> {
     ensure_min_args("fn", args, 2)?;
     let name = args[0].sym().cloned().map(|n| n.0);
     let raw_params = if name.is_some() { &args[1] } else { &args[0] };
