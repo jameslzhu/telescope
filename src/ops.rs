@@ -40,127 +40,102 @@ pub fn env<'a>() -> Env<'a> {
     Env::new(builtins, None)
 }
 
-pub fn add(args: &[Expr], _env: &Env) -> Result<Expr> {
-    // Unwrap to args
+fn numeric_op<F, G>(name: &str, args: &[Expr], fn_int: F, fn_flt: G) -> Result<Expr>
+where
+    F: Fn(&[i64]) -> Result<i64>,
+    G: Fn(&[f64]) -> Result<f64>,
+{
     // Check all arguments are numeric
     if args.iter().all(Expr::is_num) {
         if args.iter().any(Expr::is_flt) {
-            // If any are float, promote to float and perform float addition
-            Ok(Expr::from(
-                args.to_vec()
-                    .into_iter()
-                    .map(|a| a.map_int(|x: i64| x as f64))
-                    .map(|x| x.flt().unwrap())
-                    .sum::<f64>(),
-            ))
+            // If any are float, promote to float
+            let floats = args.iter()
+                .map(|x| match x {
+                    &Expr::Int(y) => y as f64,
+                    &Expr::Flt(y) => y,
+                    _ => unreachable!(),
+                })
+                .collect::<Vec<_>>();
+            fn_flt(&floats).map(Expr::from)
         } else {
-            // Otherwise perform integer addition
-            Ok(Expr::from(
-                args.to_vec().into_iter().map(|x| x.int().unwrap()).sum::<i64>(),
-            ))
+            // Otherwise perform integer operation
+            let ints = args.iter()
+                .map(|x| match x {
+                    &Expr::Int(y) => y,
+                    _ => unreachable!(),
+                })
+                .collect::<Vec<_>>();
+            fn_int(&ints).map(Expr::from)
         }
     } else {
-        Err("#[+] expected numeric".into())
+        Err(format!("#[{}] expected numeric", name).into())
     }
 }
 
+pub fn add(args: &[Expr], _env: &Env) -> Result<Expr> {
+    numeric_op("+", args,
+        |ints| Ok(ints.iter().sum::<i64>()),
+        |floats| Ok(floats.iter().sum::<f64>())
+    )
+}
+
 pub fn sub(args: &[Expr], _env: &Env) -> Result<Expr> {
+    ensure_min_args("-", args, 1)?;
+
     // Check all arguments are numeric
     if !args.iter().all(Expr::is_num) {
         return Err("#[-] expected numeric".into());
     }
 
-    // If any are float, promote all to float and perform float subtraction
-    if args.iter().any(Expr::is_flt) {
-        // If one argument, negate and return
-        if args.len() == 1 {
-            return Ok(Expr::from(args[0].clone().map_flt(|x| -x)));
+    // If one argument, negate and return
+    if args.len() == 1 {
+        return match args[0] {
+            Expr::Int(x) => Ok(Expr::from(-x)),
+            Expr::Flt(x) => Ok(Expr::from(-x)),
+            _ => Err("invalid type".into())
         }
-        let mut nums = args
-            .iter()
-            .cloned()
-            .map(|a| a.map_int(|x: i64| x as f64))
-            .map(|x| x.flt().unwrap());
-
-        nums.next()
-            .map(|first| nums.fold(first, Sub::sub))
-            .map(Expr::from)
-            .ok_or("#[-] expected 1 (negate) or 2+ (subtract) arguments".into())
     }
-    // Otherwise, perform integer addition
-    else {
-        // If one argument, negate and return
-        if args.len() == 1 {
-            return Ok(Expr::from(args[0].clone().map_int(|x| -x)));
-        }
-        let mut nums = args.iter().map(|x| x.int().unwrap());
 
-        nums.next()
-            .map(|first| Expr::from(nums.fold(first, |acc, x| acc - x)))
-            .ok_or("Expected 1 (negation) or 2+ (subtraction) arguments".into())
-    }
+    numeric_op("-", args,
+        |ints| Ok(ints[1..].iter().fold(ints[0], Sub::sub)),
+        |floats| Ok(floats[1..].iter().fold(floats[0], Sub::sub))
+    )
 }
 
 pub fn mul(args: &[Expr], _env: &Env) -> Result<Expr> {
-    // Check all arguments are numeric
-    if args.iter().all(Expr::is_num) {
-        if args.iter().any(Expr::is_flt) {
-            // If any are float, promote to float and perform float multiplication
-            Ok(Expr::from(
-                args
-                    .iter()
-                    .cloned()
-                    .map(|a| a.map_int(|x: i64| x as f64))
-                    .map(|x| x.flt().unwrap())
-                    .product::<f64>(),
-            ))
-        } else {
-            // Otherwise perform integer multiplication
-            Ok(Expr::from(
-                args.into_iter().map(|x| x.int().unwrap()).product::<i64>(),
-            ))
-        }
-    } else {
-        Err("#[*] expected numeric".into())
-    }
+    numeric_op("*", args,
+        |ints| Ok(ints.iter().product::<i64>()),
+        |floats| Ok(floats.iter().product::<f64>())
+    )
 }
 
 pub fn div(args: &[Expr], _env: &Env) -> Result<Expr> {
-    ensure_min_args("[/]", args, 2)?;
+    ensure_min_args("[/]", args, 1)?;
 
     // Check all arguments are numeric
     if !args.iter().all(Expr::is_num) {
-        return Err("#[/] expected numeric".into());
+        return Err("#[-] expected numeric".into());
     }
 
-    // If any are float, promote all to float and perform float division
-    if args.iter().any(Expr::is_flt) {
-        let mut nums = args
-            .iter()
-            .cloned()
-            .map(|a| a.map_int(|x: i64| x as f64))
-            .map(|x| x.flt().unwrap());
-
-        nums.next()
-            .map(|first| nums.fold(first, Div::div))
-            .map(Expr::from)
-            .ok_or("#[/] expected at least 2 args".into())
+    // If one argument, invert and return
+    if args.len() == 1 {
+        return match args[0] {
+            Expr::Int(x) => Ok(Expr::from(1.0f64 / x as f64)),
+            Expr::Flt(x) => Ok(Expr::from(-x)),
+            _ => Err("invalid type".into())
+        }
     }
-    // Otherwise, perform integer division
-    else {
-        let mut nums = args.iter().map(|x| x.int().unwrap());
 
-        nums.next()
-            .ok_or("#[/] expected at least 2 args".into())
-            .and_then(|first| {
-                nums.map(|x| if x == 0 {
-                    Err("division by zero".into())
-                } else {
-                    Ok(x)
-                }).fold_results(first, Div::div)
-            })
-            .map(Expr::from)
-    }
+    let int_div = |ints: &[i64]| {
+        ints[1..].iter()
+            .map(|&x| if x == 0i64 { Err("division by zero".into()) } else { Ok(x) })
+            .fold_results(ints[0], Div::div)
+    };
+
+    numeric_op("/", args,
+        int_div,
+        |floats| Ok(floats[1..].iter().fold(floats[0], Div::div))
+    )
 }
 
 pub fn equal(args: &[Expr], _env: &Env) -> Result<Expr> {
@@ -221,6 +196,7 @@ pub fn not(args: &[Expr], _env: &Env) -> Result<Expr> {
     Ok(Expr::from(!args[0].truthiness()))
 }
 
+// TODO: convert to special form
 pub fn and(args: &[Expr], _env: &Env) -> Result<Expr> {
     args
         .into_iter()
@@ -231,6 +207,7 @@ pub fn and(args: &[Expr], _env: &Env) -> Result<Expr> {
         .map(Expr::from)
 }
 
+// TODO: convert to special form
 pub fn or(args: &[Expr], _env: &Env) -> Result<Expr> {
     args
         .into_iter()
