@@ -34,15 +34,14 @@ impl Function {
 }
 
 impl fmt::Debug for Function {
-    #[allow(unused_variables)]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            &Function::Builtin { ref name, ref func }
+            &Function::Builtin { ref name, func: _ }
                 => f.debug_struct("Function::Builtin")
                     .field("name", &name)
                     .finish(),
             &Function::User { ref name, ref params, ref body, }
-                => f.debug_struct("Function::Builtin")
+                => f.debug_struct("Function::User")
                     .field("name", &name)
                     .field("params", &params)
                     .field("body", &body)
