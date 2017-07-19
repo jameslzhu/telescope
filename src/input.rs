@@ -20,13 +20,19 @@ pub fn file(path: &str, mut env: &mut Env) -> Result<()> {
     }
 }
 
-pub fn repl(mut env: &mut Env) -> Result<()> {
+pub fn repl(mut env: &mut Env) -> Result<i32> {
     let mut rl = Readline::new("> ");
     loop {
         let exprs = read(&mut rl)?;
         match eval(exprs, &mut env) {
             Ok(val) => print(val),
-            Err(err) => println!("{}", err),
+            Err(err) => {
+                match err.kind() {
+                    &ErrorKind::Eof => return Ok(0),
+                    &ErrorKind::Exit(code) => return Ok(code),
+                    _ => println!("{}", err),
+                }
+            }
         };
     }
 }

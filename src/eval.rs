@@ -11,7 +11,7 @@ pub struct Env<'a> {
 
 impl Expr {
     pub fn eval(&self, mut env: &mut Env) -> Result<Expr> {
-        let result = match self {
+        match self {
             &Expr::List(ref lst) => lst.eval(&mut env),
             &Expr::Sym(ref symbol) => {
                 env.lookup(&symbol.0).cloned().ok_or(
@@ -19,8 +19,7 @@ impl Expr {
                 )
             }
             _ => Ok(self.clone()),
-        };
-        result.chain_err(|| ErrorKind::Eval(self.clone()))
+        }
     }
 }
 

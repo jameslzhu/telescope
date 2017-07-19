@@ -52,7 +52,7 @@ fn main() {
 
     if let Some(file) = matches.value_of("input") {
         if file == "-" {
-
+            
         } else {
             match input::file(file, &mut env) {
                 Ok(_) => (),

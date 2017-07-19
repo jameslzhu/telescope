@@ -4,17 +4,10 @@ use combine::primitives::IteratorStream;
 use std::io;
 use std::vec;
 use token::Token;
-use types::Expr;
-// use buffer::Readline;
 
 #[derive(Debug, error_chain)]
 pub enum ErrorKind {
     Msg(String),
-
-    #[error_chain(custom)]
-    #[error_chain(description = r#"|_| "evaluation error""#)]
-    #[error_chain(display = r#"|t| write!(f, "evaluation error: {}", t)"#)]
-    Eval(Expr),
 
     // #[error_chain(custom)]
     // #[error_chain(description = r#"|_| "undefined symbol""#)]
@@ -38,4 +31,9 @@ pub enum ErrorKind {
 
     #[error_chain(custom)]
     Exit(i32),
+
+    // #[error_chain(custom)]
+    // #[error_chain(description = r#"|_, _| "type error""#)]
+    // #[error_chain(display = r#"|f, value, type| write!(f, "type error: received {}, expected {}", value, type)"#)]
+    // Type(Expr, String),
 }

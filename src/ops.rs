@@ -120,8 +120,8 @@ pub fn div(args: &[Expr], _env: &Env) -> Result<Expr> {
     // If one argument, invert and return
     if args.len() == 1 {
         return match args[0] {
-            Expr::Int(x) => Ok(Expr::from(1.0f64 / x as f64)),
-            Expr::Flt(x) => Ok(Expr::from(1.0f64 / x)),
+            Expr::Int(x) => Ok(Expr::from((x as f64).recip())),
+            Expr::Flt(x) => Ok(Expr::from(x.recip())),
             _ => Err("invalid type".into())
         }
     }
