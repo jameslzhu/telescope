@@ -92,7 +92,7 @@ fn quote_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
 // (fn name? [params* ] exprs*)
 fn fn_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
     ensure_min_args("fn", args, 2)?;
-    let name = args[0].clone().atom().and_then(|a| a.sym().cloned()).map(|n| n.0);
+    let name = args[0].sym().cloned().map(|n| n.0);
     let raw_params = if name.is_some() { &args[1] } else { &args[0] };
     let params = raw_params
         .vector()

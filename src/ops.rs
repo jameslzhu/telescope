@@ -3,7 +3,7 @@ use std::ops::{Sub, Div};
 use itertools::Itertools;
 use error::*;
 use eval::Env;
-use types::{Atom, Expr, List, Vector, Function, Lambda};
+use types::{Expr, List, Vector, Function, Lambda};
 use util::*;
 
 pub fn env<'a>() -> Env<'a> {
@@ -40,25 +40,14 @@ pub fn env<'a>() -> Env<'a> {
     Env::new(builtins, None)
 }
 
-fn unwrap_atoms<I>(args: I) -> Result<Vec<Atom>>
-where
-    I: Iterator<Item = Expr>,
-{
-    args.map(|e| e.atom().cloned())
-        .collect::<Option<Vec<_>>>()
-        .ok_or("expected atom".into())
-}
-
 pub fn add(args: &[Expr], _env: &Env) -> Result<Expr> {
-    // Unwrap to atoms
-    let atoms = unwrap_atoms(args.iter().cloned())?;
-
+    // Unwrap to args
     // Check all arguments are numeric
-    if atoms.iter().all(Atom::is_num) {
-        if atoms.iter().any(Atom::is_flt) {
+    if args.iter().all(Expr::is_num) {
+        if args.iter().any(Expr::is_flt) {
             // If any are float, promote to float and perform float addition
             Ok(Expr::from(
-                atoms
+                args.to_vec()
                     .into_iter()
                     .map(|a| a.map_int(|x: i64| x as f64))
                     .map(|x| x.flt().unwrap())
@@ -67,7 +56,7 @@ pub fn add(args: &[Expr], _env: &Env) -> Result<Expr> {
         } else {
             // Otherwise perform integer addition
             Ok(Expr::from(
-                atoms.into_iter().map(|x| x.int().unwrap()).sum::<i64>(),
+                args.to_vec().into_iter().map(|x| x.int().unwrap()).sum::<i64>(),
             ))
         }
     } else {
@@ -76,23 +65,20 @@ pub fn add(args: &[Expr], _env: &Env) -> Result<Expr> {
 }
 
 pub fn sub(args: &[Expr], _env: &Env) -> Result<Expr> {
-    // Unwrap to atoms
-    let atoms = unwrap_atoms(args.iter().cloned())?;
-
     // Check all arguments are numeric
-    if !atoms.iter().all(Atom::is_num) {
+    if !args.iter().all(Expr::is_num) {
         return Err("#[-] expected numeric".into());
     }
 
     // If any are float, promote all to float and perform float subtraction
-    if atoms.iter().any(Atom::is_flt) {
+    if args.iter().any(Expr::is_flt) {
         // If one argument, negate and return
-        if atoms.len() == 1 {
-            let mut atoms = atoms;
-            return Ok(Expr::from(atoms.remove(0).map_flt(|x| -x)));
+        if args.len() == 1 {
+            return Ok(Expr::from(args[0].clone().map_flt(|x| -x)));
         }
-        let mut nums = atoms
-            .into_iter()
+        let mut nums = args
+            .iter()
+            .cloned()
             .map(|a| a.map_int(|x: i64| x as f64))
             .map(|x| x.flt().unwrap());
 
@@ -104,11 +90,10 @@ pub fn sub(args: &[Expr], _env: &Env) -> Result<Expr> {
     // Otherwise, perform integer addition
     else {
         // If one argument, negate and return
-        if atoms.len() == 1 {
-            let mut atoms = atoms;
-            return Ok(Expr::from(atoms.remove(0).map_int(|x| -x)));
+        if args.len() == 1 {
+            return Ok(Expr::from(args[0].clone().map_int(|x| -x)));
         }
-        let mut nums = atoms.iter().map(|x| x.int().unwrap());
+        let mut nums = args.iter().map(|x| x.int().unwrap());
 
         nums.next()
             .map(|first| Expr::from(nums.fold(first, |acc, x| acc - x)))
@@ -117,16 +102,14 @@ pub fn sub(args: &[Expr], _env: &Env) -> Result<Expr> {
 }
 
 pub fn mul(args: &[Expr], _env: &Env) -> Result<Expr> {
-    // Unwrap to atoms
-    let atoms = unwrap_atoms(args.iter().cloned())?;
-
     // Check all arguments are numeric
-    if atoms.iter().all(Atom::is_num) {
-        if atoms.iter().any(Atom::is_flt) {
+    if args.iter().all(Expr::is_num) {
+        if args.iter().any(Expr::is_flt) {
             // If any are float, promote to float and perform float multiplication
             Ok(Expr::from(
-                atoms
-                    .into_iter()
+                args
+                    .iter()
+                    .cloned()
                     .map(|a| a.map_int(|x: i64| x as f64))
                     .map(|x| x.flt().unwrap())
                     .product::<f64>(),
@@ -134,7 +117,7 @@ pub fn mul(args: &[Expr], _env: &Env) -> Result<Expr> {
         } else {
             // Otherwise perform integer multiplication
             Ok(Expr::from(
-                atoms.into_iter().map(|x| x.int().unwrap()).product::<i64>(),
+                args.into_iter().map(|x| x.int().unwrap()).product::<i64>(),
             ))
         }
     } else {
@@ -145,18 +128,16 @@ pub fn mul(args: &[Expr], _env: &Env) -> Result<Expr> {
 pub fn div(args: &[Expr], _env: &Env) -> Result<Expr> {
     ensure_min_args("[/]", args, 2)?;
 
-    // Unwrap to atoms
-    let atoms = unwrap_atoms(args.iter().cloned())?;
-
     // Check all arguments are numeric
-    if !atoms.iter().all(Atom::is_num) {
+    if !args.iter().all(Expr::is_num) {
         return Err("#[/] expected numeric".into());
     }
 
     // If any are float, promote all to float and perform float division
-    if atoms.iter().any(Atom::is_flt) {
-        let mut nums = atoms
-            .into_iter()
+    if args.iter().any(Expr::is_flt) {
+        let mut nums = args
+            .iter()
+            .cloned()
             .map(|a| a.map_int(|x: i64| x as f64))
             .map(|x| x.flt().unwrap());
 
@@ -167,7 +148,7 @@ pub fn div(args: &[Expr], _env: &Env) -> Result<Expr> {
     }
     // Otherwise, perform integer division
     else {
-        let mut nums = atoms.iter().map(|x| x.int().unwrap());
+        let mut nums = args.iter().map(|x| x.int().unwrap());
 
         nums.next()
             .ok_or("#[/] expected at least 2 args".into())
@@ -190,7 +171,9 @@ pub fn equal(args: &[Expr], _env: &Env) -> Result<Expr> {
 pub fn less(args: &[Expr], _env: &Env) -> Result<Expr> {
     ensure_args("[<]", args, 2)?;
     match (&args[0], &args[1]) {
-        (&Expr::Atom(ref a), &Expr::Atom(ref b)) => Ok(Expr::from(a < b)),
+        (&Expr::Int(ref a), &Expr::Int(ref b)) => Ok(Expr::from(a < b)),
+        (&Expr::Flt(ref a), &Expr::Flt(ref b)) => Ok(Expr::from(a < b)),
+        (&Expr::Str(ref a), &Expr::Str(ref b)) => Ok(Expr::from(a < b)),
         _ => Err(
             format!("comparison undefined for: {}, {}", args[0], args[1]).into(),
         ),
@@ -200,7 +183,9 @@ pub fn less(args: &[Expr], _env: &Env) -> Result<Expr> {
 pub fn less_eq(args: &[Expr], _env: &Env) -> Result<Expr> {
     ensure_args("[<=]", args, 2)?;
     match (&args[0], &args[1]) {
-        (&Expr::Atom(ref a), &Expr::Atom(ref b)) => Ok(Expr::from(a <= b)),
+        (&Expr::Int(ref a), &Expr::Int(ref b)) => Ok(Expr::from(a <= b)),
+        (&Expr::Flt(ref a), &Expr::Flt(ref b)) => Ok(Expr::from(a <= b)),
+        (&Expr::Str(ref a), &Expr::Str(ref b)) => Ok(Expr::from(a <= b)),
         _ => Err(
             format!("comparison undefined for: {}, {}", args[0], args[1]).into(),
         ),
@@ -210,7 +195,9 @@ pub fn less_eq(args: &[Expr], _env: &Env) -> Result<Expr> {
 pub fn greater(args: &[Expr], _env: &Env) -> Result<Expr> {
     ensure_args("[>]", args, 2)?;
     match (&args[0], &args[1]) {
-        (&Expr::Atom(ref a), &Expr::Atom(ref b)) => Ok(Expr::from(a > b)),
+        (&Expr::Int(ref a), &Expr::Int(ref b)) => Ok(Expr::from(a > b)),
+        (&Expr::Flt(ref a), &Expr::Flt(ref b)) => Ok(Expr::from(a > b)),
+        (&Expr::Str(ref a), &Expr::Str(ref b)) => Ok(Expr::from(a > b)),
         _ => Err(
             format!("comparison undefined for: {}, {}", args[0], args[1]).into(),
         ),
@@ -220,7 +207,9 @@ pub fn greater(args: &[Expr], _env: &Env) -> Result<Expr> {
 pub fn greater_eq(args: &[Expr], _env: &Env) -> Result<Expr> {
     ensure_args("[>=]", args, 2)?;
     match (&args[0], &args[1]) {
-        (&Expr::Atom(ref a), &Expr::Atom(ref b)) => Ok(Expr::from(a >= b)),
+        (&Expr::Int(ref a), &Expr::Int(ref b)) => Ok(Expr::from(a >= b)),
+        (&Expr::Flt(ref a), &Expr::Flt(ref b)) => Ok(Expr::from(a >= b)),
+        (&Expr::Str(ref a), &Expr::Str(ref b)) => Ok(Expr::from(a >= b)),
         _ => Err(
             format!("comparison undefined for: {}, {}", args[0], args[1]).into(),
         ),
@@ -229,17 +218,11 @@ pub fn greater_eq(args: &[Expr], _env: &Env) -> Result<Expr> {
 
 pub fn not(args: &[Expr], _env: &Env) -> Result<Expr> {
     ensure_args("[not]", args, 1)?;
-    match &args[0] {
-        &Expr::Atom(Atom::Bool(b)) => Ok(Expr::from(!b)),
-        _ => Err(format!("negation undefined for: {}", args[0]).into()),
-    }
+    Ok(Expr::from(!args[0].truthiness()))
 }
 
 pub fn and(args: &[Expr], _env: &Env) -> Result<Expr> {
-    // Unwrap to atoms
-    let atoms = unwrap_atoms(args.iter().cloned())?;
-
-    atoms
+    args
         .into_iter()
         .map(|a| a.boolean())
         .collect::<Option<Vec<_>>>()
@@ -249,10 +232,7 @@ pub fn and(args: &[Expr], _env: &Env) -> Result<Expr> {
 }
 
 pub fn or(args: &[Expr], _env: &Env) -> Result<Expr> {
-    // Unwrap to atoms
-    let atoms = unwrap_atoms(args.iter().cloned())?;
-
-    atoms
+    args
         .into_iter()
         .map(|a| a.boolean())
         .collect::<Option<Vec<_>>>()

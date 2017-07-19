@@ -13,23 +13,14 @@ impl Expr {
     pub fn eval(&self, mut env: &mut Env) -> Result<Expr> {
         let result = match self {
             &Expr::List(ref lst) => lst.eval(&mut env),
-            &Expr::Atom(ref a) => a.eval(&mut env),
-            _ => Ok(self.clone()),
-        };
-        result.chain_err(|| ErrorKind::Eval(self.clone()))
-    }
-}
-
-impl Atom {
-    pub fn eval(&self, env: &mut Env) -> Result<Expr> {
-        match self {
-            &Atom::Sym(ref symbol) => {
+            &Expr::Sym(ref symbol) => {
                 env.lookup(&symbol.0).cloned().ok_or(
                     format!("undefined symbol: {}", symbol.0).into()
                 )
             }
-            _ => Ok(Expr::Atom(self.clone())),
-        }
+            _ => Ok(self.clone()),
+        };
+        result.chain_err(|| ErrorKind::Eval(self.clone()))
     }
 }
 

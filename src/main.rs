@@ -29,8 +29,6 @@ mod lexer;
 mod parser;
 mod ops;
 mod token;
-// mod repl;
-// mod file;
 mod error;
 mod util;
 mod input;
