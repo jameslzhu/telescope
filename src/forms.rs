@@ -16,6 +16,8 @@ lazy_static! {
             ("do",  do_form),
             ("fn",  fn_form),
             ("quote", quote_form),
+            ("and", and_form),
+            ("or", or_form),
         ];
         forms.into_iter().collect()
     };
@@ -33,7 +35,7 @@ pub fn eval(form: &Symbol, args: &[Expr], env: &mut Env) -> Result<Expr> {
 }
 
 fn def_impl(args: &[Expr], env: &mut Env) -> Result<Expr> {
-    let sym = args[0].sym().ok_or("expected symbol")?;
+    let sym = ensure_sym("def", &args[0])?;
 
     args[1].eval(env)
         .map(|expr| env.define(&sym.0, expr))
@@ -41,7 +43,6 @@ fn def_impl(args: &[Expr], env: &mut Env) -> Result<Expr> {
 }
 
 // (def symbol init)
-#[cfg_attr(rustfmt, rustfmt_skip)]
 fn def_form(args: &[Expr], mut env: &mut Env) -> Result<Expr> {
     ensure_args("def", args, 2)?;
 
@@ -50,20 +51,11 @@ fn def_form(args: &[Expr], mut env: &mut Env) -> Result<Expr> {
 
 // (if cond then else?)
 fn if_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
-    if args.len() == 2 {
-        if args[0].eval(env)?.truthiness() {
-            args[1].eval(env)
-        } else {
-            Ok(Expr::Nil)
-        }
-    } else if args.len() == 3 {
-        if args[0].eval(env)?.truthiness() {
-            args[1].eval(env)
-        } else {
-            args[2].eval(env)
-        }
+    ensure_range_args("if", args, 2, 3)?;
+    if args[0].eval(env)?.truthiness() {
+        args[1].eval(env)
     } else {
-        Err("#[if] expected body clause".into())
+        args.get(2).unwrap_or(&Expr::Nil).eval(env)
     }
 }
 
@@ -106,14 +98,44 @@ fn fn_form(args: &[Expr], _env: &mut Env) -> Result<Expr> {
     ensure_min_args("fn", args, 2)?;
     let name = args[0].sym().cloned().map(|n| n.0);
     let raw_params = if name.is_some() { &args[1] } else { &args[0] };
-    let params = raw_params
-        .vector()
-        .ok_or("#[fn] expected arg vector")?
-        .0
-        .iter()
-        .map(|ref x| x.sym().cloned())
-        .collect::<Option<Vec<_>>>()
-        .ok_or("#[fn] expected argument symbol")?;
+    let params = ensure_vector("fn", raw_params)?
+        .0.iter()
+        .map(|x| ensure_sym("fn", x).map(|x| x.clone()))
+        .collect::<Result<Vec<_>>>()?;
     let body = if name.is_some() { args[2..].to_vec() } else { args[1..].to_vec() };
     Ok(Expr::from(Function::User { name, params, body }))
+}
+
+// (and exprs*)
+fn and_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
+    if let Some((last, rest)) = args.split_last() {
+        // Return on first untruthy value
+        for arg in rest {
+            let value = arg.eval(env)?;
+            if !value.truthiness() {
+                return Ok(value);
+            }
+        }
+        last.eval(env)
+    } else {
+        // (and) returns #t
+        Ok(Expr::from(true))
+    }
+}
+
+// (or exprs*)
+fn or_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
+    if let Some((last, rest)) = args.split_last() {
+        // Return on first truthy value
+        for arg in rest {
+            let value = arg.eval(env)?;
+            if value.truthiness() {
+                return Ok(value);
+            }
+        }
+        last.eval(env)
+    } else {
+        // (or) returns #t
+        Ok(Expr::from(false))
+    }
 }

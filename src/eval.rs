@@ -50,7 +50,7 @@ impl Function {
 
         // Call function on args
         match self {
-            &Function::Builtin { name: _, ref func } => (func)(&evaled_args, env),
+            &Function::Builtin { name: _, ref func } => (func)(&evaled_args),
             &Function::User { name: _, ref params, ref body, } => {
                 if args.len() != params.len() {
                     return Err(format!("fn expected {} args", params.len()).into());
