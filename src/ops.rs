@@ -9,8 +9,6 @@ use util::*;
 pub fn env<'a>() -> Env<'a> {
     let table: Vec<(&str, Lambda)> = vec![
         ("not", not),
-        ("or", or),
-        ("and", and),
         ("print", print),
         ("+", add),
         ("-", sub),
@@ -182,31 +180,10 @@ pub fn greater_eq(args: &[Expr]) -> Result<Expr> {
     }
 }
 
+// (not expr)
 pub fn not(args: &[Expr]) -> Result<Expr> {
     ensure_args("[not]", args, 1)?;
     Ok(Expr::from(!args[0].truthiness()))
-}
-
-// TODO: convert to special form
-pub fn and(args: &[Expr]) -> Result<Expr> {
-    args
-        .into_iter()
-        .map(|a| a.boolean())
-        .collect::<Option<Vec<_>>>()
-        .ok_or("#[and] expected boolean argument".into())
-        .map(|bools| bools.iter().all(|b| *b))
-        .map(Expr::from)
-}
-
-// TODO: convert to special form
-pub fn or(args: &[Expr]) -> Result<Expr> {
-    args
-        .into_iter()
-        .map(|a| a.boolean())
-        .collect::<Option<Vec<_>>>()
-        .ok_or("#[or] expected boolean argument".into())
-        .map(|bools| bools.iter().any(|b| *b))
-        .map(Expr::from)
 }
 
 // (print expr)
