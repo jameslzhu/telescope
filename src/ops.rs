@@ -24,6 +24,7 @@ pub fn env<'a>() -> Env<'a> {
         ("first", first),
         ("rest", rest),
         ("cons", cons),
+        ("list", list),
         ("exit", exit),
     ];
 
@@ -273,6 +274,10 @@ pub fn cons(args: &[Expr], _env: &Env) -> Result<Expr> {
         }
         _ => Err("#[cons] expected list".into()),
     }
+}
+
+pub fn list(args: &[Expr], _env: &Env) -> Result<Expr> {
+    Ok(Expr::List(List(args.to_vec())))
 }
 
 // (exit)
