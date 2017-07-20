@@ -19,7 +19,7 @@ pub enum Function {
     },
 }
 
-pub type Lambda = fn(&[Expr], &Env) -> Result<Expr>;
+pub type Lambda = fn(&[Expr]) -> Result<Expr>;
 
 impl Function {
     pub fn builtin<S>(name: S, func: Lambda) -> Self
