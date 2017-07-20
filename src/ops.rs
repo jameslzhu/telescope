@@ -276,8 +276,13 @@ pub fn cons(args: &[Expr]) -> Result<Expr> {
     }
 }
 
+// (list items*)
 pub fn list(args: &[Expr]) -> Result<Expr> {
-    Ok(Expr::List(List(args.to_vec())))
+    if args.is_empty() {
+        Ok(Expr::Nil)
+    } else {
+        Ok(Expr::List(List(args.to_vec())))
+    }
 }
 
 // (exit)
