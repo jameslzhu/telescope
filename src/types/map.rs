@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use std::fmt;
 use std::collections::HashMap;
 use itertools::Itertools;
@@ -39,7 +41,15 @@ impl fmt::Display for Key {
 pub struct Map(HashMap<Key, Expr>);
 
 impl Map {
+	pub fn new() -> Self {
+		Map(HashMap::new())
+	}
+}
 
+impl Default for Map {
+	fn default() -> Self {
+		Map(HashMap::new())
+	}
 }
 
 impl fmt::Display for Map {
