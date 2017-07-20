@@ -11,3 +11,4 @@ pub use self::function::{Function, Lambda};
 pub use self::list::List;
 pub use self::symbol::Symbol;
 pub use self::vector::Vector;
+pub use self::map::Map;

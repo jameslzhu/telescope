@@ -6,6 +6,7 @@ use {lexer, parser, types};
 use types::Expr;
 use combine;
 use combine::State;
+use combine::primitives::IteratorStream;
 use error::*;
 use eval::Env;
 use token::Token;
@@ -58,7 +59,7 @@ fn read<B: BufRead>(reader: &mut B) -> Result<Vec<Expr>> {
 
         token_buf.extend(tokens);
         let all_tokens = token_buf.drain(..).collect::<Vec<_>>();
-        let token_iter = combine::from_iter(all_tokens.into_iter());
+        let token_iter = IteratorStream::new(all_tokens.into_iter());
         let (exprs, unparsed) = parser::parse(combine::State::new(token_iter))?;
         expr_buf.extend(exprs);
         token_buf.extend(unparsed.input);
