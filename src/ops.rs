@@ -83,11 +83,6 @@ pub fn add(args: &[Expr]) -> Result<Expr> {
 pub fn sub(args: &[Expr]) -> Result<Expr> {
     ensure_min_args("-", args, 1)?;
 
-    // Check all arguments are numeric
-    if !args.iter().all(Expr::is_num) {
-        return Err("#[-] expected numeric".into());
-    }
-
     // If one argument, negate and return
     if args.len() == 1 {
         return match args[0] {
@@ -111,12 +106,7 @@ pub fn mul(args: &[Expr]) -> Result<Expr> {
 }
 
 pub fn div(args: &[Expr]) -> Result<Expr> {
-    ensure_min_args("[/]", args, 1)?;
-
-    // Check all arguments are numeric
-    if !args.iter().all(Expr::is_num) {
-        return Err("#[-] expected numeric".into());
-    }
+    ensure_min_args("/", args, 1)?;
 
     // If one argument, invert and return
     if args.len() == 1 {
@@ -140,12 +130,12 @@ pub fn div(args: &[Expr]) -> Result<Expr> {
 }
 
 pub fn equal(args: &[Expr]) -> Result<Expr> {
-    ensure_args("[=]", args, 2)?;
+    ensure_args("=", args, 2)?;
     Ok(Expr::from(args[0] == args[1]))
 }
 
 pub fn less(args: &[Expr]) -> Result<Expr> {
-    ensure_args("[<]", args, 2)?;
+    ensure_args("<", args, 2)?;
     match (&args[0], &args[1]) {
         (&Expr::Int(ref a), &Expr::Int(ref b)) => Ok(Expr::from(a < b)),
         (&Expr::Flt(ref a), &Expr::Flt(ref b)) => Ok(Expr::from(a < b)),
@@ -157,7 +147,7 @@ pub fn less(args: &[Expr]) -> Result<Expr> {
 }
 
 pub fn less_eq(args: &[Expr]) -> Result<Expr> {
-    ensure_args("[<=]", args, 2)?;
+    ensure_args("<=", args, 2)?;
     match (&args[0], &args[1]) {
         (&Expr::Int(ref a), &Expr::Int(ref b)) => Ok(Expr::from(a <= b)),
         (&Expr::Flt(ref a), &Expr::Flt(ref b)) => Ok(Expr::from(a <= b)),
@@ -169,7 +159,7 @@ pub fn less_eq(args: &[Expr]) -> Result<Expr> {
 }
 
 pub fn greater(args: &[Expr]) -> Result<Expr> {
-    ensure_args("[>]", args, 2)?;
+    ensure_args(">", args, 2)?;
     match (&args[0], &args[1]) {
         (&Expr::Int(ref a), &Expr::Int(ref b)) => Ok(Expr::from(a > b)),
         (&Expr::Flt(ref a), &Expr::Flt(ref b)) => Ok(Expr::from(a > b)),
@@ -181,7 +171,7 @@ pub fn greater(args: &[Expr]) -> Result<Expr> {
 }
 
 pub fn greater_eq(args: &[Expr]) -> Result<Expr> {
-    ensure_args("[>=]", args, 2)?;
+    ensure_args(">=", args, 2)?;
     match (&args[0], &args[1]) {
         (&Expr::Int(ref a), &Expr::Int(ref b)) => Ok(Expr::from(a >= b)),
         (&Expr::Flt(ref a), &Expr::Flt(ref b)) => Ok(Expr::from(a >= b)),
@@ -219,14 +209,16 @@ pub fn or(args: &[Expr]) -> Result<Expr> {
         .map(Expr::from)
 }
 
+// (print expr)
 pub fn print(args: &[Expr]) -> Result<Expr> {
-    ensure_args("#[print]", args, 1)?;
+    ensure_args("print", args, 1)?;
     println!("{}", args[0]);
     Ok(Expr::Nil)
 }
 
+// (first seq)
 pub fn first(args: &[Expr]) -> Result<Expr> {
-    ensure_args("#[first]", args, 1)?;
+    ensure_args("first", args, 1)?;
 
     match &args[0] {
         &Expr::List(ref l) => Ok(l.0.first().cloned().unwrap_or(Expr::Nil)),
@@ -235,7 +227,9 @@ pub fn first(args: &[Expr]) -> Result<Expr> {
     }
 }
 
+// (rest seq)
 pub fn rest(args: &[Expr]) -> Result<Expr> {
+    ensure_args("first", args, 1)?;
     match &args[0] {
         &Expr::List(ref l) => {
             Ok(
@@ -259,7 +253,7 @@ pub fn rest(args: &[Expr]) -> Result<Expr> {
 
 // (cons item seq)
 pub fn cons(args: &[Expr]) -> Result<Expr> {
-    ensure_args("cons]", args, 2)?;
+    ensure_args("cons", args, 2)?;
 
     match &args[2] {
         &Expr::List(ref l) => {
