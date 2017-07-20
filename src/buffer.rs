@@ -34,7 +34,9 @@ impl Read for Readline {
                 Err(RLError::Eof) => return Ok(0),
                 Err(RLError::Interrupted) => return Ok(0),
                 #[cfg(unix)]
-                Err(RLError::Errno(num)) => return Err(io::Error::from_raw_os_error(num)),
+                Err(RLError::Char(_)) => return Ok(0),
+                #[cfg(unix)]
+                Err(RLError::Errno(err)) => return Err(io::Error::from(err)),
                 #[cfg(windows)]
                 Err(RLError::WindowResize) => return Err(io::ErrorKind::Other.into()),
                 #[cfg(windows)]
@@ -68,7 +70,9 @@ impl io::BufRead for Readline {
                 Err(RLError::Eof) => (),
                 Err(RLError::Interrupted) => (),
                 #[cfg(unix)]
-                Err(RLError::Errno(num)) => return Err(io::Error::from_raw_os_error(num)),
+                Err(RLError::Char(_)) => (),
+                #[cfg(unix)]
+                Err(RLError::Errno(err)) => return Err(io::Error::from(err)),
                 #[cfg(windows)]
                 Err(RLError::WindowResize) => return Err(io::ErrorKind::Other.into()),
                 #[cfg(windows)]
