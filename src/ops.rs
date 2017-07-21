@@ -2,11 +2,11 @@ use std::collections::HashMap;
 use std::ops::{Sub, Div};
 use itertools::Itertools;
 use error::*;
-use eval::Env;
+use env::Env;
 use types::{Expr, List, Vector, Function, Lambda};
 use util::*;
 
-pub fn env<'a>() -> Env<'a> {
+pub fn env() -> Env {
     let table: Vec<(&str, Lambda)> = vec![
         ("not", not),
         ("+", add),
@@ -73,14 +73,14 @@ where
     }
 }
 
-fn add(args: &[Expr], _env: &mut Env) -> Result<Expr> {
+fn add(args: &[Expr], _env: Env) -> Result<Expr> {
     numeric_op("+", args,
         |ints| Ok(ints.iter().sum::<i64>()),
         |floats| Ok(floats.iter().sum::<f64>())
     )
 }
 
-fn sub(args: &[Expr], _env: &mut Env) -> Result<Expr> {
+fn sub(args: &[Expr], _env: Env) -> Result<Expr> {
     ensure_min_args("-", args, 1)?;
 
     // If one argument, negate and return
@@ -98,14 +98,14 @@ fn sub(args: &[Expr], _env: &mut Env) -> Result<Expr> {
     )
 }
 
-fn mul(args: &[Expr], _env: &mut Env) -> Result<Expr> {
+fn mul(args: &[Expr], _env: Env) -> Result<Expr> {
     numeric_op("*", args,
         |ints| Ok(ints.iter().product::<i64>()),
         |floats| Ok(floats.iter().product::<f64>())
     )
 }
 
-fn div(args: &[Expr], _env: &mut Env) -> Result<Expr> {
+fn div(args: &[Expr], _env: Env) -> Result<Expr> {
     ensure_min_args("/", args, 1)?;
 
     // If one argument, invert and return
@@ -129,12 +129,12 @@ fn div(args: &[Expr], _env: &mut Env) -> Result<Expr> {
     )
 }
 
-fn equal(args: &[Expr], _env: &mut Env) -> Result<Expr> {
+fn equal(args: &[Expr], _env: Env) -> Result<Expr> {
     ensure_args("=", args, 2)?;
     Ok(Expr::from(args[0] == args[1]))
 }
 
-fn less(args: &[Expr], _env: &mut Env) -> Result<Expr> {
+fn less(args: &[Expr], _env: Env) -> Result<Expr> {
     ensure_args("<", args, 2)?;
     match (&args[0], &args[1]) {
         (&Expr::Int(ref a), &Expr::Int(ref b)) => Ok(Expr::from(a < b)),
@@ -146,7 +146,7 @@ fn less(args: &[Expr], _env: &mut Env) -> Result<Expr> {
     }
 }
 
-fn less_eq(args: &[Expr], _env: &mut Env) -> Result<Expr> {
+fn less_eq(args: &[Expr], _env: Env) -> Result<Expr> {
     ensure_args("<=", args, 2)?;
     match (&args[0], &args[1]) {
         (&Expr::Int(ref a), &Expr::Int(ref b)) => Ok(Expr::from(a <= b)),
@@ -158,7 +158,7 @@ fn less_eq(args: &[Expr], _env: &mut Env) -> Result<Expr> {
     }
 }
 
-fn greater(args: &[Expr], _env: &mut Env) -> Result<Expr> {
+fn greater(args: &[Expr], _env: Env) -> Result<Expr> {
     ensure_args(">", args, 2)?;
     match (&args[0], &args[1]) {
         (&Expr::Int(ref a), &Expr::Int(ref b)) => Ok(Expr::from(a > b)),
@@ -170,7 +170,7 @@ fn greater(args: &[Expr], _env: &mut Env) -> Result<Expr> {
     }
 }
 
-fn greater_eq(args: &[Expr], _env: &mut Env) -> Result<Expr> {
+fn greater_eq(args: &[Expr], _env: Env) -> Result<Expr> {
     ensure_args(">=", args, 2)?;
     match (&args[0], &args[1]) {
         (&Expr::Int(ref a), &Expr::Int(ref b)) => Ok(Expr::from(a >= b)),
@@ -183,7 +183,7 @@ fn greater_eq(args: &[Expr], _env: &mut Env) -> Result<Expr> {
 }
 
 // (not expr)
-fn not(args: &[Expr], _env: &mut Env) -> Result<Expr> {
+fn not(args: &[Expr], _env: Env) -> Result<Expr> {
     ensure_args("[not]", args, 1)?;
     Ok(Expr::from(!args[0].truthiness()))
 }
@@ -191,7 +191,7 @@ fn not(args: &[Expr], _env: &mut Env) -> Result<Expr> {
 // (print expr)
 // TODO: lift one-argument restriction
 // TODO: create print, println versions
-fn print(args: &[Expr], _env: &mut Env) -> Result<Expr> {
+fn print(args: &[Expr], _env: Env) -> Result<Expr> {
     ensure_args("print", args, 1)?;
     println!("{}", args[0]);
     Ok(Expr::Nil)
@@ -199,14 +199,14 @@ fn print(args: &[Expr], _env: &mut Env) -> Result<Expr> {
 
 // (debug expr)
 // TODO: lift one-argument restriction
-fn debug(args: &[Expr], _env: &mut Env) -> Result<Expr> {
+fn debug(args: &[Expr], _env: Env) -> Result<Expr> {
     ensure_args("debug", args, 1)?;
     println!("{:?}", args[0]);
     Ok(Expr::Nil)
 }
 
 // (first seq)
-fn first(args: &[Expr], _env: &mut Env) -> Result<Expr> {
+fn first(args: &[Expr], _env: Env) -> Result<Expr> {
     ensure_args("first", args, 1)?;
     match &args[0] {
         &Expr::List(ref l) => Ok(l.0.first().cloned().unwrap_or(Expr::Nil)),
@@ -216,7 +216,7 @@ fn first(args: &[Expr], _env: &mut Env) -> Result<Expr> {
 }
 
 // (rest seq)
-fn rest(args: &[Expr], _env: &mut Env) -> Result<Expr> {
+fn rest(args: &[Expr], _env: Env) -> Result<Expr> {
     ensure_args("first", args, 1)?;
     match &args[0] {
         &Expr::List(ref l) => {
@@ -240,7 +240,7 @@ fn rest(args: &[Expr], _env: &mut Env) -> Result<Expr> {
 }
 
 // (cons item seq)
-fn cons(args: &[Expr], _env: &mut Env) -> Result<Expr> {
+fn cons(args: &[Expr], _env: Env) -> Result<Expr> {
     ensure_args("cons", args, 2)?;
 
     match &args[2] {
@@ -259,7 +259,7 @@ fn cons(args: &[Expr], _env: &mut Env) -> Result<Expr> {
 }
 
 // (list items*)
-fn list(args: &[Expr], _env: &mut Env) -> Result<Expr> {
+fn list(args: &[Expr], _env: Env) -> Result<Expr> {
     if args.is_empty() {
         Ok(Expr::Nil)
     } else {
@@ -268,12 +268,12 @@ fn list(args: &[Expr], _env: &mut Env) -> Result<Expr> {
 }
 
 // (eval form)
-fn eval(args: &[Expr], env: &mut Env) -> Result<Expr> {
+fn eval(args: &[Expr], env: Env) -> Result<Expr> {
     ensure_args("eval", args, 1)?;
     args[0].eval(env)
 }
 
 // (exit)
-fn exit(_args: &[Expr], _env: &mut Env) -> Result<Expr> {
+fn exit(_args: &[Expr], _env: Env) -> Result<Expr> {
     Err(ErrorKind::Exit(0).into())
 }

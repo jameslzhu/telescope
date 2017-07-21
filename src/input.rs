@@ -8,20 +8,20 @@ use combine;
 use combine::State;
 use combine::primitives::IteratorStream;
 use error::*;
-use eval::Env;
+use env::Env;
 use token::Token;
 use buffer::Readline;
 
-pub fn file(path: &str, mut env: &mut Env) -> Result<()> {
+pub fn file(path: &str, env: Env) -> Result<()> {
     let file = fs::File::open(path)?;
     let mut file_buf = io::BufReader::new(file);
     loop {
         let exprs = read(&mut file_buf)?;
-        eval(exprs, &mut env)?;
+        eval(exprs, env.clone())?;
     }
 }
 
-pub fn repl(mut env: &mut Env) -> Result<i32> {
+pub fn repl(env: Env) -> Result<i32> {
     let mut rl = Readline::new("> ");
     loop {
         let exprs = match read(&mut rl) {
@@ -31,7 +31,7 @@ pub fn repl(mut env: &mut Env) -> Result<i32> {
                 continue;
             },
         };
-        match eval(exprs, &mut env) {
+        match eval(exprs, env.clone()) {
             Ok(val) => print(val),
             Err(err) => {
                 match err.kind() {
@@ -79,12 +79,12 @@ fn read<B: BufRead>(reader: &mut B) -> Result<Vec<Expr>> {
     Ok(expr_buf)
 }
 
-fn eval(exprs: Vec<Expr>, env: &mut Env) -> Result<Expr> {
+fn eval(exprs: Vec<Expr>, env: Env) -> Result<Expr> {
     if let Some((last, rest)) = exprs.split_last() {
         for expr in rest {
-            expr.eval(env)?;
+            expr.eval(env.clone())?;
         }
-        last.eval(env)
+        last.eval(env.clone())
     } else {
         Ok(types::Expr::Nil)
     }

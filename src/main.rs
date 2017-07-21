@@ -32,6 +32,7 @@ mod token;
 mod error;
 mod util;
 mod input;
+mod env;
 
 use clap::{App, Arg};
 
@@ -58,13 +59,13 @@ fn main() {
         ))
         .get_matches();
 
-    let mut env = ops::env();
+    let env = ops::env();
 
     if let Some(file) = matches.value_of("input") {
         if file == "-" {
             
         } else {
-            match input::file(file, &mut env) {
+            match input::file(file, env.clone()) {
                 Ok(_) => (),
                 Err(err) => println!("{}", err),
             }
@@ -77,7 +78,7 @@ fn main() {
 
     // Run REPL if -i flag supplied or no arguments
     if matches.is_present("interactive") || !matches.is_present("input") {
-        match input::repl(&mut env) {
+        match input::repl(env.clone()) {
             Ok(_) => (),
             Err(err) => println!("{}", err),
         }
