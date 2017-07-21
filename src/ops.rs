@@ -24,6 +24,7 @@ pub fn env<'a>() -> Env<'a> {
         ("list", list),
         ("print", print),
         ("debug", debug),
+        ("eval", eval),
         ("exit", exit),
     ];
 
@@ -264,6 +265,14 @@ fn list(args: &[Expr]) -> Result<Expr> {
     } else {
         Ok(Expr::List(List(args.to_vec())))
     }
+}
+
+// (eval form)
+fn eval(args: &[Expr]) -> Result<Expr> {
+    // args already evaluated by apply
+    ensure_args("eval", args, 1)?;
+    // Any evaluation errors will occur in apply
+    Ok(args[0].clone())
 }
 
 // (exit)
