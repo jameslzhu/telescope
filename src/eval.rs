@@ -10,9 +10,9 @@ pub struct Env<'a> {
 }
 
 impl Expr {
-    pub fn eval(&self, mut env: &mut Env) -> Result<Expr> {
+    pub fn eval(&self, env: &mut Env) -> Result<Expr> {
         match self {
-            &Expr::List(ref lst) => lst.eval(&mut env),
+            &Expr::List(ref lst) => lst.eval(env),
             &Expr::Sym(ref symbol) => {
                 env.lookup(&symbol.0).cloned().ok_or(
                     format!("undefined symbol: {}", symbol.0).into()

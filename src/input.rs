@@ -71,12 +71,12 @@ fn read<B: BufRead>(reader: &mut B) -> Result<Vec<Expr>> {
     Ok(expr_buf)
 }
 
-fn eval(exprs: Vec<Expr>, mut env: &mut Env) -> Result<Expr> {
+fn eval(exprs: Vec<Expr>, env: &mut Env) -> Result<Expr> {
     if let Some((last, rest)) = exprs.split_last() {
         for expr in rest {
-            expr.eval(&mut env)?;
+            expr.eval(env)?;
         }
-        last.eval(&mut env)
+        last.eval(env)
     } else {
         Ok(types::Expr::Nil)
     }

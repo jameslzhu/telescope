@@ -9,7 +9,6 @@ use util::*;
 pub fn env<'a>() -> Env<'a> {
     let table: Vec<(&str, Lambda)> = vec![
         ("not", not),
-        ("print", print),
         ("+", add),
         ("-", sub),
         ("*", mul),
@@ -23,6 +22,8 @@ pub fn env<'a>() -> Env<'a> {
         ("rest", rest),
         ("cons", cons),
         ("list", list),
+        ("print", print),
+        ("debug", debug),
         ("exit", exit),
     ];
 
@@ -71,14 +72,14 @@ where
     }
 }
 
-pub fn add(args: &[Expr]) -> Result<Expr> {
+fn add(args: &[Expr]) -> Result<Expr> {
     numeric_op("+", args,
         |ints| Ok(ints.iter().sum::<i64>()),
         |floats| Ok(floats.iter().sum::<f64>())
     )
 }
 
-pub fn sub(args: &[Expr]) -> Result<Expr> {
+fn sub(args: &[Expr]) -> Result<Expr> {
     ensure_min_args("-", args, 1)?;
 
     // If one argument, negate and return
@@ -96,14 +97,14 @@ pub fn sub(args: &[Expr]) -> Result<Expr> {
     )
 }
 
-pub fn mul(args: &[Expr]) -> Result<Expr> {
+fn mul(args: &[Expr]) -> Result<Expr> {
     numeric_op("*", args,
         |ints| Ok(ints.iter().product::<i64>()),
         |floats| Ok(floats.iter().product::<f64>())
     )
 }
 
-pub fn div(args: &[Expr]) -> Result<Expr> {
+fn div(args: &[Expr]) -> Result<Expr> {
     ensure_min_args("/", args, 1)?;
 
     // If one argument, invert and return
@@ -127,12 +128,12 @@ pub fn div(args: &[Expr]) -> Result<Expr> {
     )
 }
 
-pub fn equal(args: &[Expr]) -> Result<Expr> {
+fn equal(args: &[Expr]) -> Result<Expr> {
     ensure_args("=", args, 2)?;
     Ok(Expr::from(args[0] == args[1]))
 }
 
-pub fn less(args: &[Expr]) -> Result<Expr> {
+fn less(args: &[Expr]) -> Result<Expr> {
     ensure_args("<", args, 2)?;
     match (&args[0], &args[1]) {
         (&Expr::Int(ref a), &Expr::Int(ref b)) => Ok(Expr::from(a < b)),
@@ -144,7 +145,7 @@ pub fn less(args: &[Expr]) -> Result<Expr> {
     }
 }
 
-pub fn less_eq(args: &[Expr]) -> Result<Expr> {
+fn less_eq(args: &[Expr]) -> Result<Expr> {
     ensure_args("<=", args, 2)?;
     match (&args[0], &args[1]) {
         (&Expr::Int(ref a), &Expr::Int(ref b)) => Ok(Expr::from(a <= b)),
@@ -156,7 +157,7 @@ pub fn less_eq(args: &[Expr]) -> Result<Expr> {
     }
 }
 
-pub fn greater(args: &[Expr]) -> Result<Expr> {
+fn greater(args: &[Expr]) -> Result<Expr> {
     ensure_args(">", args, 2)?;
     match (&args[0], &args[1]) {
         (&Expr::Int(ref a), &Expr::Int(ref b)) => Ok(Expr::from(a > b)),
@@ -168,7 +169,7 @@ pub fn greater(args: &[Expr]) -> Result<Expr> {
     }
 }
 
-pub fn greater_eq(args: &[Expr]) -> Result<Expr> {
+fn greater_eq(args: &[Expr]) -> Result<Expr> {
     ensure_args(">=", args, 2)?;
     match (&args[0], &args[1]) {
         (&Expr::Int(ref a), &Expr::Int(ref b)) => Ok(Expr::from(a >= b)),
@@ -181,20 +182,30 @@ pub fn greater_eq(args: &[Expr]) -> Result<Expr> {
 }
 
 // (not expr)
-pub fn not(args: &[Expr]) -> Result<Expr> {
+fn not(args: &[Expr]) -> Result<Expr> {
     ensure_args("[not]", args, 1)?;
     Ok(Expr::from(!args[0].truthiness()))
 }
 
 // (print expr)
-pub fn print(args: &[Expr]) -> Result<Expr> {
+// TODO: lift one-argument restriction
+// TODO: create print, println versions
+fn print(args: &[Expr]) -> Result<Expr> {
     ensure_args("print", args, 1)?;
     println!("{}", args[0]);
     Ok(Expr::Nil)
 }
 
+// (debug expr)
+// TODO: lift one-argument restriction
+fn debug(args: &[Expr]) -> Result<Expr> {
+    ensure_args("debug", args, 1)?;
+    println!("{:?}", args[0]);
+    Ok(Expr::Nil)
+}
+
 // (first seq)
-pub fn first(args: &[Expr]) -> Result<Expr> {
+fn first(args: &[Expr]) -> Result<Expr> {
     ensure_args("first", args, 1)?;
     match &args[0] {
         &Expr::List(ref l) => Ok(l.0.first().cloned().unwrap_or(Expr::Nil)),
@@ -204,7 +215,7 @@ pub fn first(args: &[Expr]) -> Result<Expr> {
 }
 
 // (rest seq)
-pub fn rest(args: &[Expr]) -> Result<Expr> {
+fn rest(args: &[Expr]) -> Result<Expr> {
     ensure_args("first", args, 1)?;
     match &args[0] {
         &Expr::List(ref l) => {
@@ -228,7 +239,7 @@ pub fn rest(args: &[Expr]) -> Result<Expr> {
 }
 
 // (cons item seq)
-pub fn cons(args: &[Expr]) -> Result<Expr> {
+fn cons(args: &[Expr]) -> Result<Expr> {
     ensure_args("cons", args, 2)?;
 
     match &args[2] {
@@ -247,7 +258,7 @@ pub fn cons(args: &[Expr]) -> Result<Expr> {
 }
 
 // (list items*)
-pub fn list(args: &[Expr]) -> Result<Expr> {
+fn list(args: &[Expr]) -> Result<Expr> {
     if args.is_empty() {
         Ok(Expr::Nil)
     } else {
@@ -256,6 +267,6 @@ pub fn list(args: &[Expr]) -> Result<Expr> {
 }
 
 // (exit)
-pub fn exit(_args: &[Expr]) -> Result<Expr> {
+fn exit(_args: &[Expr]) -> Result<Expr> {
     Err(ErrorKind::Exit(0).into())
 }

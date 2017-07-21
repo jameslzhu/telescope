@@ -30,7 +30,7 @@ pub fn is_special_form(form: &Symbol) -> bool {
 pub fn eval(form: &Symbol, args: &[Expr], env: &mut Env) -> Result<Expr> {
     debug_assert!(is_special_form(form));
     (SPECIAL_FORMS.get(form.0.as_str()))
-        .ok_or("did not find special form".into())
+        .ok_or(format!("{} form not found", form.0).into())
         .and_then(|f| (f)(args, env))
 }
 
@@ -77,14 +77,15 @@ fn do_form(args: &[Expr], mut env: &mut Env) -> Result<Expr> {
 }
 
 // (let [bindings*] exprs*)
-fn let_form(args: &[Expr], mut env: &mut Env) -> Result<Expr> {
+fn let_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
+    let mut let_env = Env::new(HashMap::new(), Some(&env));
     let bindings = args[0].vector().ok_or("expected list of bindings")?;
 
     for i in (0..bindings.0.len()).step(2) {
-        def_impl(&(bindings.0)[i..i+2], &mut env)?;
+        def_impl(&(bindings.0)[i..i+2], &mut let_env)?;
     }
 
-    do_impl(&args[1..], &mut env)
+    do_impl(&args[1..], &mut let_env)
 }
 
 // (quote form)
