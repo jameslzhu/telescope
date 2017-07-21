@@ -15,9 +15,24 @@ where
     I: Stream<Item = Token>,
 {
     parser(atom)
+        .or(parser(quote))
         .or(parser(list))
         .or(parser(vector))
         .parse_stream(input)
+}
+
+fn quote<I>(input: I) -> ParseResult<Expr, I>
+where
+    I: Stream<Item = Token>,
+{
+    (
+        token(Token::Quote),
+        parser(expr)
+    )
+    .map(|(_, expr)| {
+        let quote_symbol = Expr::Sym(Symbol("quote".into()));
+        Expr::List(List(vec![quote_symbol, expr]))
+    }).parse_stream(input)
 }
 
 fn atom<I>(input: I) -> ParseResult<Expr, I>

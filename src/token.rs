@@ -16,6 +16,7 @@ pub enum Token {
     RParen,
     LBracket,
     RBracket,
+    Quote,
     Literal(Literal),
     Symbol(String),
 }
@@ -33,6 +34,7 @@ impl Positioner for Token {
             Token::RParen => position.column += 1,
             Token::LBracket => position.column += 1,
             Token::RBracket => position.column += 1,
+            Token::Quote => position.column += 1,
             Token::Literal(ref l) => {
                 position.column += i32::value_from(l.to_string().len()).unwrap()
             }

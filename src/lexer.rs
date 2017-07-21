@@ -9,15 +9,16 @@ pub fn lex<I>(input: I) -> Result<(Vec<Token>, I), ParseError<I>>
 where
     I: Stream<Item = char>,
 {
-    many(parser(token)).parse(input)
+    many(spaces().with(parser(token))).parse(input)
 }
 
 fn token<I>(input: I) -> ParseResult<Token, I>
 where
     I: Stream<Item = char>,
 {
-    spaces()
-        .with(parser(symbol).or(parser(literal)).or(parser(punctuation)))
+    parser(symbol)
+        .or(parser(literal))
+        .or(parser(punctuation))
         .parse_stream(input)
 }
 
@@ -78,7 +79,7 @@ fn symbol<I>(input: I) -> ParseResult<Token, I>
 where
     I: Stream<Item = char>,
 {
-    let punctuation = one_of("_'+-*/=<>!".chars());
+    let punctuation = one_of("_+-*/=<>!".chars());
     let start = satisfy(UnicodeXID::is_xid_start).or(punctuation.clone());
     let body = satisfy(UnicodeXID::is_xid_continue).or(punctuation.clone());
     let rest = many::<String, _>(body);
@@ -101,6 +102,7 @@ where
         ')' => Some(Token::RParen),
         '[' => Some(Token::LBracket),
         ']' => Some(Token::RBracket),
+        '\'' => Some(Token::Quote),
         _ => None,
     }).parse_stream(input)
 }
