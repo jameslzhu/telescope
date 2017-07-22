@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use eval::Env;
 use error::*;
-use types::{Expr, Function, Symbol};
+use types::{Expr, Function, Macro, Symbol};
 use itertools::Itertools;
 use util::*;
 
@@ -15,6 +15,7 @@ lazy_static! {
             ("let", let_form),
             ("do",  do_form),
             ("fn",  fn_form),
+            ("macro", macro_form),
             ("quote", quote_form),
             ("and", and_form),
             ("or", or_form),
@@ -105,6 +106,19 @@ fn fn_form(args: &[Expr], _env: &mut Env) -> Result<Expr> {
         .collect::<Result<Vec<_>>>()?;
     let body = if name.is_some() { args[2..].to_vec() } else { args[1..].to_vec() };
     Ok(Expr::from(Function::User { name, params, body }))
+}
+
+// (macro name? [params* ] exprs*)
+fn macro_form(args: &[Expr], _env: &mut Env) -> Result<Expr> {
+    ensure_min_args("macro", args, 2)?;
+    let name = args[0].sym().cloned().map(|n| n.0);
+    let raw_params = if name.is_some() { &args[1] } else { &args[0] };
+    let params = ensure_vector("macro", raw_params)?
+        .0.iter()
+        .map(|x| ensure_sym("macro", x).map(|x| x.clone()))
+        .collect::<Result<Vec<_>>>()?;
+    let body = if name.is_some() { args[2..].to_vec() } else { args[1..].to_vec() };
+    Ok(Expr::from(Macro::new(name, params, body)))
 }
 
 // (and exprs*)

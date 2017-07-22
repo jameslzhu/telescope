@@ -2,6 +2,7 @@ use error::*;
 use forms;
 use std::collections::HashMap;
 use types::*;
+use util::*;
 
 #[derive(Clone, Debug)]
 pub struct Env<'a> {
@@ -31,7 +32,11 @@ impl List {
             if forms::is_special_form(sym) {
                 forms::eval(sym, rest, env)
             } else if let Ok(Expr::Func(ref func)) = first.eval(env) {
-                func.apply(rest, env)
+                // Eval all arguments, returning if any errors
+                let evaled_args = List::eval_args(rest, env)?;
+                func.apply(&evaled_args, env)
+            } else if let Ok(Expr::Macro(ref mac)) = first.eval(env) {
+                mac.apply(rest, env)?.eval(env)
             } else {
                 Err(format!("could not find symbol {}", first).into())
             }
@@ -40,21 +45,22 @@ impl List {
             Ok(Expr::Nil)
         }
     }
+
+    fn eval_args(args: &[Expr], env: &mut Env) -> Result<Vec<Expr>> {
+        args.iter()
+            .map(|a| a.eval(env))
+            .collect()
+    }
 }
 
 impl Function {
     #[cfg_attr(rustfmt, rustfmt_skip)]
-    pub fn apply<'a>(&self, args: &'a [Expr], env: &mut Env) -> Result<Expr> {
-        // Eval all arguments, returning if any errors
-        let evaled_args = args.iter().map(|a| a.eval(env)).collect::<Result<Vec<_>>>()?;
-
-        // Call function on args
+    pub fn apply(&self, args: &[Expr], env: &mut Env) -> Result<Expr> {
         match self {
-            &Function::Builtin { name: _, ref func } => (func)(&evaled_args),
-            &Function::User { name: _, ref params, ref body, } => {
-                if args.len() != params.len() {
-                    return Err(format!("fn expected {} args", params.len()).into());
-                }
+            &Function::Builtin { name: _, ref func } => (func)(args),
+            &Function::User { ref name, ref params, ref body, } => {
+                let name = if let &Some(ref n) = name { n.as_str() } else { "fn" };
+                ensure_args(name, args, params.len())?;
 
                 // Create new env with arguments, eval body with new env
                 let bound_params = params
@@ -66,14 +72,40 @@ impl Function {
 
                 match body.split_last() {
                     Some((last, rest)) => {
-                        for arg in rest {
-                            arg.eval(&mut fn_env)?;
+                        for expr in rest {
+                            expr.eval(&mut fn_env)?;
                         }
                         last.eval(&mut fn_env)
                     }
                     None => Ok(Expr::Nil),
                 }
             }
+        }
+    }
+}
+
+impl Macro {
+    pub fn apply(&self, args: &[Expr], env: &mut Env) -> Result<Expr> {
+        let name = if let Some(ref n) = self.name { n.as_str() } else { "macro" };
+        ensure_args(name, args, self.params.len())?;
+
+        // Create new env with arguments, eval body with new env
+        let bound_params = self.params
+            .iter()
+            .map(|x| x.0.to_owned())
+            .zip(args.to_owned())
+            .collect();
+
+        let mut fn_env = Env::new(bound_params, Some(env));
+
+        match self.body.split_last() {
+            Some((last, rest)) => {
+                for expr in rest {
+                    expr.eval(&mut fn_env)?;
+                }
+                last.eval(&mut fn_env)
+            }
+            None => Ok(Expr::Nil),
         }
     }
 }

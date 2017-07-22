@@ -39,3 +39,9 @@ impl From<Function> for Expr {
         Expr::Func(Arc::new(x))
     }
 }
+
+impl From<Macro> for Expr {
+    fn from(x: Macro) -> Expr {
+        Expr::Macro(x)
+    }
+}
