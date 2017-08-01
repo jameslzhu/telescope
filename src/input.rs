@@ -24,7 +24,13 @@ pub fn file(path: &str, mut env: &mut Env) -> Result<()> {
 pub fn repl(mut env: &mut Env) -> Result<i32> {
     let mut rl = Readline::new("> ");
     loop {
-        let exprs = read(&mut rl)?;
+        let exprs = match read(&mut rl) {
+            Ok(x) => x,
+            Err(err) => {
+                println!("{}", err);
+                continue;
+            },
+        };
         match eval(exprs, &mut env) {
             Ok(val) => print(val),
             Err(err) => {
@@ -66,6 +72,8 @@ fn read<B: BufRead>(reader: &mut B) -> Result<Vec<Expr>> {
 
         if token_buf.is_empty() {
             break;
+        } else {
+            println!("{:?}", token_buf);
         }
     }
     Ok(expr_buf)

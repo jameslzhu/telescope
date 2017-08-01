@@ -9,7 +9,10 @@ pub fn lex<I>(input: I) -> Result<(Vec<Token>, I), ParseError<I>>
 where
     I: Stream<Item = char>,
 {
-    many(spaces().with(parser(token))).parse(input)
+    between(spaces(),
+            spaces(),
+            many(spaces().with(parser(token))))
+        .parse(input)
 }
 
 fn token<I>(input: I) -> ParseResult<Token, I>
