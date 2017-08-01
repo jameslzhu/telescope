@@ -22,6 +22,18 @@ impl Expr {
             _ => Ok(self.clone()),
         }
     }
+
+    pub(crate) fn eval_all(exprs: &[Expr], env: &mut Env) -> Result<Expr> {
+        match exprs.split_last() {
+            Some((last, rest)) => {
+                for expr in rest {
+                    expr.eval(env)?;
+                }
+                last.eval(env)
+            }
+            None => Ok(Expr::Nil),
+        }
+    }
 }
 
 impl List {
@@ -70,15 +82,7 @@ impl Function {
                     .collect();
                 let mut fn_env = Env::new(bound_params, Some(env));
 
-                match body.split_last() {
-                    Some((last, rest)) => {
-                        for expr in rest {
-                            expr.eval(&mut fn_env)?;
-                        }
-                        last.eval(&mut fn_env)
-                    }
-                    None => Ok(Expr::Nil),
-                }
+                Expr::eval_all(body, &mut fn_env)
             }
         }
     }
@@ -98,15 +102,7 @@ impl Macro {
 
         let mut fn_env = Env::new(bound_params, Some(env));
 
-        match self.body.split_last() {
-            Some((last, rest)) => {
-                for expr in rest {
-                    expr.eval(&mut fn_env)?;
-                }
-                last.eval(&mut fn_env)
-            }
-            None => Ok(Expr::Nil),
-        }
+        Expr::eval_all(&self.body, &mut fn_env)
     }
 }
 
@@ -124,8 +120,9 @@ impl<'a> Env<'a> {
         })
     }
 
-    pub fn define(&mut self, symbol: &str, value: Expr) {
+    pub fn define(&mut self, symbol: &str, value: Expr) -> Symbol {
         self.symbols.insert(symbol.to_string(), value);
+        Symbol(symbol.to_string())
     }
 }
 
@@ -137,3 +134,4 @@ impl<'a> Default for Env<'a> {
         }
     }
 }
+

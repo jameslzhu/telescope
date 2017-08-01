@@ -40,7 +40,7 @@ fn def_impl(args: &[Expr], env: &mut Env) -> Result<Expr> {
 
     args[1].eval(env)
         .map(|expr| env.define(&sym.0, expr))
-        .map(|_| args[0].clone())
+        .map(Expr::from)
 }
 
 // (def symbol init)
@@ -60,21 +60,9 @@ fn if_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
     }
 }
 
-fn do_impl(args: &[Expr], env: &mut Env) -> Result<Expr> {
-    match args.split_last() {
-        Some((last, rest)) => {
-            for arg in rest {
-                arg.eval(env)?;
-            }
-            last.eval(env)
-        }
-        None => Ok(Expr::Nil),
-    }
-}
-
 // (do exprs*)
 fn do_form(args: &[Expr], mut env: &mut Env) -> Result<Expr> {
-    do_impl(args, &mut env)
+    Expr::eval_all(args, env)
 }
 
 // (let [bindings*] exprs*)
@@ -86,7 +74,7 @@ fn let_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
         def_impl(&(bindings.0)[i..i+2], &mut let_env)?;
     }
 
-    do_impl(&args[1..], &mut let_env)
+    Expr::eval_all(&args[1..], &mut let_env)
 }
 
 // (quote form)
