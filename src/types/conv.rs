@@ -42,6 +42,6 @@ impl From<Function> for Expr {
 
 impl From<Macro> for Expr {
     fn from(x: Macro) -> Expr {
-        Expr::Macro(x)
+        Expr::Macro(Arc::new(x))
     }
 }

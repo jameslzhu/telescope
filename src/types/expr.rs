@@ -13,7 +13,7 @@ pub enum Expr {
     Str(String),
     Sym(Symbol),
     Func(Arc<Function>),
-    Macro(Macro),
+    Macro(Arc<Macro>),
     List(List),
     Vector(Vector),
     Map(Map),
@@ -158,8 +158,10 @@ impl PartialEq for Expr {
             (&Str(ref a), &Str(ref b)) => a == b,
             (&Sym(ref a), &Sym(ref b)) => a == b,
             (&Func(_), &Func(_)) => false,
+            (&Macro(_), &Macro(_)) => false,
             (&List(ref a), &List(ref b)) => a == b,
             (&Vector(ref a), &Vector(ref b)) => a == b,
+            (&Map(ref a), &Map(ref b)) => a == b,
             _ => false,
         }
     }

@@ -37,7 +37,7 @@ impl fmt::Display for Key {
 	}
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Map(HashMap<Key, Expr>);
 
 impl Map {

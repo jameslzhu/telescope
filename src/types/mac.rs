@@ -3,7 +3,7 @@ use itertools::Itertools;
 
 use super::{Expr, Symbol};
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct Macro {
     pub name: Option<String>,
     pub params: Vec<Symbol>,
