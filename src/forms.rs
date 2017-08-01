@@ -1,15 +1,13 @@
 use std::collections::HashMap;
 use eval::Env;
 use error::*;
-use types::{Expr, Function, Macro, Symbol};
+use types::{Expr, Function, Macro, Symbol, Lambda};
 use itertools::Itertools;
 use util::*;
 
-type Form = fn(&[Expr], &mut Env) -> Result<Expr>;
-
 lazy_static! {
-    static ref SPECIAL_FORMS: HashMap<&'static str, Form> = {
-        let forms: Vec<(&'static str, Form)> = vec![
+    static ref SPECIAL_FORMS: HashMap<&'static str, Lambda> = {
+        let forms: Vec<(&'static str, Lambda)> = vec![
             ("def", def_form),
             ("if",  if_form),
             ("let", let_form),
@@ -37,7 +35,6 @@ pub fn eval(form: &Symbol, args: &[Expr], env: &mut Env) -> Result<Expr> {
 
 fn def_impl(args: &[Expr], env: &mut Env) -> Result<Expr> {
     let sym = ensure_sym("def", &args[0])?;
-
     args[1].eval(env)
         .map(|expr| env.define(&sym.0, expr))
         .map(Expr::from)
@@ -46,7 +43,6 @@ fn def_impl(args: &[Expr], env: &mut Env) -> Result<Expr> {
 // (def symbol init)
 fn def_form(args: &[Expr], mut env: &mut Env) -> Result<Expr> {
     ensure_args("def", args, 2)?;
-
     def_impl(&args, &mut env)
 }
 
@@ -68,7 +64,7 @@ fn do_form(args: &[Expr], mut env: &mut Env) -> Result<Expr> {
 // (let [bindings*] exprs*)
 fn let_form(args: &[Expr], env: &mut Env) -> Result<Expr> {
     let mut let_env = Env::new(HashMap::new(), Some(&env));
-    let bindings = args[0].vector().ok_or("expected list of bindings")?;
+    let bindings = ensure_vector("let", &args[0])?;
 
     for i in (0..bindings.0.len()).step(2) {
         def_impl(&(bindings.0)[i..i+2], &mut let_env)?;

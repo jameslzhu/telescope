@@ -36,6 +36,16 @@ mod input;
 use clap::{App, Arg};
 
 fn main() {
+    use std::sync::Arc;
+    println!("Expr: {}", ::std::mem::size_of::<types::Expr>());
+    println!("String: {}", ::std::mem::size_of::<String>());
+    println!("Symbol: {}", ::std::mem::size_of::<types::Symbol>());
+    println!("Arc<Fn>: {}", ::std::mem::size_of::<Arc<types::Function>>());
+    println!("Arc<Macro>: {}", ::std::mem::size_of::<Arc<types::Macro>>());
+    println!("List: {}", ::std::mem::size_of::<types::List>());
+    println!("Vector: {}", ::std::mem::size_of::<types::Vector>());
+    println!("Map: {}", ::std::mem::size_of::<types::Map>());
+
     let matches = App::new(env!("CARGO_PKG_NAME"))
         .version(env!("CARGO_PKG_VERSION"))
         .author(env!("CARGO_PKG_AUTHORS"))

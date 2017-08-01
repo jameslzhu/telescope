@@ -69,7 +69,7 @@ impl Function {
     #[cfg_attr(rustfmt, rustfmt_skip)]
     pub fn apply(&self, args: &[Expr], env: &mut Env) -> Result<Expr> {
         match self {
-            &Function::Builtin { name: _, ref func } => (func)(args),
+            &Function::Builtin { name: _, ref func } => (func)(args, env),
             &Function::User { ref name, ref params, ref body, } => {
                 let name = if let &Some(ref n) = name { n.as_str() } else { "fn" };
                 ensure_args(name, args, params.len())?;
