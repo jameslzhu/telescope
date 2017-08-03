@@ -1,4 +1,5 @@
 language: rust
+dist: trusty
 sudo: false
 cache: cargo
 
