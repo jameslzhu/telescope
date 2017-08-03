@@ -75,3 +75,30 @@ where
     ))
     .parse_stream(input)
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn empty_list() {
+        let input = vec![Token::LParen, Token::RParen];
+        let output = vec![Expr::Vector(Vector(Vec::new()))];
+        let empty: &[Token] = &[];
+        assert_eq!(
+            Ok((output, empty)),
+            parse(&*input)
+        );
+    }
+
+    #[test]
+    fn empty_vector() {
+        let input = vec![Token::LBracket, Token::RBracket];
+        let output = vec![Expr::Vector(Vector(Vec::new()))];
+        let empty: &[Token] = &[];
+        assert_eq!(
+            Ok((output, empty)),
+            parse(&*input)
+        );
+    }
+}
