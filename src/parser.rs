@@ -1,5 +1,5 @@
 use combine::{Stream, Parser, ParseError, ParseResult};
-use combine::{between, many, many1, parser, satisfy_map, token, value, try, not_followed_by};
+use combine::{between, many, parser, satisfy_map, token, try, not_followed_by};
 use token::Token;
 use types::{Expr, List, Vector, Symbol};
 
@@ -18,11 +18,12 @@ fn expr<I>(input: I) -> ParseResult<Expr, I>
 where
     I: Stream<Item = Token>,
 {
-    parser(atom)
-        .or(parser(quote))
-        .or(parser(list))
-        .or(parser(vector))
-        .parse_stream(input)
+    choice!(
+        parser(atom),
+        parser(quote),
+        parser(list),
+        parser(vector)
+    ).parse_stream(input)
 }
 
 fn quote<I>(input: I) -> ParseResult<Expr, I>
@@ -45,7 +46,13 @@ where
 {
     satisfy_map(|token| match token {
         Token::Literal(lit) => Some(Expr::from(lit)),
-        Token::Symbol(sym) => Some(Expr::from(Symbol(sym))),
+        Token::Symbol(sym) => {
+            if sym == "nil" {
+                Some(Expr::Nil)
+            } else {
+                Some(Expr::from(Symbol(sym)))
+            }
+        },
         _ => None,
     }).parse_stream(input)
 }
@@ -57,9 +64,7 @@ where
         try(between(
             token(Token::LParen),
             token(Token::RParen),
-            many1(parser(expr)).map(List).map(Expr::List).or(value(
-                Expr::Nil,
-            )),
+            many(parser(expr)).map(List).map(Expr::List),
         ))
         .parse_stream(input)
 }
@@ -83,7 +88,7 @@ mod test {
     #[test]
     fn empty_list() {
         let input = vec![Token::LParen, Token::RParen];
-        let output = vec![Expr::Vector(Vector(Vec::new()))];
+        let output = vec![Expr::List(List(Vec::new()))];
         let empty: &[Token] = &[];
         assert_eq!(
             Ok((output, empty)),
