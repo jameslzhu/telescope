@@ -23,6 +23,13 @@ rust:
   - beta
   - nightly
 
+# Branch whitelist
+branches:
+  only:
+    - master
+    - develop
+    - /^release/.*$/
+
 # Allowed failures on non-stable trains
 matrix:
   allow_failures:
