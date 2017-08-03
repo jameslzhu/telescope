@@ -9,6 +9,8 @@ addons:
       - libcurl4-openssl-dev
       - libelf-dev
       - libdw-dev
+      - zlib1g-dev 
+      - libiberty-dev 
       - binutils-dev
       - cmake
     sources:
@@ -19,13 +21,6 @@ rust:
   - stable
   - beta
   - nightly
-
-# build whitelist
-branches:
-  only:
-    - master
-    - develop
-    - /^release/.*$/
 
 # Allowed failures on non-stable trains
 matrix:
