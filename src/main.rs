@@ -32,6 +32,7 @@ mod token;
 mod error;
 mod util;
 mod input;
+mod stream;
 
 use clap::{App, Arg};
 
