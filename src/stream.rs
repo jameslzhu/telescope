@@ -27,8 +27,8 @@ impl<'a> StreamOnce for StringStream {
 
     fn uncons(&mut self) -> Result<char, Error<char, char>> {
         let ch = self.line.get(self.position)
-            .map(|x| *x)
-            .ok_or(Error::end_of_input());
+            .cloned()
+            .ok_or_else(Error::end_of_input);
         self.position += 1;
         ch
     }

@@ -15,7 +15,7 @@ pub fn file(path: &str, env: Env) -> Result<()> {
     let mut file_buf = io::BufReader::new(file);
     loop {
         let exprs = read(&mut file_buf)?;
-        eval(exprs, env.clone())?;
+        eval(&exprs, env.clone())?;
     }
 }
 
@@ -29,12 +29,12 @@ pub fn repl(env: Env) -> Result<i32> {
                 continue;
             },
         };
-        match eval(exprs, env.clone()) {
-            Ok(val) => print(val),
+        match eval(&exprs, env.clone()) {
+            Ok(val) => print(&val),
             Err(err) => {
-                match err.kind() {
-                    &ErrorKind::Eof => return Ok(0),
-                    &ErrorKind::Exit(code) => return Ok(code),
+                match *err.kind() {
+                    ErrorKind::Eof => return Ok(0),
+                    ErrorKind::Exit(code) => return Ok(code),
                     _ => println!("{}", err),
                 }
             }
@@ -69,7 +69,7 @@ fn read<B: BufRead>(reader: &mut B) -> Result<Vec<Expr>> {
     Ok(expr_buf)
 }
 
-fn eval(exprs: Vec<Expr>, env: Env) -> Result<Expr> {
+fn eval(exprs: &[Expr], env: Env) -> Result<Expr> {
     if let Some((last, rest)) = exprs.split_last() {
         for expr in rest {
             expr.eval(env.clone())?;
@@ -80,8 +80,8 @@ fn eval(exprs: Vec<Expr>, env: Env) -> Result<Expr> {
     }
 }
 
-fn print(value: Expr) {
-    if value != types::Expr::Nil {
+fn print(value: &Expr) {
+    if value != &types::Expr::Nil {
         println!("{}", value);
     }
 }

@@ -51,9 +51,9 @@ where
         if args.iter().any(Expr::is_flt) {
             // If any are float, promote to float
             let floats = args.iter()
-                .map(|x| match x {
-                    &Expr::Int(y) => y as f64,
-                    &Expr::Flt(y) => y,
+                .map(|x| match *x {
+                    Expr::Int(y) => y as f64,
+                    Expr::Flt(y) => y,
                     _ => unreachable!(),
                 })
                 .collect::<Vec<_>>();
@@ -61,8 +61,8 @@ where
         } else {
             // Otherwise perform integer operation
             let ints = args.iter()
-                .map(|x| match x {
-                    &Expr::Int(y) => y,
+                .map(|x| match *x {
+                    Expr::Int(y) => y,
                     _ => unreachable!(),
                 })
                 .collect::<Vec<_>>();
@@ -208,9 +208,9 @@ fn debug(args: &[Expr], _env: Env) -> Result<Expr> {
 // (first seq)
 fn first(args: &[Expr], _env: Env) -> Result<Expr> {
     ensure_args("first", args, 1)?;
-    match &args[0] {
-        &Expr::List(ref l) => Ok(l.0.first().cloned().unwrap_or(Expr::Nil)),
-        &Expr::Vector(ref q) => Ok(q.0.first().cloned().unwrap_or(Expr::Nil)),
+    match args[0] {
+        Expr::List(ref l) => Ok(l.0.first().cloned().unwrap_or(Expr::Nil)),
+        Expr::Vector(ref q) => Ok(q.0.first().cloned().unwrap_or(Expr::Nil)),
         _ => Err("#[first] expected list".into()),
     }
 }
@@ -218,8 +218,8 @@ fn first(args: &[Expr], _env: Env) -> Result<Expr> {
 // (rest seq)
 fn rest(args: &[Expr], _env: Env) -> Result<Expr> {
     ensure_args("first", args, 1)?;
-    match &args[0] {
-        &Expr::List(ref l) => {
+    match args[0] {
+        Expr::List(ref l) => {
             Ok(
                 l.0
                     .split_first()
@@ -227,7 +227,7 @@ fn rest(args: &[Expr], _env: Env) -> Result<Expr> {
                     .unwrap_or(Expr::Nil),
             )
         }
-        &Expr::Vector(ref v) => {
+        Expr::Vector(ref v) => {
             Ok(
                 v.0
                     .split_first()
@@ -243,13 +243,13 @@ fn rest(args: &[Expr], _env: Env) -> Result<Expr> {
 fn cons(args: &[Expr], _env: Env) -> Result<Expr> {
     ensure_args("cons", args, 2)?;
 
-    match &args[2] {
-        &Expr::List(ref l) => {
+    match args[2] {
+        Expr::List(ref l) => {
             let mut new = l.clone();
             new.0.insert(0, args[1].clone());
             Ok(Expr::List(new))
         }
-        &Expr::Vector(ref v) => {
+        Expr::Vector(ref v) => {
             let mut new = v.clone();
             new.0.push(args[1].clone());
             Ok(Expr::Vector(new))

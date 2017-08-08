@@ -37,12 +37,12 @@ impl Function {
 
 impl fmt::Debug for Function {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            &Function::Builtin { ref name, func: _ }
+        match *self {
+            Function::Builtin { ref name, .. }
                 => f.debug_struct("Function::Builtin")
                     .field("name", &name)
                     .finish(),
-            &Function::User { ref name, ref params, ref body, env: _ }
+            Function::User { ref name, ref params, ref body, env: _ }
                 => f.debug_struct("Function::User")
                     .field("name", &name)
                     .field("params", &params)
@@ -54,9 +54,9 @@ impl fmt::Debug for Function {
 
 impl fmt::Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            &Function::Builtin { ref name, func: _ } => write!(f, "#[{}]", name),
-            &Function::User { name: _, ref params, ref body, env: _ } => {
+        match *self {
+            Function::Builtin { ref name, func: _ } => write!(f, "#[{}]", name),
+            Function::User { name: _, ref params, ref body, env: _ } => {
                 write!( f, "(fn [{}] {})",
                     params.iter().join(" "),
                     body.iter().join("\n")

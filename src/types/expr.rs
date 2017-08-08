@@ -21,7 +21,7 @@ pub enum Expr {
 
 impl Expr {
     pub fn boolean(&self) -> Option<bool> {
-        if let &Expr::Bool(x) = self {
+        if let Expr::Bool(x) = *self {
             Some(x)
         } else {
             None
@@ -29,7 +29,7 @@ impl Expr {
     }
 
     pub fn int(&self) -> Option<i64> {
-        if let &Expr::Int(x) = self {
+        if let Expr::Int(x) = *self {
             Some(x)
         } else {
             None
@@ -37,7 +37,7 @@ impl Expr {
     }
 
     pub fn flt(&self) -> Option<f64> {
-        if let &Expr::Flt(x) = self {
+        if let Expr::Flt(x) = *self {
             Some(x)
         } else {
             None
@@ -45,14 +45,14 @@ impl Expr {
     }
 
     pub fn str(&self) -> Option<&str> {
-        if let &Expr::Str(ref x) = self {
+        if let Expr::Str(ref x) = *self {
             Some(x)
         } else {
             None
         }
     }
     pub fn sym(&self) -> Option<&Symbol> {
-        if let &Expr::Sym(ref x) = self {
+        if let Expr::Sym(ref x) = *self {
             Some(x)
         } else {
             None
@@ -60,7 +60,7 @@ impl Expr {
     }
 
     pub fn list(&self) -> Option<&List> {
-        if let &Expr::List(ref x) = self {
+        if let Expr::List(ref x) = *self {
             Some(x)
         } else {
             None
@@ -68,7 +68,7 @@ impl Expr {
     }
 
     pub fn vector(&self) -> Option<&Vector> {
-        if let &Expr::Vector(ref x) = self {
+        if let Expr::Vector(ref x) = *self {
             Some(x)
         } else {
             None
@@ -76,7 +76,7 @@ impl Expr {
     }
 
     pub fn func(&self) -> Option<Arc<Function>> {
-        if let &Expr::Func(ref x) = self {
+        if let Expr::Func(ref x) = *self {
             Some(x.clone())
         } else {
             None
@@ -84,9 +84,9 @@ impl Expr {
     }
 
     pub fn truthiness(&self) -> bool {
-        match self {
-            &Expr::Nil => false,
-            &Expr::Bool(b) => b,
+        match *self {
+            Expr::Nil => false,
+            Expr::Bool(b) => b,
             _ => true,
         }
     }
@@ -100,8 +100,8 @@ impl Expr {
     }
 
     pub fn is_num(&self) -> bool {
-        match self {
-            &Expr::Flt(_) | &Expr::Int(_) => true,
+        match *self {
+            Expr::Flt(_) | Expr::Int(_) => true,
             _ => false,
         }
     }

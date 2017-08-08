@@ -6,10 +6,10 @@ use util::*;
 
 impl Expr {
     pub fn eval(&self, env: Env) -> Result<Expr> {
-        match self {
-            &Expr::List(ref lst) => lst.eval(env),
-            &Expr::Sym(ref symbol) => {
-                env.lookup(&symbol.0).ok_or(
+        match *self {
+            Expr::List(ref lst) => lst.eval(env),
+            Expr::Sym(ref symbol) => {
+                env.lookup(&symbol.0).ok_or_else(||
                     format!("undefined symbol: {}", symbol.0).into()
                 )
             }
@@ -62,9 +62,9 @@ impl List {
 impl Function {
     #[cfg_attr(rustfmt, rustfmt_skip)]
     pub fn apply(&self, args: &[Expr], call_env: Env) -> Result<Expr> {
-        match self {
-            &Function::Builtin { name: _, ref func } => (func)(args, call_env),
-            &Function::User { ref name, ref params, ref body, ref env } => {
+        match *self {
+            Function::Builtin { ref func, .. } => (func)(args, call_env),
+            Function::User { ref name, ref params, ref body, ref env } => {
                 let name = if let &Some(ref n) = name { n.as_str() } else { "fn" };
                 ensure_args(name, args, params.len())?;
                 if args.len() != params.len() {

@@ -31,8 +31,7 @@ impl Read for Readline {
                     self.buffer.push('\n');
                 },
                 Err(RLError::Io(err)) => return Err(err),
-                Err(RLError::Eof) => return Ok(0),
-                Err(RLError::Interrupted) => return Ok(0),
+                Err(RLError::Eof) | Err(RLError::Interrupted) => return Ok(0),
                 #[cfg(unix)]
                 Err(RLError::Char(_)) => return Ok(0),
                 #[cfg(unix)]
@@ -46,7 +45,7 @@ impl Read for Readline {
 
         // if buf > buffer, drain entire buffer
         if buf.len() >= self.buffer.len() {
-            let result = buf.write(&self.buffer.as_bytes());
+            let result = buf.write(self.buffer.as_bytes());
             self.buffer.clear();
             result
         } else {
@@ -67,8 +66,7 @@ impl io::BufRead for Readline {
                     self.buffer.push('\n');
                 },
                 Err(RLError::Io(err)) => return Err(err),
-                Err(RLError::Eof) => (),
-                Err(RLError::Interrupted) => (),
+                Err(RLError::Eof) | Err(RLError::Interrupted) => (),
                 #[cfg(unix)]
                 Err(RLError::Char(_)) => (),
                 #[cfg(unix)]
@@ -80,7 +78,7 @@ impl io::BufRead for Readline {
             }
         }
 
-        Ok(&self.buffer.as_bytes())
+        Ok(self.buffer.as_bytes())
     }
 
     fn consume(&mut self, amt: usize) {
