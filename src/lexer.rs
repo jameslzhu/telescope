@@ -1,5 +1,5 @@
 use combine::{Parser, Stream, ParseError, ParseResult};
-use combine::{between, many, many1, one_of, optional, parser, satisfy, satisfy_map, sep_by, try};
+use combine::{between, many, many1, one_of, optional, parser, satisfy, satisfy_map, try};
 use combine::char::{digit, char, spaces};
 
 use token::{Literal, Token};
@@ -9,7 +9,20 @@ pub fn lex<I>(input: I) -> Result<(Vec<Token>, I), ParseError<I>>
 where
     I: Stream<Item = char>,
 {
-    spaces().with(sep_by(parser(token), spaces())).parse(input)
+    between(spaces(),
+            spaces(),
+            many(spaces().with(parser(token))))
+        .parse(input)
+}
+
+fn token<I>(input: I) -> ParseResult<Token, I>
+where
+    I: Stream<Item = char>,
+{
+    parser(symbol)
+        .or(parser(literal))
+        .or(parser(punctuation))
+        .parse_stream(input)
 }
 
 fn literal<I>(input: I) -> ParseResult<Token, I>
@@ -18,8 +31,11 @@ where
 {
     let sign = optional(char('-'));
     let digits = many1::<String, _>(digit());
-    let integer = sign.clone()
-        .and(digits.clone().and_then(|s| s.parse::<i64>()))
+    let integer =
+    (
+        sign.clone(),
+        digits.clone().and_then(|s| s.parse::<i64>())
+    )
         .map(|(sign, num)| if sign.is_some() { -num } else { num })
         .map(Literal::from);
 
@@ -55,7 +71,9 @@ where
 
     let string = between(char('"'), char('"'), many::<String, _>(non_quote)).map(Literal::from);
 
-    choice!(boolean, string, num)
+    boolean
+        .or(num)
+        .or(string)
         .map(Token::from)
         .parse_stream(input)
 }
@@ -64,7 +82,7 @@ fn symbol<I>(input: I) -> ParseResult<Token, I>
 where
     I: Stream<Item = char>,
 {
-    let punctuation = one_of("_'+-*/=<>!".chars());
+    let punctuation = one_of("_+-*/=<>!".chars());
     let start = satisfy(UnicodeXID::is_xid_start).or(punctuation.clone());
     let body = satisfy(UnicodeXID::is_xid_continue).or(punctuation.clone());
     let rest = many::<String, _>(body);
@@ -87,15 +105,9 @@ where
         ')' => Some(Token::RParen),
         '[' => Some(Token::LBracket),
         ']' => Some(Token::RBracket),
+        '\'' => Some(Token::Quote),
         _ => None,
     }).parse_stream(input)
-}
-
-fn token<I>(input: I) -> ParseResult<Token, I>
-where
-    I: Stream<Item = char>,
-{
-    choice!(parser(symbol), parser(literal), parser(punctuation)).parse_stream(input)
 }
 
 #[cfg(test)]
@@ -104,13 +116,18 @@ mod test {
     use float_cmp::ApproxEqUlps;
 
     #[test]
-    fn parse_bool_literal() {
+    fn empty() {
+        assert_eq!(Ok((vec![], "")), lex(""));
+    }
+
+    #[test]
+    fn bool_literal() {
         assert_eq!(Ok((Token::from(true), "")), parser(literal).parse("#t"));
         assert_eq!(Ok((Token::from(false), "")), parser(literal).parse("#f"));
     }
 
     #[test]
-    fn parse_zero_literal() {
+    fn zero_literal() {
         // Integer case
         assert_eq!(Ok((Token::from(0i64), "")), parser(literal).parse("0"));
 
@@ -123,7 +140,7 @@ mod test {
     }
 
     #[test]
-    fn parse_escape_chars() {
+    fn escape_chars() {
         assert_eq!(
             Ok((Token::from("\""), "")),
             parser(literal).parse(r#""\"""#)
@@ -147,16 +164,57 @@ mod test {
     }
 
     #[test]
-    fn parse_empty() {
-        assert_eq!(Ok((Vec::new(), "")), lex(""));
+    fn delimiters() {
+        // Single-character tests
+        assert_eq!(
+            Ok((Token::LParen, "")),
+            parser(punctuation).parse("(")
+        );
+
+        assert_eq!(
+            Ok((Token::RParen, "")),
+            parser(punctuation).parse(")")
+        );
+
+        assert_eq!(
+            Ok((Token::LBracket, "")),
+            parser(punctuation).parse("[")
+        );
+
+        assert_eq!(
+            Ok((Token::RBracket, "")),
+            parser(punctuation).parse("]")
+        );
+    }
+
+    #[test]
+    fn nested_lists() {
+        assert_eq!(
+            Ok((vec![Token::LParen, Token::LParen, Token::RParen, Token::RParen],"")),
+            lex("(())")
+        );
+    }
+
+    #[test]
+    fn deep_nested_lists() {
+        use std::iter;
+        let num_layers = 1000;
+        let input = ["(".repeat(num_layers), ")".repeat(num_layers)].concat();
+        let left = iter::repeat(Token::LParen).take(num_layers);
+        let right = iter::repeat(Token::RParen).take(num_layers);
+        let output = left.chain(right).collect::<Vec<_>>();
+        assert_eq!(
+            Ok((output, "")),
+            lex(&*input)
+        );
     }
 
     quickcheck!{
-        fn parse_int_literal(x: i64) -> bool {
+        fn int_literal(x: i64) -> bool {
             Ok((Token::from(x), "")) == parser(literal).parse(&*x.to_string())
         }
 
-        fn parse_float_literal(x: f64) -> bool {
+        fn float_literal(x: f64) -> bool {
             let mut string = x.to_string();
             if x.trunc() == x {
                 string.push_str(".0");
@@ -169,7 +227,7 @@ mod test {
             }
         }
 
-        fn parse_str_literal(x: String) -> bool {
+        fn str_literal(x: String) -> bool {
             let string = format!("\"{}\"", x
                 .replace("\\", r"\\")
                 .replace("\n", r"\n")

@@ -1,31 +1,59 @@
-use ast::{Expr, List, Vector, Symbol};
 use combine::{Stream, Parser, ParseError, ParseResult};
-use combine::{between, many, many1, parser, satisfy_map, token, try};
+use combine::{between, many, parser, satisfy_map, token, try, not_followed_by};
 use token::Token;
+use types::{Expr, List, Vector, Symbol};
 
-pub fn parse<I>(input: I) -> Result<(Expr, I), ParseError<I>>
+pub fn parse<I>(input: I) -> Result<(Vec<Expr>, I), ParseError<I>>
 where
     I: Stream<Item = Token>,
 {
-    // many(parser(expr)).parse(input)
-    parser(expr).parse(input)
+    // Balanced delimiters
+    many(parser(expr))
+        .skip(not_followed_by(token(Token::RParen)))
+        .skip(not_followed_by(token(Token::RBracket)))
+        .parse(input)
 }
 
 fn expr<I>(input: I) -> ParseResult<Expr, I>
 where
     I: Stream<Item = Token>,
 {
-    choice!(parser(atom), parser(symbol), parser(list), parser(vector)).parse_stream(input)
+    choice!(
+        parser(atom),
+        parser(quote),
+        parser(list),
+        parser(vector)
+    ).parse_stream(input)
+}
+
+fn quote<I>(input: I) -> ParseResult<Expr, I>
+where
+    I: Stream<Item = Token>,
+{
+    (
+        token(Token::Quote),
+        parser(expr)
+    )
+    .map(|(_, expr)| {
+        let quote_symbol = Expr::Sym(Symbol("quote".into()));
+        Expr::List(List(vec![quote_symbol, expr]))
+    }).parse_stream(input)
 }
 
 fn atom<I>(input: I) -> ParseResult<Expr, I>
 where
     I: Stream<Item = Token>,
 {
-    satisfy_map(|token| if let Token::Literal(lit) = token {
-        Some(Expr::from(lit))
-    } else {
-        None
+    satisfy_map(|token| match token {
+        Token::Literal(lit) => Some(Expr::from(lit)),
+        Token::Symbol(sym) => {
+            if sym == "nil" {
+                Some(Expr::Nil)
+            } else {
+                Some(Expr::from(Symbol(sym)))
+            }
+        },
+        _ => None,
     }).parse_stream(input)
 }
 
@@ -33,14 +61,11 @@ fn list<I>(input: I) -> ParseResult<Expr, I>
 where
     I: Stream<Item = Token>,
 {
-    let nil = token(Token::LParen).and(token(Token::RParen)).map(
-        |_| Expr::Nil,
-    );
-    try(between(
-        token(Token::LParen),
-        token(Token::RParen),
-        many1(parser(expr)).map(List).map(Expr::List),
-    )).or(nil)
+        try(between(
+            token(Token::LParen),
+            token(Token::RParen),
+            many(parser(expr)).map(List).map(Expr::List),
+        ))
         .parse_stream(input)
 }
 
@@ -48,20 +73,37 @@ fn vector<I>(input: I) -> ParseResult<Expr, I>
 where
     I: Stream<Item = Token>,
 {
-    between(
+    try(between(
         token(Token::LBracket),
         token(Token::RBracket),
         many(parser(expr)).map(Vector).map(Expr::Vector),
-    ).parse_stream(input)
+    ))
+    .parse_stream(input)
 }
 
-fn symbol<I>(input: I) -> ParseResult<Expr, I>
-where
-    I: Stream<Item = Token>,
-{
-    satisfy_map(|token| if let Token::Symbol(sym) = token {
-        Some(Expr::from(Symbol(sym)))
-    } else {
-        None
-    }).parse_stream(input)
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn empty_list() {
+        let input = vec![Token::LParen, Token::RParen];
+        let output = vec![Expr::List(List(Vec::new()))];
+        let empty: &[Token] = &[];
+        assert_eq!(
+            Ok((output, empty)),
+            parse(&*input)
+        );
+    }
+
+    #[test]
+    fn empty_vector() {
+        let input = vec![Token::LBracket, Token::RBracket];
+        let output = vec![Expr::Vector(Vector(Vec::new()))];
+        let empty: &[Token] = &[];
+        assert_eq!(
+            Ok((output, empty)),
+            parse(&*input)
+        );
+    }
 }

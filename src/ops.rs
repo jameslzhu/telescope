@@ -1,319 +1,279 @@
-use ast::{Atom, Expr, List, Vector, Env, Function};
-use error::*;
-use itertools::Itertools;
 use std::collections::HashMap;
 use std::ops::{Sub, Div};
+use itertools::Itertools;
+use error::*;
+use env::Env;
+use types::{Expr, List, Vector, Function, Lambda};
+use util::*;
 
-pub fn env<'a>() -> Env<'a> {
-    let mut builtins = HashMap::new();
+pub fn env() -> Env {
+    let table: Vec<(&str, Lambda)> = vec![
+        ("not", not),
+        ("+", add),
+        ("-", sub),
+        ("*", mul),
+        ("/", div),
+        ("=", equal),
+        ("<", less),
+        ("<=", less_eq),
+        (">", greater),
+        (">=", greater_eq),
+        ("first", first),
+        ("rest", rest),
+        ("cons", cons),
+        ("list", list),
+        ("print", print),
+        ("debug", debug),
+        ("eval", eval),
+        ("exit", exit),
+    ];
 
-    let add_symbol = |builtins: &mut HashMap<String, Expr>, name, f| {
-        builtins.insert(String::from(name), Function::builtin(name, f).into());
-    };
-
-    // TODO: change booleans from functions to special forms
-    add_symbol(&mut builtins, "not", Box::new(not));
-    add_symbol(&mut builtins, "or", Box::new(or));
-    add_symbol(&mut builtins, "and", Box::new(and));
-    add_symbol(&mut builtins, "print", Box::new(print));
-
-    // Mathematical tokens
-    add_symbol(&mut builtins, "+", Box::new(add));
-    add_symbol(&mut builtins, "-", Box::new(sub));
-    add_symbol(&mut builtins, "*", Box::new(mul));
-    add_symbol(&mut builtins, "/", Box::new(div));
-
-    // Comparison tokens
-    add_symbol(&mut builtins, "=", Box::new(equal));
-    add_symbol(&mut builtins, "<", Box::new(less));
-    add_symbol(&mut builtins, "<=", Box::new(less_eq));
-    add_symbol(&mut builtins, ">", Box::new(greater));
-    add_symbol(&mut builtins, ">=", Box::new(greater_eq));
-
-    // List operations
-    add_symbol(&mut builtins, "first", Box::new(first));
-    add_symbol(&mut builtins, "rest", Box::new(rest));
-    add_symbol(&mut builtins, "cons", Box::new(cons));
+    let builtins = table
+        .into_iter()
+        .map(|(symbol, f)| {
+            (
+                String::from(symbol),
+                Expr::from(Function::builtin(symbol, f)),
+            )
+        })
+        .collect::<HashMap<_, _>>();
 
     Env::new(builtins, None)
 }
 
-fn unwrap_atoms<I>(args: I) -> Result<Vec<Atom>>
+fn numeric_op<F, G>(name: &str, args: &[Expr], fn_int: F, fn_flt: G) -> Result<Expr>
 where
-    I: Iterator<Item = Expr>,
+    F: Fn(&[i64]) -> Result<i64>,
+    G: Fn(&[f64]) -> Result<f64>,
 {
-    args.map(|e| e.atom().cloned())
-        .collect::<Option<Vec<_>>>()
-        .ok_or("expected atom".into())
-}
-
-fn check_args(f: &str, args: &[Expr], arity: usize) -> Result<()> {
-    if args.len() == arity {
-        Ok(())
-    } else {
-        Err(format!("{} expected {} arguments", f, arity).into())
-    }
-}
-
-pub fn add(args: &[Expr], _env: &Env) -> Result<Expr> {
-    // Unwrap to atoms
-    let atoms = unwrap_atoms(args.iter().cloned())?;
-
     // Check all arguments are numeric
-    if atoms.iter().all(Atom::is_num) {
-        if atoms.iter().any(Atom::is_flt) {
-            // If any are float, promote to float and perform float addition
-            Ok(Expr::from(
-                atoms
-                    .into_iter()
-                    .map(|a| a.map_int(|x: i64| x as f64))
-                    .map(|x| x.flt().unwrap())
-                    .sum::<f64>(),
-            ))
+    if args.iter().all(Expr::is_num) {
+        if args.iter().any(Expr::is_flt) {
+            // If any are float, promote to float
+            let floats = args.iter()
+                .map(|x| match *x {
+                    Expr::Int(y) => y as f64,
+                    Expr::Flt(y) => y,
+                    _ => unreachable!(),
+                })
+                .collect::<Vec<_>>();
+            fn_flt(&floats).map(Expr::from)
         } else {
-            // Otherwise perform integer addition
-            Ok(Expr::from(
-                atoms.into_iter().map(|x| x.int().unwrap()).sum::<i64>(),
-            ))
+            // Otherwise perform integer operation
+            let ints = args.iter()
+                .map(|x| match *x {
+                    Expr::Int(y) => y,
+                    _ => unreachable!(),
+                })
+                .collect::<Vec<_>>();
+            fn_int(&ints).map(Expr::from)
         }
     } else {
-        Err("#[+] expected numeric".into())
+        Err(format!("#[{}] expected numeric", name).into())
     }
 }
 
-pub fn sub(args: &[Expr], _env: &Env) -> Result<Expr> {
-    // Unwrap to atoms
-    let atoms = unwrap_atoms(args.iter().cloned())?;
+fn add(args: &[Expr], _env: Env) -> Result<Expr> {
+    numeric_op("+", args,
+        |ints| Ok(ints.iter().sum::<i64>()),
+        |floats| Ok(floats.iter().sum::<f64>())
+    )
+}
 
-    // Check all arguments are numeric
-    if !atoms.iter().all(Atom::is_num) {
-        return Err("#[-] expected numeric".into());
-    }
+fn sub(args: &[Expr], _env: Env) -> Result<Expr> {
+    ensure_min_args("-", args, 1)?;
 
-    // If any are float, promote all to float and perform float subtraction
-    if atoms.iter().any(Atom::is_flt) {
-        // If one argument, negate and return
-        if atoms.len() == 1 {
-            let mut atoms = atoms;
-            return Ok(Expr::from(atoms.remove(0).map_flt(|x| -x)));
+    // If one argument, negate and return
+    if args.len() == 1 {
+        return match args[0] {
+            Expr::Int(x) => Ok(Expr::from(-x)),
+            Expr::Flt(x) => Ok(Expr::from(-x)),
+            _ => Err("invalid type".into())
         }
-        let mut nums = atoms
-            .into_iter()
-            .map(|a| a.map_int(|x: i64| x as f64))
-            .map(|x| x.flt().unwrap());
-
-        nums.next()
-            .map(|first| nums.fold(first, Sub::sub))
-            .map(Expr::from)
-            .ok_or("#[-] expected 1 (negate) or 2+ (subtract) arguments".into())
     }
-    // Otherwise, perform integer addition
-    else {
-        // If one argument, negate and return
-        if atoms.len() == 1 {
-            let mut atoms = atoms;
-            return Ok(Expr::from(atoms.remove(0).map_int(|x| -x)));
+
+    numeric_op("-", args,
+        |ints| Ok(ints[1..].iter().fold(ints[0], Sub::sub)),
+        |floats| Ok(floats[1..].iter().fold(floats[0], Sub::sub))
+    )
+}
+
+fn mul(args: &[Expr], _env: Env) -> Result<Expr> {
+    numeric_op("*", args,
+        |ints| Ok(ints.iter().product::<i64>()),
+        |floats| Ok(floats.iter().product::<f64>())
+    )
+}
+
+fn div(args: &[Expr], _env: Env) -> Result<Expr> {
+    ensure_min_args("/", args, 1)?;
+
+    // If one argument, invert and return
+    if args.len() == 1 {
+        return match args[0] {
+            Expr::Int(x) => Ok(Expr::from((x as f64).recip())),
+            Expr::Flt(x) => Ok(Expr::from(x.recip())),
+            _ => Err("invalid type".into())
         }
-        let mut nums = atoms.iter().map(|x| x.int().unwrap());
-
-        nums.next()
-            .map(|first| Expr::from(nums.fold(first, |acc, x| acc - x)))
-            .ok_or("Expected 1 (negation) or 2+ (subtraction) arguments".into())
     }
+
+    let int_div = |ints: &[i64]| {
+        ints[1..].iter()
+            .map(|&x| if x == 0i64 { Err("division by zero".into()) } else { Ok(x) })
+            .fold_results(ints[0], Div::div)
+    };
+
+    numeric_op("/", args,
+        int_div,
+        |floats| Ok(floats[1..].iter().fold(floats[0], Div::div))
+    )
 }
 
-pub fn mul(args: &[Expr], _env: &Env) -> Result<Expr> {
-    // Unwrap to atoms
-    let atoms = unwrap_atoms(args.iter().cloned())?;
-
-    // Check all arguments are numeric
-    if atoms.iter().all(Atom::is_num) {
-        if atoms.iter().any(Atom::is_flt) {
-            // If any are float, promote to float and perform float multiplication
-            Ok(Expr::from(
-                atoms
-                    .into_iter()
-                    .map(|a| a.map_int(|x: i64| x as f64))
-                    .map(|x| x.flt().unwrap())
-                    .product::<f64>(),
-            ))
-        } else {
-            // Otherwise perform integer multiplication
-            Ok(Expr::from(
-                atoms.into_iter().map(|x| x.int().unwrap()).product::<i64>(),
-            ))
-        }
-    } else {
-        Err("#[*] expected numeric".into())
-    }
-}
-
-pub fn div(args: &[Expr], _env: &Env) -> Result<Expr> {
-    // Unwrap to atoms
-    let atoms = unwrap_atoms(args.iter().cloned())?;
-
-    // Check all arguments are numeric
-    if !atoms.iter().all(Atom::is_num) {
-        return Err("#[-] expected numeric".into());
-    }
-
-    // If any are float, promote all to float and perform float division
-    if atoms.iter().any(Atom::is_flt) {
-        let mut nums = atoms
-            .into_iter()
-            .map(|a| a.map_int(|x: i64| x as f64))
-            .map(|x| x.flt().unwrap());
-
-        nums.next()
-            .map(|first| nums.fold(first, Div::div))
-            .map(Expr::from)
-            .ok_or("#[/] expected at least 2 args".into())
-    }
-    // Otherwise, perform integer division
-    else {
-        let mut nums = atoms.iter().map(|x| x.int().unwrap());
-
-        nums.next()
-            .ok_or("#[/] expected at least 2 args".into())
-            .and_then(|first| {
-                nums.map(|x| if x == 0 {
-                    Err("division by zero".into())
-                } else {
-                    Ok(x)
-                }).fold_results(first, Div::div)
-            })
-            .map(Expr::from)
-    }
-}
-
-pub fn equal(args: &[Expr], _env: &Env) -> Result<Expr> {
-    check_args("#[=]", args, 2)?;
+fn equal(args: &[Expr], _env: Env) -> Result<Expr> {
+    ensure_args("=", args, 2)?;
     Ok(Expr::from(args[0] == args[1]))
 }
 
-pub fn less(args: &[Expr], _env: &Env) -> Result<Expr> {
-    check_args("#[<]", args, 2)?;
+fn less(args: &[Expr], _env: Env) -> Result<Expr> {
+    ensure_args("<", args, 2)?;
     match (&args[0], &args[1]) {
-        (&Expr::Atom(ref a), &Expr::Atom(ref b)) => Ok(Expr::from(a < b)),
+        (&Expr::Int(ref a), &Expr::Int(ref b)) => Ok(Expr::from(a < b)),
+        (&Expr::Flt(ref a), &Expr::Flt(ref b)) => Ok(Expr::from(a < b)),
+        (&Expr::Str(ref a), &Expr::Str(ref b)) => Ok(Expr::from(a < b)),
         _ => Err(
             format!("comparison undefined for: {}, {}", args[0], args[1]).into(),
         ),
     }
 }
 
-pub fn less_eq(args: &[Expr], _env: &Env) -> Result<Expr> {
-    check_args("#[<=]", args, 2)?;
+fn less_eq(args: &[Expr], _env: Env) -> Result<Expr> {
+    ensure_args("<=", args, 2)?;
     match (&args[0], &args[1]) {
-        (&Expr::Atom(ref a), &Expr::Atom(ref b)) => Ok(Expr::from(a <= b)),
+        (&Expr::Int(ref a), &Expr::Int(ref b)) => Ok(Expr::from(a <= b)),
+        (&Expr::Flt(ref a), &Expr::Flt(ref b)) => Ok(Expr::from(a <= b)),
+        (&Expr::Str(ref a), &Expr::Str(ref b)) => Ok(Expr::from(a <= b)),
         _ => Err(
             format!("comparison undefined for: {}, {}", args[0], args[1]).into(),
         ),
     }
 }
 
-pub fn greater(args: &[Expr], _env: &Env) -> Result<Expr> {
-    check_args("#[>]", args, 2)?;
+fn greater(args: &[Expr], _env: Env) -> Result<Expr> {
+    ensure_args(">", args, 2)?;
     match (&args[0], &args[1]) {
-        (&Expr::Atom(ref a), &Expr::Atom(ref b)) => Ok(Expr::from(a > b)),
+        (&Expr::Int(ref a), &Expr::Int(ref b)) => Ok(Expr::from(a > b)),
+        (&Expr::Flt(ref a), &Expr::Flt(ref b)) => Ok(Expr::from(a > b)),
+        (&Expr::Str(ref a), &Expr::Str(ref b)) => Ok(Expr::from(a > b)),
         _ => Err(
             format!("comparison undefined for: {}, {}", args[0], args[1]).into(),
         ),
     }
 }
 
-pub fn greater_eq(args: &[Expr], _env: &Env) -> Result<Expr> {
-    check_args("#[>=]", args, 2)?;
+fn greater_eq(args: &[Expr], _env: Env) -> Result<Expr> {
+    ensure_args(">=", args, 2)?;
     match (&args[0], &args[1]) {
-        (&Expr::Atom(ref a), &Expr::Atom(ref b)) => Ok(Expr::from(a >= b)),
+        (&Expr::Int(ref a), &Expr::Int(ref b)) => Ok(Expr::from(a >= b)),
+        (&Expr::Flt(ref a), &Expr::Flt(ref b)) => Ok(Expr::from(a >= b)),
+        (&Expr::Str(ref a), &Expr::Str(ref b)) => Ok(Expr::from(a >= b)),
         _ => Err(
             format!("comparison undefined for: {}, {}", args[0], args[1]).into(),
         ),
     }
 }
 
-pub fn not(args: &[Expr], _env: &Env) -> Result<Expr> {
-    check_args("#[not]", args, 1)?;
-    match &args[0] {
-        &Expr::Atom(Atom::Bool(b)) => Ok(Expr::from(!b)),
-        _ => Err(format!("negation undefined for: {}", args[0]).into()),
-    }
+// (not expr)
+fn not(args: &[Expr], _env: Env) -> Result<Expr> {
+    ensure_args("[not]", args, 1)?;
+    Ok(Expr::from(!args[0].truthiness()))
 }
 
-pub fn and(args: &[Expr], _env: &Env) -> Result<Expr> {
-    // Unwrap to atoms
-    let atoms = unwrap_atoms(args.iter().cloned())?;
-
-    atoms
-        .into_iter()
-        .map(|a| a.boolean())
-        .collect::<Option<Vec<_>>>()
-        .ok_or("#[and] expected boolean argument".into())
-        .map(|bools| bools.iter().all(|b| *b))
-        .map(Expr::from)
-}
-
-pub fn or(args: &[Expr], _env: &Env) -> Result<Expr> {
-    // Unwrap to atoms
-    let atoms = unwrap_atoms(args.iter().cloned())?;
-
-    atoms
-        .into_iter()
-        .map(|a| a.boolean())
-        .collect::<Option<Vec<_>>>()
-        .ok_or("#[or] expected boolean argument".into())
-        .map(|bools| bools.iter().any(|b| *b))
-        .map(Expr::from)
-}
-
-pub fn print(args: &[Expr], _env: &Env) -> Result<Expr> {
-    check_args("#[print]", args, 1)?;
+// (print expr)
+// TODO: lift one-argument restriction
+// TODO: create print, println versions
+fn print(args: &[Expr], _env: Env) -> Result<Expr> {
+    ensure_args("print", args, 1)?;
     println!("{}", args[0]);
     Ok(Expr::Nil)
 }
 
-pub fn first(args: &[Expr], _env: &Env) -> Result<Expr> {
-    check_args("#[first]", args, 1)?;
+// (debug expr)
+// TODO: lift one-argument restriction
+fn debug(args: &[Expr], _env: Env) -> Result<Expr> {
+    ensure_args("debug", args, 1)?;
+    println!("{:?}", args[0]);
+    Ok(Expr::Nil)
+}
 
-    match &args[0] {
-        &Expr::List(ref l) => Ok(l.0.first().cloned().unwrap_or(Expr::Nil)),
-        &Expr::Vector(ref q) => Ok(q.0.first().cloned().unwrap_or(Expr::Nil)),
+// (first seq)
+fn first(args: &[Expr], _env: Env) -> Result<Expr> {
+    ensure_args("first", args, 1)?;
+    match args[0] {
+        Expr::List(ref l) => Ok(l.0.first().cloned().unwrap_or(Expr::Nil)),
+        Expr::Vector(ref q) => Ok(q.0.first().cloned().unwrap_or(Expr::Nil)),
         _ => Err("#[first] expected list".into()),
     }
 }
 
-pub fn rest(args: &[Expr], _env: &Env) -> Result<Expr> {
-    match &args[0] {
-        &Expr::List(ref l) => {
-            Ok(l.0.split_first()
-                .map(|(_, rest)| {
-                    Expr::List(List(rest.to_vec()))
-                }).unwrap_or(Expr::Nil))
-        },
-        &Expr::Vector(ref v) => {
-            Ok(v.0.split_first()
-                .map(|(_, rest)| {
-                    Expr::Vector(Vector(rest.to_vec()))
-                }).unwrap_or(Expr::Nil))
-        },
+// (rest seq)
+fn rest(args: &[Expr], _env: Env) -> Result<Expr> {
+    ensure_args("first", args, 1)?;
+    match args[0] {
+        Expr::List(ref l) => {
+            Ok(
+                l.0
+                    .split_first()
+                    .map(|(_, rest)| Expr::List(List(rest.to_vec())))
+                    .unwrap_or(Expr::Nil),
+            )
+        }
+        Expr::Vector(ref v) => {
+            Ok(
+                v.0
+                    .split_first()
+                    .map(|(_, rest)| Expr::Vector(Vector(rest.to_vec())))
+                    .unwrap_or(Expr::Nil),
+            )
+        }
         _ => Err("#[rest] expected list".into()),
     }
 }
 
 // (cons item seq)
-pub fn cons(args: &[Expr], _env: &Env) -> Result<Expr> {
-    check_args("#[cons]", args, 2)?;
+fn cons(args: &[Expr], _env: Env) -> Result<Expr> {
+    ensure_args("cons", args, 2)?;
 
-    match &args[2] {
-        &Expr::List(ref l) => {
+    match args[2] {
+        Expr::List(ref l) => {
             let mut new = l.clone();
             new.0.insert(0, args[1].clone());
             Ok(Expr::List(new))
-        },
-        &Expr::Vector(ref v) => {
+        }
+        Expr::Vector(ref v) => {
             let mut new = v.clone();
             new.0.push(args[1].clone());
             Ok(Expr::Vector(new))
-        },
+        }
         _ => Err("#[cons] expected list".into()),
     }
+}
+
+// (list items*)
+fn list(args: &[Expr], _env: Env) -> Result<Expr> {
+    if args.is_empty() {
+        Ok(Expr::Nil)
+    } else {
+        Ok(Expr::List(List(args.to_vec())))
+    }
+}
+
+// (eval form)
+fn eval(args: &[Expr], env: Env) -> Result<Expr> {
+    ensure_args("eval", args, 1)?;
+    args[0].eval(env)
+}
+
+// (exit)
+fn exit(_args: &[Expr], _env: Env) -> Result<Expr> {
+    Err(ErrorKind::Exit(0).into())
 }

@@ -1,3 +1,5 @@
+use combine::primitives::Positioner;
+use conv::ValueFrom;
 use std::fmt;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -10,15 +12,35 @@ pub enum Literal {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Token {
-    // Single character tokens
     LParen,
     RParen,
     LBracket,
     RBracket,
-
-    // Literal
+    Quote,
     Literal(Literal),
     Symbol(String),
+}
+
+impl Positioner for Token {
+    type Position = <char as Positioner>::Position;
+
+    fn start() -> Self::Position {
+        char::start()
+    }
+
+    fn update(&self, position: &mut Self::Position) {
+        match *self {
+            Token::LParen => position.column += 1,
+            Token::RParen => position.column += 1,
+            Token::LBracket => position.column += 1,
+            Token::RBracket => position.column += 1,
+            Token::Quote => position.column += 1,
+            Token::Literal(ref l) => {
+                position.column += i32::value_from(l.to_string().len()).unwrap()
+            }
+            Token::Symbol(ref s) => position.column += i32::value_from(s.len()).unwrap(),
+        }
+    }
 }
 
 impl fmt::Display for Literal {
