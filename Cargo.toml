@@ -19,3 +19,4 @@ unicode-xid = "0.1.0"
 
 [[bin]]
 name = "tele"
+path = "src/main.rs"
