@@ -1,4 +1,5 @@
 language: rust
+dist: trusty
 sudo: false
 cache: cargo
 
@@ -9,6 +10,8 @@ addons:
       - libcurl4-openssl-dev
       - libelf-dev
       - libdw-dev
+      - zlib1g-dev 
+      - libiberty-dev 
       - binutils-dev
       - cmake
     sources:
@@ -20,7 +23,7 @@ rust:
   - beta
   - nightly
 
-# build whitelist
+# Branch whitelist
 branches:
   only:
     - master

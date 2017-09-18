@@ -9,7 +9,7 @@ pub fn ensure_args(fn_name: &str, args: &[Expr], count: usize) -> Result<()> {
 }
 
 pub fn ensure_range_args(fn_name: &str, args: &[Expr], min: usize, max: usize) -> Result<()> {
-    ensure!(args.len() == min, "#[{}] expected {}-{} args", fn_name, min, max);
+    ensure!(args.len() >= min && args.len() <= max, "#[{}] expected {}-{} args", fn_name, min, max);
     Ok(())
 }
 

@@ -15,6 +15,8 @@ extern crate derive_error_chain;
 extern crate lazy_static;
 
 extern crate clap;
+
+#[macro_use]
 extern crate combine;
 extern crate conv;
 extern crate itertools;
@@ -33,6 +35,7 @@ mod error;
 mod util;
 mod input;
 mod env;
+mod stream;
 
 use clap::{App, Arg};
 

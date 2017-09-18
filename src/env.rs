@@ -1,6 +1,6 @@
 use std::collections::HashMap;
-use std::rc::Rc;
 use std::cell::{Ref, RefCell};
+use std::rc::Rc;
 
 use types::{Expr, Symbol};
 

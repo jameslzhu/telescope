@@ -116,13 +116,18 @@ mod test {
     use float_cmp::ApproxEqUlps;
 
     #[test]
-    fn parse_bool_literal() {
+    fn empty() {
+        assert_eq!(Ok((vec![], "")), lex(""));
+    }
+
+    #[test]
+    fn bool_literal() {
         assert_eq!(Ok((Token::from(true), "")), parser(literal).parse("#t"));
         assert_eq!(Ok((Token::from(false), "")), parser(literal).parse("#f"));
     }
 
     #[test]
-    fn parse_zero_literal() {
+    fn zero_literal() {
         // Integer case
         assert_eq!(Ok((Token::from(0i64), "")), parser(literal).parse("0"));
 
@@ -135,7 +140,7 @@ mod test {
     }
 
     #[test]
-    fn parse_escape_chars() {
+    fn escape_chars() {
         assert_eq!(
             Ok((Token::from("\""), "")),
             parser(literal).parse(r#""\"""#)
@@ -159,16 +164,57 @@ mod test {
     }
 
     #[test]
-    fn parse_empty() {
-        assert_eq!(Ok((Vec::new(), "")), lex(""));
+    fn delimiters() {
+        // Single-character tests
+        assert_eq!(
+            Ok((Token::LParen, "")),
+            parser(punctuation).parse("(")
+        );
+
+        assert_eq!(
+            Ok((Token::RParen, "")),
+            parser(punctuation).parse(")")
+        );
+
+        assert_eq!(
+            Ok((Token::LBracket, "")),
+            parser(punctuation).parse("[")
+        );
+
+        assert_eq!(
+            Ok((Token::RBracket, "")),
+            parser(punctuation).parse("]")
+        );
+    }
+
+    #[test]
+    fn nested_lists() {
+        assert_eq!(
+            Ok((vec![Token::LParen, Token::LParen, Token::RParen, Token::RParen],"")),
+            lex("(())")
+        );
+    }
+
+    #[test]
+    fn deep_nested_lists() {
+        use std::iter;
+        let num_layers = 1000;
+        let input = ["(".repeat(num_layers), ")".repeat(num_layers)].concat();
+        let left = iter::repeat(Token::LParen).take(num_layers);
+        let right = iter::repeat(Token::RParen).take(num_layers);
+        let output = left.chain(right).collect::<Vec<_>>();
+        assert_eq!(
+            Ok((output, "")),
+            lex(&*input)
+        );
     }
 
     quickcheck!{
-        fn parse_int_literal(x: i64) -> bool {
+        fn int_literal(x: i64) -> bool {
             Ok((Token::from(x), "")) == parser(literal).parse(&*x.to_string())
         }
 
-        fn parse_float_literal(x: f64) -> bool {
+        fn float_literal(x: f64) -> bool {
             let mut string = x.to_string();
             if x.trunc() == x {
                 string.push_str(".0");
@@ -181,7 +227,7 @@ mod test {
             }
         }
 
-        fn parse_str_literal(x: String) -> bool {
+        fn str_literal(x: String) -> bool {
             let string = format!("\"{}\"", x
                 .replace("\\", r"\\")
                 .replace("\n", r"\n")
