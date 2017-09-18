@@ -3,7 +3,7 @@ use combine;
 use std::io;
 use stream::{StringStream, TokenStream};
 
-#[derive(Debug, error_chain)]
+#[derive(Debug, ErrorChain)]
 pub enum ErrorKind {
     Msg(String),
 
