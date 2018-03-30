@@ -1,4 +1,3 @@
-#![recursion_limit = "1024"]
 #[cfg(test)]
 extern crate float_cmp;
 
@@ -7,9 +6,9 @@ extern crate float_cmp;
 extern crate quickcheck;
 
 #[macro_use]
-extern crate error_chain;
+extern crate failure;
 #[macro_use]
-extern crate derive_error_chain;
+extern crate failure_derive;
 
 #[macro_use]
 extern crate lazy_static;

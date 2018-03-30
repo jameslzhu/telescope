@@ -8,7 +8,8 @@ use error::*;
 use env::Env;
 use token::Token;
 use buffer::Readline;
-use stream::{StringStream, TokenStream};
+// use stream::{StringStream, TokenStream};
+use combine::easy;
 
 pub fn file(path: &str, env: Env) -> Result<()> {
     let file = fs::File::open(path)?;
@@ -32,9 +33,9 @@ pub fn repl(env: Env) -> Result<i32> {
         match eval(&exprs, env.clone()) {
             Ok(val) => print(&val),
             Err(err) => {
-                match *err.kind() {
-                    ErrorKind::Eof => return Ok(0),
-                    ErrorKind::Exit(code) => return Ok(code),
+                match *err.cause() {
+                    Error::Eof => return Ok(0),
+                    Error::Exit(code) => return Ok(code),
                     _ => println!("{}", err),
                 }
             }
@@ -51,15 +52,15 @@ fn read<B: BufRead>(reader: &mut B) -> Result<Vec<Expr>> {
         let line = match lines.next() {
             Some(Ok(l)) => l,
             Some(Err(err)) => return Err(err.into()),
-            None => return Err(ErrorKind::Eof.into()),
+            None => return Err(Error::Eof.into()),
         };
 
-        let (tokens, _) = lexer::lex(StringStream::new(&line))?;
+        let (tokens, _) = lexer::lex(easy::Stream(line.as_str()))?;
         token_buf.extend(tokens);
 
-        let (exprs, unparsed) = parser::parse(TokenStream::new(token_buf.drain(..)))?;
+        let (exprs, unparsed) = parser::parse(easy::Stream(token_buf))?;
 
-        token_buf = unparsed.unwrap();
+        token_buf = unparsed;
         expr_buf.extend(exprs);
 
         if token_buf.is_empty() {

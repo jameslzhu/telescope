@@ -1,7 +1,10 @@
 use std::collections::VecDeque;
 
-use combine::StreamOnce;
-use combine::primitives::{Error, Positioner, SourcePosition};
+use combine::{StreamOnce, Positioned};
+use combine::stream::state::{Positioner, SourcePosition};
+use combine::easy::Error;
+use combine::error;
+use combine::stream;
 
 use token::Token;
 
@@ -25,14 +28,17 @@ impl<'a> StreamOnce for StringStream {
     type Range = char;
     type Position = usize;
 
-    fn uncons(&mut self) -> Result<char, Error<char, char>> {
-        let ch = self.line.get(self.position)
-            .cloned()
-            .ok_or_else(Error::end_of_input);
+    type Error = error::StringStreamError;
+
+    fn uncons(&mut self) -> Result<Self::Item, stream::StreamErrorFor<Self>> {
+        let ch = &*self.line.uncons();
         self.position += 1;
         ch
     }
 
+}
+
+impl<'a> Positioned for StringStream {
     fn position(&self) -> Self::Position {
         self.position
     }
@@ -73,6 +79,9 @@ impl StreamOnce for TokenStream {
         }
     }
 
+}
+
+impl Positioned for TokenStream {
     fn position(&self) -> Self::Position {
         self.position
     }

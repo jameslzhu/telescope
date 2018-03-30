@@ -1,113 +1,141 @@
-use combine::{Parser, Stream, ParseError, ParseResult};
-use combine::{between, many, many1, one_of, optional, parser, satisfy, satisfy_map, try};
+use std::num;
+
+use combine::{Parser, Stream, ParseError};
+use combine::{between, many, many1, one_of, optional, satisfy, satisfy_map, try};
 use combine::char::{digit, char, spaces};
 
 use token::{Literal, Token};
 use unicode_xid::UnicodeXID;
 
-pub fn lex<I>(input: I) -> Result<(Vec<Token>, I), ParseError<I>>
+pub fn lex<I>(input: I) -> Result<(Vec<Token>, I), I::Error>
 where
     I: Stream<Item = char>,
+    I::Error: ParseError<char, I::Range, I::Position>,
+    <I::Error as ParseError<I::Item, I::Range, I::Position>>::StreamError: From<num::ParseIntError>,
+    <I::Error as ParseError<I::Item, I::Range, I::Position>>::StreamError: From<num::ParseFloatError>,
 {
-    between(spaces(),
-            spaces(),
-            many(spaces().with(parser(token))))
-        .parse(input)
+    parser!{
+        fn lexer[I]()(I) -> Vec<Token>
+            where [
+                I: Stream<Item=char>, 
+                I::Error: ParseError<char, I::Range, I::Position>,
+                <I::Error as ParseError<I::Item, I::Range, I::Position>>::StreamError: From<num::ParseIntError>,
+                <I::Error as ParseError<I::Item, I::Range, I::Position>>::StreamError: From<num::ParseFloatError>,
+            ]
+        {
+        between(spaces(),
+                spaces(),
+                many(spaces().with(token())))
+        }
+    }
+
+    lexer().parse(input)
 }
 
-fn token<I>(input: I) -> ParseResult<Token, I>
-where
-    I: Stream<Item = char>,
-{
-    parser(symbol)
-        .or(parser(literal))
-        .or(parser(punctuation))
-        .parse_stream(input)
+parser!{
+    fn token[I]()(I) -> Token
+    where [
+        I: Stream<Item = char>,
+        I::Error: ParseError<char, I::Range, I::Position>,
+        <I::Error as ParseError<I::Item, I::Range, I::Position>>::StreamError: From<num::ParseIntError>,
+        <I::Error as ParseError<I::Item, I::Range, I::Position>>::StreamError: From<num::ParseFloatError>,
+    ]
+    {
+        symbol()
+            .or(literal())
+            .or(punctuation())
+    }
 }
 
-fn literal<I>(input: I) -> ParseResult<Token, I>
-where
-    I: Stream<Item = char>,
-{
-    let sign = optional(char('-'));
-    let digits = many1::<String, _>(digit());
-    let integer =
-    (
-        sign.clone(),
-        digits.clone().and_then(|s| s.parse::<i64>())
-    )
-        .map(|(sign, num)| if sign.is_some() { -num } else { num })
-        .map(Literal::from);
-
-    let float = sign.clone()
-        .and(
-            (digits.clone(), char('.'), digits.clone())
-                .map(|(prefix, _, suffix)| format!("{}.{}", prefix, suffix))
-                .and_then(|num| num.parse::<f64>()),
+parser!{
+    fn literal[I]()(I) -> Token
+    where [
+        I: Stream<Item = char>,
+        I::Error: ParseError<char, I::Range, I::Position>,
+        <I::Error as ParseError<I::Item, I::Range, I::Position>>::StreamError : From<num::ParseIntError>,
+        <I::Error as ParseError<I::Item, I::Range, I::Position>>::StreamError : From<num::ParseFloatError>,
+    ]
+    {
+        let sign = optional(char('-'));
+        let digits = many1::<String, _>(digit());
+        let integer =
+        (
+            sign,
+            digits.and_then(|s| s.parse::<i64>())
         )
-        .map(|(sign, num)| if sign.is_some() { -num } else { num })
-        .map(Literal::from);
+            .map(|(sign, num)| if sign.is_some() { -num } else { num })
+            .map(Literal::from);
 
-    let num = try(float).or(try(integer));
+        let float = sign
+            .and(
+                (digits, char('.'), digits)
+                    .map(|(prefix, _, suffix)| format!("{}.{}", prefix, suffix))
+                    .and_then(|num| num.parse::<f64>()),
+            )
+            .map(|(sign, num)| if sign.is_some() { -num } else { num })
+            .map(Literal::from);
 
-    let boolean = char('#')
-        .with(satisfy_map(|c| match c {
-            't' => Some(true),
-            'f' => Some(false),
+        let num = try(float).or(try(integer));
+
+        let boolean = char('#')
+            .with(satisfy_map(|c| match c {
+                't' => Some(true),
+                'f' => Some(false),
+                _ => None,
+            }))
+            .map(Literal::from);
+
+        let escaped = char('\\').with(satisfy_map(|c| match c {
+            '\"' => Some('\"'),
+            '\\' => Some('\\'),
+            'n' => Some('\n'),
+            'r' => Some('\r'),
+            't' => Some('\t'),
             _ => None,
-        }))
-        .map(Literal::from);
+        }));
 
-    let escaped = char('\\').with(satisfy_map(|c| match c {
-        '\"' => Some('\"'),
-        '\\' => Some('\\'),
-        'n' => Some('\n'),
-        'r' => Some('\r'),
-        't' => Some('\t'),
-        _ => None,
-    }));
+        let non_quote = try(escaped).or(satisfy(|c| c != '"'));
 
-    let non_quote = try(escaped).or(satisfy(|c| c != '"'));
+        let string = between(char('"'), char('"'), many::<String, _>(non_quote)).map(Literal::from);
 
-    let string = between(char('"'), char('"'), many::<String, _>(non_quote)).map(Literal::from);
-
-    boolean
-        .or(num)
-        .or(string)
-        .map(Token::from)
-        .parse_stream(input)
+        boolean
+            .or(num)
+            .or(string)
+            .map(Token::from)
+    }
 }
 
-fn symbol<I>(input: I) -> ParseResult<Token, I>
-where
-    I: Stream<Item = char>,
-{
-    let punctuation = one_of("_+-*/=<>!".chars());
-    let start = satisfy(UnicodeXID::is_xid_start).or(punctuation.clone());
-    let body = satisfy(UnicodeXID::is_xid_continue).or(punctuation.clone());
-    let rest = many::<String, _>(body);
-    start
-        .and(rest)
-        .map(|(f, mut r)| {
-            r.insert(0, f);
-            r
+parser!{
+    fn symbol[I]()(I) -> Token
+    where [I: Stream<Item = char>]
+    {
+        let punctuation = one_of("_+-*/=<>!".chars());
+        let start = satisfy(UnicodeXID::is_xid_start).or(punctuation);
+        let body = satisfy(UnicodeXID::is_xid_continue).or(punctuation);
+        let rest = many::<String, _>(body);
+        start
+            .and(rest)
+            .map(|(f, mut r)| {
+                r.insert(0, f);
+                r
+            })
+            .map(Token::Symbol)
+    }
+}
+
+parser!{
+    fn punctuation[I]()(I) -> Token
+        where [I: Stream<Item=char>]
+    {
+        satisfy_map(|c| match c {
+            '(' => Some(Token::LParen),
+            ')' => Some(Token::RParen),
+            '[' => Some(Token::LBracket),
+            ']' => Some(Token::RBracket),
+            '\'' => Some(Token::Quote),
+            _ => None,
         })
-        .map(Token::Symbol)
-        .parse_stream(input)
-}
-
-fn punctuation<I>(input: I) -> ParseResult<Token, I>
-where
-    I: Stream<Item = char>,
-{
-    satisfy_map(|c| match c {
-        '(' => Some(Token::LParen),
-        ')' => Some(Token::RParen),
-        '[' => Some(Token::LBracket),
-        ']' => Some(Token::RBracket),
-        '\'' => Some(Token::Quote),
-        _ => None,
-    }).parse_stream(input)
+    }
 }
 
 #[cfg(test)]

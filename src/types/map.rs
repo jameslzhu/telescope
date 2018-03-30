@@ -21,7 +21,7 @@ impl Key {
             Expr::Bool(b) => Ok(Key::Bool(b)),
             Expr::Int(i) => Ok(Key::Int(i)),
             Expr::Str(ref s) => Ok(Key::Str(s.clone())),
-            _ => Err(format!("cannot use as key: {}", expr).into()),
+            _ => Err(format_err!("cannot use as key: {}", expr)),
         }
     }
 }

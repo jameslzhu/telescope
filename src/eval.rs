@@ -1,5 +1,5 @@
 use env::Env;
-use error::*;
+use error::Result;
 use forms;
 use types::*;
 use util::*;
@@ -10,7 +10,7 @@ impl Expr {
             Expr::List(ref lst) => lst.eval(env),
             Expr::Sym(ref symbol) => {
                 env.lookup(&symbol.0).ok_or_else(||
-                    format!("undefined symbol: {}", symbol.0).into()
+                    format_err!("undefined symbol: {}", symbol.0)
                 )
             }
             _ => Ok(self.clone()),
@@ -33,7 +33,7 @@ impl Expr {
 impl List {
     pub fn eval(&self, env: Env) -> Result<Expr> {
         if let Some((first, rest)) = self.0.split_first() {
-            let sym = first.sym().ok_or("expected function call")?;
+            let sym = first.sym().ok_or(format_err!("expected function call"))?;
 
             if forms::is_special_form(sym) {
                 forms::eval(sym, rest, env)
@@ -44,7 +44,7 @@ impl List {
             } else if let Ok(Expr::Macro(ref mac)) = first.eval(env.clone()) {
                 mac.apply(rest, env.clone())?.eval(env.clone())
             } else {
-                Err(format!("could not find symbol {}", first).into())
+                Err(format_err!("could not find symbol {}", first))
             }
 
         } else {
@@ -68,7 +68,7 @@ impl Function {
                 let name = if let &Some(ref n) = name { n.as_str() } else { "fn" };
                 ensure_args(name, args, params.len())?;
                 if args.len() != params.len() {
-                    return Err(format!("fn expected {} args", params.len()).into());
+                    return Err(format_err!("fn expected {} args", params.len()));
                 }
 
                 // Create new env with arguments, eval body with new env

@@ -1,4 +1,4 @@
-use combine::primitives::Positioner;
+use combine::stream::state::Positioner;
 use conv::ValueFrom;
 use std::fmt;
 
@@ -21,27 +21,27 @@ pub enum Token {
     Symbol(String),
 }
 
-impl Positioner for Token {
-    type Position = <char as Positioner>::Position;
+// impl Positioner for Token {
+//     type Position = <char as Positioner>::Position;
 
-    fn start() -> Self::Position {
-        char::start()
-    }
+//     fn position() -> Self::Position {
+//         char::position()
+//     }
 
-    fn update(&self, position: &mut Self::Position) {
-        match *self {
-            Token::LParen => position.column += 1,
-            Token::RParen => position.column += 1,
-            Token::LBracket => position.column += 1,
-            Token::RBracket => position.column += 1,
-            Token::Quote => position.column += 1,
-            Token::Literal(ref l) => {
-                position.column += i32::value_from(l.to_string().len()).unwrap()
-            }
-            Token::Symbol(ref s) => position.column += i32::value_from(s.len()).unwrap(),
-        }
-    }
-}
+//     fn update(&self, position: &mut Self::Position) {
+//         match *self {
+//             Token::LParen => position.column += 1,
+//             Token::RParen => position.column += 1,
+//             Token::LBracket => position.column += 1,
+//             Token::RBracket => position.column += 1,
+//             Token::Quote => position.column += 1,
+//             Token::Literal(ref l) => {
+//                 position.column += i32::value_from(l.to_string().len()).unwrap()
+//             }
+//             Token::Symbol(ref s) => position.column += i32::value_from(s.len()).unwrap(),
+//         }
+//     }
+// }
 
 impl fmt::Display for Literal {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
