@@ -1,0 +1,4 @@
+(def car (fn [lst] (first lst)))
+
+(print (car [1 2 3]))
+(print "hi")

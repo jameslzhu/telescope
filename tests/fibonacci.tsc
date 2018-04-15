@@ -1,0 +1,11 @@
+(def defmacro
+  (macro defmacro [name args body]
+    (list 'def name (list 'macro name args body))))
+
+(defmacro defn [name args body]
+  (list 'def name (list 'fn name args body)))
+
+(defn factorial [n]
+  (if (= n 0) 1 (* n (factorial (- n 1)))))
+
+(print (factorial 12))
