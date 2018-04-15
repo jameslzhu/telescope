@@ -3,46 +3,45 @@ use std::collections::VecDeque;
 use combine::{StreamOnce, Positioned};
 use combine::stream::state::{Positioner, SourcePosition};
 use combine::easy::Error;
-use combine::error;
-use combine::stream;
+// use combine::error;
+// use combine::stream;
 
 use token::Token;
 
-#[derive(Clone, Debug)]
-pub struct StringStream {
-    line: Vec<char>,
-    position: usize,
-}
+// #[derive(Clone, Debug)]
+// pub struct StringStream {
+//     line: Vec<char>,
+//     position: usize,
+// }
 
-impl StringStream {
-    pub fn new(line: &str) -> Self {
-        StringStream {
-            line: line.chars().collect(),
-            position: 0,
-        }
-    }
-}
+// impl StringStream {
+//     pub fn new(line: &str) -> Self {
+//         StringStream {
+//             line: line.chars().collect(),
+//             position: 0,
+//         }
+//     }
+// }
 
-impl<'a> StreamOnce for StringStream {
-    type Item = char;
-    type Range = char;
-    type Position = usize;
+// impl<'a> StreamOnce for StringStream {
+//     type Item = char;
+//     type Range = char;
+//     type Position = usize;
 
-    type Error = error::StringStreamError;
+//     type Error = error::StringStreamError;
 
-    fn uncons(&mut self) -> Result<Self::Item, stream::StreamErrorFor<Self>> {
-        let ch = &*self.line.uncons();
-        self.position += 1;
-        ch
-    }
+//     fn uncons(&mut self) -> Result<Self::Item, stream::StreamErrorFor<Self>> {
+//         let ch = self.line.as_slice().uncons();
+//         self.position += 1;
+//         ch
+//     }
+// }
 
-}
-
-impl<'a> Positioned for StringStream {
-    fn position(&self) -> Self::Position {
-        self.position
-    }
-}
+// impl<'a> Positioned for StringStream {
+//     fn position(&self) -> Self::Position {
+//         self.position
+//     }
+// }
 
 #[derive(Clone, Debug)]
 pub struct TokenStream {

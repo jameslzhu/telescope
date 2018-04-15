@@ -1,13 +1,14 @@
-use combine::easy::{Stream, ParseError};
 // use std::fs;
+use token::Token;
 use std::io;
 // use stream::{StringStream, TokenStream};
+use combine;
 use failure;
 
 pub type Result<T> = ::std::result::Result<T, failure::Error>;
 
 #[derive(Debug, Fail)]
-pub enum Error {
+pub enum Error<'a> {
     #[fail(display = "{}", _0)]
     Msg(String),
 
@@ -21,10 +22,10 @@ pub enum Error {
 
     // #[error_chain(foreign)]
     #[fail(display = "Lex error: {}", _0)]
-    Lex(ParseError<Stream<String>>),
+    Lex(combine::easy::Error<char, &'a str>),
 
-    #[fail(display = "Parse error: {}", _0)]
-    Parse(ParseError<Stream<Token>>),
+    #[fail(display = "Parse error: {:?}", _0)]
+    Parse(combine::easy::Error<Token, &'a [Token]>),
 
     // #[error_chain(custom)]
     #[fail(display = "Unexpected eof")]
