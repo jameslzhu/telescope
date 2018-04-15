@@ -1,0 +1,13 @@
+(def defmacro
+  (macro defmacro [name args body]
+    (list 'def name (list 'macro name args body))))
+
+(defmacro defn [name args body]
+  (list 'def name (list 'fn name args body)))
+
+(defn car [lst] (first lst))
+(defn cdr [lst] (rest lst))
+
+(print (car [1 2 3]))
+(print (cdr [1 2 3]))
+
