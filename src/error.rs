@@ -19,8 +19,8 @@ pub enum Error {
     #[fail(display = "IO error: {}", _0)]
     Io(#[cause] io::Error),
 
-    #[fail(display = "Lex error")]
-    Lex,
+    #[fail(display = "Lex error: {}", _0)]
+    Lex(String),
 
     #[fail(display = "Parse error")]
     Parse,

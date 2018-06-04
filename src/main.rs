@@ -14,6 +14,7 @@ extern crate lazy_static;
 
 extern crate clap;
 
+#[macro_use]
 extern crate combine;
 extern crate conv;
 extern crate itertools;

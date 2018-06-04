@@ -118,22 +118,22 @@ mod test {
 
     #[test]
     fn empty() {
-        assert_eq!(Ok((vec![], "")), lex(""));
+        assert_eq!(Ok((vec![], "")), lexer().parse(""));
     }
 
     #[test]
     fn bool_literal() {
-        assert_eq!(Ok((Token::from(true), "")), parser(literal).parse("#t"));
-        assert_eq!(Ok((Token::from(false), "")), parser(literal).parse("#f"));
+        assert_eq!(Ok((Token::from(true), "")), literal().parse("#t"));
+        assert_eq!(Ok((Token::from(false), "")), literal().parse("#f"));
     }
 
     #[test]
     fn zero_literal() {
         // Integer case
-        assert_eq!(Ok((Token::from(0i64), "")), parser(literal).parse("0"));
+        assert_eq!(Ok((Token::from(0i64), "")), literal().parse("0"));
 
         // Float case
-        match parser(literal).parse("0.0") {
+        match literal().parse("0.0") {
             Ok((Token::Literal(Literal::Flt(flt)), _)) => assert!(flt.approx_eq_ulps(&0.0f64, 4)),
             Ok(x) => assert!(false, format!("0.0 parsed as {}", x.0)),
             Err(e) => assert!(false, format!("0.0 parsed as {}", e)),
@@ -144,23 +144,23 @@ mod test {
     fn escape_chars() {
         assert_eq!(
             Ok((Token::from("\""), "")),
-            parser(literal).parse(r#""\"""#)
+            literal().parse(r#""\"""#)
         );
         assert_eq!(
             Ok((Token::from("\\"), "")),
-            parser(literal).parse(r#""\\""#)
+            literal().parse(r#""\\""#)
         );
         assert_eq!(
             Ok((Token::from("\n"), "")),
-            parser(literal).parse(r#""\n""#)
+            literal().parse(r#""\n""#)
         );
         assert_eq!(
             Ok((Token::from("\r"), "")),
-            parser(literal).parse(r#""\r""#)
+            literal().parse(r#""\r""#)
         );
         assert_eq!(
             Ok((Token::from("\t"), "")),
-            parser(literal).parse(r#""\t""#)
+            literal().parse(r#""\t""#)
         );
     }
 
@@ -169,22 +169,22 @@ mod test {
         // Single-character tests
         assert_eq!(
             Ok((Token::LParen, "")),
-            parser(punctuation).parse("(")
+            punctuation().parse("(")
         );
 
         assert_eq!(
             Ok((Token::RParen, "")),
-            parser(punctuation).parse(")")
+            punctuation().parse(")")
         );
 
         assert_eq!(
             Ok((Token::LBracket, "")),
-            parser(punctuation).parse("[")
+            punctuation().parse("[")
         );
 
         assert_eq!(
             Ok((Token::RBracket, "")),
-            parser(punctuation).parse("]")
+            punctuation().parse("]")
         );
     }
 
@@ -192,7 +192,7 @@ mod test {
     fn nested_lists() {
         assert_eq!(
             Ok((vec![Token::LParen, Token::LParen, Token::RParen, Token::RParen],"")),
-            lex("(())")
+            lexer().parse("(())")
         );
     }
 
@@ -206,13 +206,13 @@ mod test {
         let output = left.chain(right).collect::<Vec<_>>();
         assert_eq!(
             Ok((output, "")),
-            lex(&*input)
+            lexer().parse(&*input)
         );
     }
 
     quickcheck!{
         fn int_literal(x: i64) -> bool {
-            Ok((Token::from(x), "")) == parser(literal).parse(&*x.to_string())
+            Ok((Token::from(x), "")) == literal().parse(&*x.to_string())
         }
 
         fn float_literal(x: f64) -> bool {
@@ -221,7 +221,7 @@ mod test {
                 string.push_str(".0");
             }
 
-            if let Ok((Token::Literal(Literal::Flt(y)), _)) = parser(literal).parse(&*string) {
+            if let Ok((Token::Literal(Literal::Flt(y)), _)) = literal().parse(string.as_str()) {
                 x.approx_eq_ulps(&y, 4)
             } else {
                 false
@@ -235,7 +235,7 @@ mod test {
                 .replace("\r", r"\r")
                 .replace("\t", r"\t")
                 .replace("\"", r#"\""#));
-            Ok((Token::from(x.clone()), "")) == parser(literal).parse(&*string)
+            Ok((Token::from(x.clone()), "")) == literal().parse(string.as_str())
         }
     }
 }

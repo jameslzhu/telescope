@@ -13,19 +13,23 @@ where
     any_partial_state(many(expr()))
 }
 
-fn expr<'a, I>() -> Box<Parser<Input = I, Output = Expr, PartialState = AnyPartialState> + 'a>
-where 
-    I: RangeStream<Item = Token, Range = &'a [Token]> + 'a,
-    I::Error: ParseError<I::Item, I::Range, I::Position>,
-{
-    any_partial_state(
-        choice((
-            atom(),
-            quote(),
-            try(list()),
-            try(vector()),
-        ))
-    ).boxed()
+parser!{
+    #[inline]
+    fn expr['a, I]()(I) -> Expr
+    where [ 
+        I: RangeStream<Item = Token, Range = &'a [Token]> + 'a,
+    ]
+        // I::Error: ParseError<I::Item, I::Range, I::Position>,
+    {
+        any_partial_state(
+            choice((
+                atom(),
+                quote(),
+                try(list()),
+                try(vector()),
+            ))
+        )
+    }
 }
 
 fn quote<'a, I>() -> impl Parser<Input = I, Output = Expr, PartialState = AnyPartialState> + 'a
@@ -98,7 +102,7 @@ mod test {
         let empty: &[Token] = &[];
         assert_eq!(
             Ok((output, empty)),
-            parse(&*input)
+            parser().parse(&*input)
         );
     }
 
@@ -109,7 +113,7 @@ mod test {
         let empty: &[Token] = &[];
         assert_eq!(
             Ok((output, empty)),
-            parse(&*input)
+            parser().parse(&*input)
         );
     }
 }

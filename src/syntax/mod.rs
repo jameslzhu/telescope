@@ -32,12 +32,13 @@ pub fn parse_line(src: &str, token_buffer: &mut Vec<Token>, mut token_state: &mu
     let mut lexer = lexer::lexer();
     let parser = parser::parser();
 
-    let mut text_stream = easy::Stream(stream::PartialStream(src));
-    let (tokens, _consumed_data) = lexer.parse_stream(&mut text_stream)
-        .map_err(|_| Error::Lex)?;
+    let mut text_stream = src;
+    let (tokens, _consumed_data) = lexer.easy_parse(text_stream)
+        .map_err(|e| Error::Lex(e.to_string()))?;
     token_buffer.extend(tokens);
     let token_stream = easy::Stream(stream::PartialStream(token_buffer.as_slice()));
     let (exprs, _) = stream::decode(parser, token_stream, &mut token_state)
         .map_err(|_| Error::Parse)?;
+    println!("{:#?}", exprs);
     Ok(exprs.unwrap_or(Vec::new()))
 }
