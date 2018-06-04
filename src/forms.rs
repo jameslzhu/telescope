@@ -30,7 +30,7 @@ pub fn is_special_form(form: &Symbol) -> bool {
 pub fn eval(form: &Symbol, args: &[Expr], env: Env) -> Result<Expr> {
     debug_assert!(is_special_form(form));
     (SPECIAL_FORMS.get(form.0.as_str()))
-        .ok_or_else(|| format_err!("{} form not found", form.0))
+        .ok_or_else(|| Error::Msg(format!("{} form not found", form.0)))
         .and_then(|f| (f)(args, env))
 }
 

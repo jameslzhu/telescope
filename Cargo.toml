@@ -6,7 +6,7 @@ description = "An elegant Lisp, for a more civilized age."
 
 [dependencies]
 clap = "2.31.2"
-combine = "3.1.0"
+combine = "3.3.1"
 conv = "0.3.3"
 float-cmp = "0.4.0"
 itertools = "0.7.8"

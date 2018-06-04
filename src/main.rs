@@ -5,7 +5,6 @@ extern crate float_cmp;
 #[macro_use]
 extern crate quickcheck;
 
-#[macro_use]
 extern crate failure;
 #[macro_use]
 extern crate failure_derive;
@@ -15,7 +14,6 @@ extern crate lazy_static;
 
 extern crate clap;
 
-#[macro_use]
 extern crate combine;
 extern crate conv;
 extern crate itertools;
@@ -26,15 +24,12 @@ mod buffer;
 mod types;
 mod eval;
 mod forms;
-mod lexer;
-mod parser;
 mod ops;
-mod token;
 mod error;
 mod util;
 mod input;
 mod env;
-mod stream;
+mod syntax;
 
 use clap::{App, Arg};
 

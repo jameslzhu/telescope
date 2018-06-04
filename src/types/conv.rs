@@ -1,6 +1,6 @@
 use super::*;
 use std::sync::Arc;
-use token::Literal;
+use syntax::Literal;
 
 impl<T> From<T> for Expr
 where

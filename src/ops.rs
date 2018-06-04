@@ -69,7 +69,7 @@ where
             fn_int(&ints).map(Expr::from)
         }
     } else {
-        Err(format_err!("#[{}] expected numeric", name))
+        Err(Error::Msg(format!("#[{}] expected numeric", name)))
     }
 }
 
@@ -88,7 +88,7 @@ fn sub(args: &[Expr], _env: Env) -> Result<Expr> {
         return match args[0] {
             Expr::Int(x) => Ok(Expr::from(-x)),
             Expr::Flt(x) => Ok(Expr::from(-x)),
-            _ => Err(format_err!("invalid type"))
+            _ => Err(Error::Msg(format!("invalid type")))
         }
     }
 
@@ -113,13 +113,13 @@ fn div(args: &[Expr], _env: Env) -> Result<Expr> {
         return match args[0] {
             Expr::Int(x) => Ok(Expr::from((x as f64).recip())),
             Expr::Flt(x) => Ok(Expr::from(x.recip())),
-            _ => Err(format_err!("invalid type"))
+            _ => Err(Error::Msg(format!("invalid type")))
         }
     }
 
     let int_div = |ints: &[i64]| {
         ints[1..].iter()
-            .map(|&x| if x == 0i64 { Err(format_err!("division by zero")) } else { Ok(x) })
+            .map(|&x| if x == 0i64 { Err(Error::Msg(format!("division by zero"))) } else { Ok(x) })
             .fold_results(ints[0], Div::div)
     };
 
@@ -141,7 +141,7 @@ fn less(args: &[Expr], _env: Env) -> Result<Expr> {
         (&Expr::Flt(ref a), &Expr::Flt(ref b)) => Ok(Expr::from(a < b)),
         (&Expr::Str(ref a), &Expr::Str(ref b)) => Ok(Expr::from(a < b)),
         _ => Err(
-            format_err!("comparison undefined for: {}, {}", args[0], args[1]),
+            Error::Msg(format!("comparison undefined for: {}, {}", args[0], args[1])),
         ),
     }
 }
@@ -153,7 +153,7 @@ fn less_eq(args: &[Expr], _env: Env) -> Result<Expr> {
         (&Expr::Flt(ref a), &Expr::Flt(ref b)) => Ok(Expr::from(a <= b)),
         (&Expr::Str(ref a), &Expr::Str(ref b)) => Ok(Expr::from(a <= b)),
         _ => Err(
-            format_err!("comparison undefined for: {}, {}", args[0], args[1]),
+            Error::Msg(format!("comparison undefined for: {}, {}", args[0], args[1])),
         ),
     }
 }
@@ -165,7 +165,7 @@ fn greater(args: &[Expr], _env: Env) -> Result<Expr> {
         (&Expr::Flt(ref a), &Expr::Flt(ref b)) => Ok(Expr::from(a > b)),
         (&Expr::Str(ref a), &Expr::Str(ref b)) => Ok(Expr::from(a > b)),
         _ => Err(
-            format_err!("comparison undefined for: {}, {}", args[0], args[1]),
+            Error::Msg(format!("comparison undefined for: {}, {}", args[0], args[1])),
         ),
     }
 }
@@ -177,7 +177,7 @@ fn greater_eq(args: &[Expr], _env: Env) -> Result<Expr> {
         (&Expr::Flt(ref a), &Expr::Flt(ref b)) => Ok(Expr::from(a >= b)),
         (&Expr::Str(ref a), &Expr::Str(ref b)) => Ok(Expr::from(a >= b)),
         _ => Err(
-            format_err!("comparison undefined for: {}, {}", args[0], args[1]),
+            Error::Msg(format!("comparison undefined for: {}, {}", args[0], args[1])),
         ),
     }
 }
@@ -211,7 +211,7 @@ fn first(args: &[Expr], _env: Env) -> Result<Expr> {
     match args[0] {
         Expr::List(ref l) => Ok(l.0.first().cloned().unwrap_or(Expr::Nil)),
         Expr::Vector(ref q) => Ok(q.0.first().cloned().unwrap_or(Expr::Nil)),
-        _ => Err(format_err!("#[first] expected list")),
+        _ => Err(Error::Msg(format!("#[first] expected list"))),
     }
 }
 
@@ -235,7 +235,7 @@ fn rest(args: &[Expr], _env: Env) -> Result<Expr> {
                     .unwrap_or(Expr::Nil),
             )
         }
-        _ => Err(format_err!("#[rest] expected list")),
+        _ => Err(Error::Msg(format!("#[rest] expected list"))),
     }
 }
 
@@ -254,7 +254,7 @@ fn cons(args: &[Expr], _env: Env) -> Result<Expr> {
             new.0.push(args[1].clone());
             Ok(Expr::Vector(new))
         }
-        _ => Err(format_err!("#[cons] expected list")),
+        _ => Err(Error::Msg(format!("#[cons] expected list"))),
     }
 }
 

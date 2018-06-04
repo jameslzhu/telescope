@@ -2,7 +2,7 @@ use combine::{Parser, RangeStream, ParseError};
 use combine::{between, many, many1, one_of, optional, satisfy, satisfy_map, try};
 use combine::char::{digit, char, spaces};
 
-use token::{Literal, Token};
+use syntax::token::{Literal, Token};
 use unicode_xid::UnicodeXID;
 
 pub fn lexer<'a, I>() -> impl Parser<Input = I, Output = Vec<Token>>
@@ -30,19 +30,19 @@ where
     I: RangeStream<Item = char, Range = &'a str>,
     I::Error: ParseError<char, I::Range, I::Position>,
 {
-    let sign = optional(char('-'));
-    let digits = many1::<String, _>(digit());
+    let sign = || optional(char('-'));
+    let digits = || many1::<String, _>(digit());
     let integer =
     (
-        sign,
-        digits.map(|s| s.parse::<i64>().unwrap())
+        sign(),
+        digits().map(|s| s.parse::<i64>().unwrap())
     )
         .map(|(sign, num)| if sign.is_some() { -num } else { num })
         .map(Literal::from);
 
-    let float = sign
+    let float = sign()
         .and(
-            (digits, char('.'), digits)
+            (digits(), char('.'), digits())
                 .map(|(prefix, _, suffix)| format!("{}.{}", prefix, suffix))
                 .map(|num| num.parse::<f64>().unwrap())
         )
@@ -83,9 +83,9 @@ where
     I: RangeStream<Item = char, Range = &'a str>,
     I::Error: ParseError<I::Item, I::Range, I::Position>,
 {
-    let punctuation = one_of("_+-*/=<>!".chars());
-    let start = satisfy(UnicodeXID::is_xid_start).or(punctuation);
-    let body = satisfy(UnicodeXID::is_xid_continue).or(punctuation);
+    let punctuation = || one_of("_+-*/=<>!".chars());
+    let start = satisfy(UnicodeXID::is_xid_start).or(punctuation());
+    let body = satisfy(UnicodeXID::is_xid_continue).or(punctuation());
     let rest = many::<String, _>(body);
     start
         .and(rest)
